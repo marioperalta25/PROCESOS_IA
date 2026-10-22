@@ -1,0 +1,36 @@
+# Esquema neutral de instrucciones. El verificador local lee estos límites.
+# No configura modelos, memoria automática ni permisos de ejecución.
+
+[esquema]
+version = 2
+idioma = "es"
+entrada = ".agents/reglas/AGENTS.md"
+habilidades = ".agents/skills"
+
+[memoria]
+corto_plazo = ".agents/memoria/corto-plazo.md"
+largo_plazo = ".agents/memoria/largo-plazo.md"
+registro_decisiones = ".agents/proyecto/decisiones.md"
+politica = "evidencia_con_fecha_y_revalidacion"
+
+[limites]
+lineas_codigo = 300
+lineas_habilidad = 150
+
+[objetivos_editoriales]
+# Son avisos revisables, no límites del contexto de todos los LLM.
+# Las palabras se usan como medida portable, no como equivalencia de tokens.
+palabras_entrada = 1500
+palabras_memoria_corta = 250
+palabras_indice_duradero = 350
+palabras_por_habilidad = 650
+
+[contexto]
+carga = "por_necesidad"
+prioridad = "correccion_antes_de_ahorro"
+resumen = "objetivo_restricciones_evidencia_pendientes_siguiente_paso"
+
+[validacion]
+comando = "python .agents/herramientas/verificar_instrucciones.py"
+alcance = "estructura_local_no_obediencia_del_modelo"
+medicion_tokens = "segun_tokenizador_y_herramienta_del_modelo_evaluado"

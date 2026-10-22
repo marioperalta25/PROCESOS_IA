@@ -1,0 +1,128 @@
+# Material que se conserva en Git:
+# AGENTS.md, .agents/skills, reglas, referencias, configuracion declarativa,
+# herramientas, decisiones y memorias compartidas sin datos privados.
+# Tambien src/, pruebas/, analisishumano/ y recursos/ del proyecto.
+# Este archivo no detecta secretos dentro del codigo ni borra historial existente.
+
+# Entornos y archivos generados por Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Compilacion, empaquetado e instaladores generados
+/build/
+/dist/
+*.exe
+*.msi
+*.msix
+
+# Datos privados, procesos y resultados de ejecucion
+/datos_locales/
+/entradas/
+/salidas/
+/resultados/
+/almacenamiento/
+/trabajos/
+/prompts_usuario/
+/conversaciones/
+/registros/
+/copias_seguridad/
+/temporales/
+/tmp/
+/temp/
+
+# Archivos tabulares: proteger datos reales aunque se copien fuera del almacen
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.xlsm
+*.parquet
+*.arrow
+*.feather
+*.jsonl
+*.ndjson
+
+# Excepcion deliberada: solo datos de prueba sinteticos y revisados
+!pruebas/datos_sinteticos/**/*.csv
+!pruebas/datos_sinteticos/**/*.tsv
+!pruebas/datos_sinteticos/**/*.xlsx
+!pruebas/datos_sinteticos/**/*.xlsm
+!pruebas/datos_sinteticos/**/*.jsonl
+!pruebas/datos_sinteticos/**/*.ndjson
+
+# Bases locales, bitacoras y puntos de recuperacion
+*.db
+*.sqlite
+*.sqlite3
+*-wal
+*-shm
+*-journal
+*.wal
+*.checkpoint
+*.checkpoint.tmp
+*.log
+*.tmp
+*.temp
+*.bak
+
+# Pesos y almacenamiento de modelos; no afecta archivos modelos.py
+.ollama/
+/modelos_descargados/
+*.gguf
+*.ggml
+*.bin
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.ckpt
+
+# Credenciales y configuracion privada; se aplican tambien a .agents/
+.env
+.env.*
+!.env.example
+.env/
+*.local.toml
+*.local.json
+*.local.yaml
+*.local.yml
+*.local.md
+credenciales*.json
+credentials*.json
+secrets.*
+.secrets/
+secretos/
+.ssh/
+.aws/
+.azure/
+.gcloud/
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+id_rsa
+id_ed25519
+/.agents/memoria/privada/
+/.agents/memoria/sesiones/
+
+# Estado personal de editores y archivos del sistema
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+.DS_Store

@@ -1,0 +1,38 @@
+# Parámetros declarativos. No son leídos por una aplicación en esta etapa.
+# Reglas en .agents/reglas/AGENTS.md; entrada breve en AGENTS.md de la raíz.
+
+[proyecto]
+nombre = "PROCESOS_IA"
+idioma = "es"
+etapa = "cimientos"
+tipo = "aplicacion_de_escritorio"
+sistema_inicial = "Windows"
+lenguaje = "Python"
+version_python = "pendiente_de_validar_con_dependencias"
+
+[interfaz]
+biblioteca_propuesta = "PySide6"
+componentes_propuestos = "Qt Widgets"
+direccion_visual = "tinta_marfil_cobre"
+estado = "propuesta_del_asistente_no_aprobada"
+
+[ollama]
+direccion_inicial = "http://127.0.0.1:11434"
+modelo_inicial = "sin_seleccionar"
+aceleracion_preferida = "grafica_integrada_si_es_compatible"
+compatibilidad_equipo = "sin_verificar"
+
+[operacion]
+instalacion_automatica_al_arrancar = false
+actualizacion_automatica_al_arrancar = false
+descarga_modelos_al_arrancar = false
+diagnostico_completo_al_arrancar = false
+precarga_modelos_al_arrancar = false
+telemetria_externa = false
+
+[recursos]
+generaciones_simultaneas_propuestas = 1
+estado = "propuesta_del_asistente_pendiente_de_medicion_y_decision"
+politica_memoria_modelo = "bajo_demanda"
+presupuesto_ram = "pendiente_de_medicion"
+limite_contexto = "pendiente_del_modelo_y_equipo"
