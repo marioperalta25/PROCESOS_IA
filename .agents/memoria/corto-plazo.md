@@ -1,31 +1,47 @@
 # Estado breve
 
-Actualización: 22 de octubre de 2026.
-Base: robustecimiento de inferencia desacoplada, clasificación HTTP y validación semántica completados.
+Actualización: 23 de octubre de 2026. Memoria fijada y estimación por modelo.
 
-## Objetivo autorizado
+## Encargo y resultado
 
-Corregir casos borde en cliente Ollama, validación de respuestas y aislamiento estricto de columnas seleccionadas.
+Completada la autorización de añadir Recordar a los mensajes, ajustar el presupuesto
+con varias mediciones del modelo y solicitar respuestas concisas para preguntas sencillas.
+Se mantiene una generación por envío, streaming, cuota y modelo fijo por conversación.
 
-## Fuentes y alcance
+## Implementación
 
-- [src/procesos_ia/infraestructura/ollama/servicio_inferencia.py](../../src/procesos_ia/infraestructura/ollama/servicio_inferencia.py):
-  aislamiento estricto de columnas a evaluar; rechazo con `error_configuracion` si ninguna coincide.
-- [src/procesos_ia/dominio/validador.py](../../src/procesos_ia/dominio/validador.py):
-  detección integral de claves de error y validación de carga útil no vacía.
-- [src/procesos_ia/infraestructura/ollama/cliente_http.py](../../src/procesos_ia/infraestructura/ollama/cliente_http.py):
-  clasificación de HTTP 503 como error de conexión, fallo rápido en 4xx sin reintentos inútiles y captura de `JSONDecodeError`.
-- [pruebas/unitarias/test_ollama.py](../../pruebas/unitarias/test_ollama.py):
-  pruebas para HTTP 503, HTTP 404, JSON corrupto y aislamiento de columnas.
-- [pruebas/unitarias/test_validador.py](../../pruebas/unitarias/test_validador.py):
-  pruebas para detección de `error_formato` y payload vacío.
+- PanelMensajes emite identidad y selección literal (o mensaje completo). MemoriaChat
+  comprueba su pertenencia y guarda mediante ServicioConversacion.guardar_memoria,
+  reutilizado por el editor manual. Sin inferencia adicional ni extracción semántica.
+- Los recuerdos se atribuyen al usuario o al modelo. Se evita duplicar el mismo texto.
+  Se respetan cuota, versión y bloqueo; durante una inferencia no se puede recordar.
+- Los textos extensos abren el editor existente para abreviar. EditorTextoExpandible
+  y QScrollArea permiten ampliarlo; Guardar/Cancelar quedan fuera del desplazamiento.
+- EstimadorContexto conserva solo números en RAM por modelo/contexto, con caché acotada.
+  Espera tres muestras válidas, mantiene margen y relaja gradualmente. El catálogo
+  invalida la caché; resultados anteriores no la repueblan. Reaprende al reiniciar.
+- Cada petición usa un factor estable. ultima_inferencia registra el factor utilizado
+  y los contadores existentes. No se modificó ningún historial real del usuario.
+- Instrucción de concisión declarativa en recursos/configuracion/chat.toml; sin
+  aumentar num_ctx, reducir el límite de salida, instalar dependencias o cargar modelos.
 
-## Estado comprobable
+## Verificación
 
-- 56 archivos revisados; verificación estructural `[CORRECTO]`.
-- Suite completa pasando (31 pruebas en 0.52s).
-- Cero emojis; sin valores provisionales ni hardcodeados.
+- Batería completa: 215 pruebas aprobadas en 59.278 s, fuera del sandbox por sockets
+  locales de asyncio. Tras fijar el pie del editor: 34 pruebas de interfaz/regresión
+  aprobadas en 63.366 s. Los casos enfocados de memoria/estimación también pasaron.
+- Sintaxis y máximo de 300 líneas comprobados en 127 archivos Python; TOML válidos.
+- Renderizado sintético a 125/150/200 %, anchos de 240 a 1000 y editor compacto:
+  sin solapamientos, controles de memoria visibles y altura expandible con scroll.
+- No se midió inferencia real, velocidad, RAM o aceleración GPU en este incremento.
 
-## Siguiente paso
+## Límites y otros incrementos
 
-Diseñar e implementar la interfaz gráfica de escritorio con su tablero de telemetría ligero (< 10 MB), integración de los iconos y botones de control.
+
+- Falta medir latencia, RAM/GPU y tokenización con el modelo real. Los tokens de
+  contexto son una estimación; no se promete aceleración ni caché garantizada.
+- Cancelar no interrumpe inmediatamente una lectura bloqueada; espera datos o timeout.
+- La centralización de salidas en EnrutadorSalidas procede del incremento anterior;
+  no se alteró en este encargo. Existen cambios de otros módulos que deben conservarse.
+- Las pruebas usan TEMP/TMP dentro de temp/ (ignorado por Git); el temporal redirigido
+  del sandbox de Windows impidió crear el bloqueo de archivos en el primer intento.

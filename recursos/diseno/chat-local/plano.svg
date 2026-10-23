@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="800" viewBox="0 0 1040 800" style="font-family: Segoe UI, sans-serif; fill: #222c2a" role="img" aria-labelledby="titulo descripcion">
+<title id="titulo">Plano propuesto de conversación local de PROCESOS_IA</title>
+<desc id="descripcion">Historial verde pino a la izquierda, conversación en papel cálido, memoria independiente e input de texto con botón Enviar. Datos de ejemplo, sin conexión.</desc>
+<defs>
+  <style>
+    .chico { font-size: 11px; }
+    .normal { font-size: 14px; }
+    .secundario { fill: #58615b; }
+    .claro { fill: #f4f0e8; }
+    .suave { fill: #c1cfc4; }
+  </style>
+  <clipPath id="marco"><rect x="20" y="56" width="1000" height="684" rx="16"/></clipPath>
+</defs>
+<rect width="1040" height="800" fill="#e9e4d9"/>
+<text x="24" y="26" font-size="16" font-weight="600">Conversación local</text>
+<text x="24" y="44" class="chico secundario">PLANO PROPUESTO · Datos ficticios · Sin conexión a Ollama</text>
+<g clip-path="url(#marco)">
+  <rect x="20" y="56" width="1000" height="684" fill="#f4f0e8"/>
+  <rect x="20" y="56" width="248" height="684" fill="#24352f"/>
+  <circle cx="63" cy="102" r="19" fill="#d4ac7d"/>
+  <text x="63" y="107" text-anchor="middle" font-size="13" font-weight="700">PA</text>
+  <text x="94" y="99" font-size="13" font-weight="650" class="claro">PROCESOS_IA</text>
+  <text x="94" y="117" class="chico suave">Conversación local</text>
+  <rect x="40" y="149" width="208" height="43" rx="8" fill="#31483b" stroke="#718378"/>
+  <text x="54" y="176" font-size="13" class="claro">Nueva conversación</text>
+  <text x="222" y="176" font-size="21" class="claro">+</text>
+  <text x="42" y="229" font-size="10" letter-spacing="1.1" class="suave">TU ESPACIO DE TRABAJO</text>
+  <rect x="38" y="244" width="212" height="81" rx="8" fill="#3b5142" stroke="#809281"/>
+  <rect x="38" y="254" width="3" height="60" rx="1" fill="#d2a272"/>
+  <text x="52" y="269" font-size="13" font-weight="600" class="claro"><tspan>Criterios para clasificar</tspan><tspan x="52" dy="19">negocios</tspan></text>
+  <text x="52" y="311" class="chico suave">Hoy · Idioma y actividad</text>
+  <text x="52" y="359" font-size="13" class="claro">Prompts en español</text>
+  <text x="52" y="381" class="chico suave">Hoy · Criterios reutilizables</text>
+  <text x="52" y="428" font-size="13" class="claro">Categorías de actividad</text>
+  <text x="52" y="450" class="chico suave">Ayer · Clasificación</text>
+  <text x="42" y="652" class="chico suave">Historial local</text>
+  <text x="248" y="652" text-anchor="end" class="chico" fill="#dfc5a2">1,8 / 10 MB</text>
+  <rect x="42" y="665" width="204" height="4" rx="2" fill="#516454"/>
+  <rect x="42" y="665" width="37" height="4" rx="2" fill="#d5a571"/>
+  <text x="42" y="692" font-size="10" class="suave">Indicador ilustrativo.</text>
+  <text x="42" y="708" font-size="10" class="suave">Tú eliges qué borrar.</text>
+  <text x="300" y="92" font-size="10" letter-spacing="2" fill="#9a472e">CONVERSACIÓN</text>
+  <text x="300" y="126" font-family="Georgia, serif" font-size="27">Criterios para clasificar negocios</text>
+  <text x="300" y="150" font-size="12" class="secundario">Texto plano, ideas claras y contexto propio.</text>
+  <text x="862" y="87" class="chico secundario">Renombrar</text>
+  <text x="960" y="87" class="chico" fill="#962f3c">Borrar</text>
+  <circle cx="304" cy="181" r="3" fill="#326457"/>
+  <text x="315" y="185" class="chico" fill="#326457">Modelo local seleccionado</text>
+  <text x="978" y="185" text-anchor="end" class="chico secundario">Memoria de este chat</text>
+  <path d="M268 202H1020" stroke="#d9d1c5"/>
+  <rect x="376" y="233" width="602" height="92" rx="11" fill="#e9e2d5" stroke="#ddd3c1"/>
+  <text x="394" y="255" font-size="10" letter-spacing="1" class="secundario">TÚ</text>
+  <text x="394" y="281" class="normal"><tspan>Quiero evaluar el idioma de un comentario y clasificar</tspan><tspan x="394" dy="21">la actividad del negocio. ¿Cómo separo los criterios?</tspan></text>
+  <path d="M301 356V498" stroke="#af7851" stroke-width="2"/>
+  <text x="319" y="367" font-size="10" letter-spacing="1" fill="#8b442e">ASISTENTE LOCAL</text>
+  <text x="319" y="395" class="normal"><tspan>Podemos trabajar con dos evaluaciones independientes.</tspan><tspan x="319" dy="29">Idioma: español, otro o indeterminado si falta evidencia.</tspan><tspan x="319" dy="29">Actividad: una categoría basada en la descripción disponible.</tspan><tspan x="319" dy="29">Tú decides las columnas de entrada y dónde guardar resultados.</tspan></text>
+  <rect x="442" y="521" width="536" height="53" rx="10" fill="#e9e2d5" stroke="#ddd3c1"/>
+  <text x="460" y="552" font-size="13">Quiero revisar los casos sin evidencia antes de procesar.</text>
+  <rect x="300" y="600" width="678" height="98" rx="11" fill="#fffcf7" stroke="#b7b0a3"/>
+  <text x="316" y="622" font-size="10" class="secundario">Tu mensaje</text>
+  <text x="316" y="648" font-size="14" fill="#747969">Escribe una idea o continúa la conversación…</text>
+  <text x="316" y="679" font-size="10" class="secundario">Enter para enviar · Mayús + Enter para otra línea</text>
+  <rect x="858" y="654" width="103" height="33" rx="7" fill="#9a472e"/>
+  <text x="879" y="676" font-size="13" class="claro">Enviar</text>
+  <path d="M933 670h12m-5-4 5 4-5 4" stroke="#fffcf7" fill="none" stroke-width="1.5"/>
+  <text x="300" y="722" font-size="9" class="secundario">PROCESOS_IA</text>
+  <text x="978" y="722" text-anchor="end" font-size="9" class="secundario">Una conversación a la vez. Tú eliges qué conservar.</text>
+</g>
+<rect x="20" y="56" width="1000" height="684" rx="16" stroke="#c8c0b4" fill="none"/>
+<text x="24" y="771" class="chico secundario">A. Historial acotado</text><text x="244" y="771" class="chico secundario">B. Contexto independiente</text><text x="492" y="771" class="chico secundario">C. Texto plano</text><text x="703" y="771" class="chico secundario">D. Envío y cancelación</text>
+</svg>

@@ -52,6 +52,10 @@ class LectorFlujoProtocol(Protocol):
 class EscritorWalProtocol(Protocol):
     """Contrato para persistencia segura en disco basada en Write-Ahead Log."""
 
+    def vincular_trabajo(self, configuracion: ConfiguracionTrabajo) -> None:
+        """Establece la identidad del origen y contrato antes de recuperar progreso."""
+        ...
+
     def inicializar(self, directorio_base: Path, encabezados: list[str]) -> int:
         """Prepara bitacora WAL y devuelve el ultimo indice confirmado previo."""
         ...

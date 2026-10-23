@@ -9,3 +9,4 @@ Directorio centralizado con las instrucciones, reglas y contexto del proyecto PR
 - [Memoria de largo plazo](memoria/largo-plazo.md): Índice duradero de acuerdos y fuentes.
 - [Decisiones del proyecto](proyecto/decisiones.md): Acuerdos y propuestas documentadas.
 - [Referencias de portabilidad](referencias/portabilidad.md): Guía de carga en distintas herramientas.
+- [Chat local propuesto](proyecto/chat-local.md): Lógica, memoria acotada y planos; sin implementación.

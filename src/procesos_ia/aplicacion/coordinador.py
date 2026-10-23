@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 import time
 
 from procesos_ia.aplicacion.contratos import (
@@ -64,12 +65,14 @@ class CoordinadorTrabajo:
 
     def iniciar_o_reanudar(self) -> int:
         """Inicializa componentes, concilia progreso confirmado e inicia sesión."""
+        self._config.validar_esquema_salida()
         self._estado = EstadoProcesamiento.PREPARANDO
         self._notificador.notificar_cambio_estado(
             self._estado, "Inicializando origen de datos y bitacora WAL"
         )
 
         encabezados_origen = self._lector.inicializar(self._config.ruta_entrada)
+        self._config.obtener_contrato().validar(encabezados_origen)
         self._total_estimado = self._lector.estimar_total_registros()
 
         # Conciliar esquema total: columnas origen + columnas modelo + control de fallos
@@ -81,6 +84,7 @@ class CoordinadorTrabajo:
             if col_ctrl not in encabezados_totales:
                 encabezados_totales.append(col_ctrl)
 
+        self._escritor_wal.vincular_trabajo(self._config)
         self._ultimo_confirmado = self._escritor_wal.inicializar(
             self._config.directorio_salida, encabezados_totales
         )
@@ -121,12 +125,16 @@ class CoordinadorTrabajo:
             self._notificador.notificar_cambio_estado(
                 self._estado, "Procesamiento de todos los registros finalizado"
             )
+            self._marcar_completado()
             return False
 
         # Inferencia desacoplada
         respuestas_crudas = self._inferencia.procesar_lote(lote, self._config)
 
         # Mapa de respuestas por ID estable para impedir desfasajes por posicion ordinal
+        ids = [r.get("identificador") for r in respuestas_crudas if isinstance(r, dict)]
+        if len(ids) != len(set(ids)) or not set(ids).issubset({e.identificador for e in lote}):
+            raise ErrorProcesamiento("La inferencia devolvio identidades duplicadas o ajenas al lote")
         mapa_respuestas = {
             r.get("identificador"): r
             for r in respuestas_crudas
@@ -142,8 +150,9 @@ class CoordinadorTrabajo:
 
             valores_completos = dict(entrada.valores_originales)
             if resultado.es_valido_sintactico and resultado.es_valido_semantico:
-                for clave, valor in resultado.salida_estructurada.items():
-                    valores_completos[str(clave)] = str(valor)
+                for clave in self._config.columnas_salida_modelo:
+                    valor = resultado.salida_estructurada.get(clave, "")
+                    valores_completos[clave] = str(valor)
                 valores_completos["estado_ia"] = "exito"
                 valores_completos["error_ia"] = ""
                 self._confirmados_sesion += 1
@@ -240,3 +249,17 @@ class CoordinadorTrabajo:
             return round(psutil.Process().memory_info().rss / (1024 * 1024), 2)
         except Exception:
             return 0.0
+
+    def _marcar_completado(self) -> None:
+        try:
+            ruta_marca = self._config.directorio_salida / "completado.json"
+            datos = {
+                "completado": True,
+                "total_registros": self._ultimo_confirmado,
+                "marca_tiempo_utc": datetime.now(timezone.utc).isoformat(),
+            }
+            ruta_marca.write_text(
+                json.dumps(datos, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+        except Exception:
+            pass

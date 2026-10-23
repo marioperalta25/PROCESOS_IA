@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Protocol
 
 from procesos_ia.dominio.excepciones import ErrorProcesamiento
+from procesos_ia.dominio.evaluaciones import DefinicionResultado
 from procesos_ia.dominio.prompts import (
     PeticionRefinamiento,
     PlantillaPrompt,
@@ -66,6 +67,7 @@ class ServicioCatalogoPrompts:
         columnas_requeridas: tuple[str, ...] = (),
         columnas_salida: tuple[str, ...] = (),
         identificador: str | None = None,
+        resultados: tuple[DefinicionResultado, ...] = (),
     ) -> PlantillaPrompt:
         """Valida y guarda una nueva plantilla en el catálogo local."""
         if not titulo.strip():
@@ -74,6 +76,11 @@ class ServicioCatalogoPrompts:
             raise ErrorProcesamiento("El contenido del prompt no puede estar vacio")
 
         slug = identificador or PlantillaPrompt.normalizar_identificador(titulo)
+        for resultado in resultados:
+            resultado.validar()
+        if len({r.clave for r in resultados}) != len(resultados):
+            raise ErrorProcesamiento("Hay resultados duplicados")
+        anterior = self._repo.obtener_por_id(slug)
         marca_tiempo = datetime.now(timezone.utc).isoformat()
 
         plantilla = PlantillaPrompt(
@@ -84,8 +91,9 @@ class ServicioCatalogoPrompts:
             contenido=contenido.strip(),
             columnas_requeridas=columnas_requeridas,
             columnas_salida=columnas_salida,
-            creado_en_utc=marca_tiempo,
-            version=1,
+            creado_en_utc=anterior.creado_en_utc if anterior else marca_tiempo,
+            version=anterior.version + 1 if anterior else 1,
+            resultados=resultados,
         )
 
         self._repo.guardar(plantilla)

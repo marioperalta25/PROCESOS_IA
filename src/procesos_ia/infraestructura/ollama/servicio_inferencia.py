@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 import json
 from typing import Any
 
@@ -9,6 +10,7 @@ from procesos_ia.aplicacion.contratos import ServicioInferenciaProtocol
 from procesos_ia.dominio.modelos import ConfiguracionTrabajo, RegistroEntrada
 from procesos_ia.infraestructura.ollama.cliente_http import ClienteHttpOllama
 from procesos_ia.infraestructura.ollama.modelos import OpcionesInferencia
+from procesos_ia.infraestructura.prompts.parametros import cargar_parametros_evaluacion
 
 
 class ServicioInferenciaOllama:
@@ -16,6 +18,7 @@ class ServicioInferenciaOllama:
 
     def __init__(self, cliente_http: ClienteHttpOllama | None = None) -> None:
         self._cliente = cliente_http or ClienteHttpOllama()
+        self._instruccion = cargar_parametros_evaluacion()["instruccion_ejecucion"]
 
     def procesar_lote(
         self,
@@ -29,74 +32,44 @@ class ServicioInferenciaOllama:
             tiempo_limite_segundos=configuracion.tiempo_limite_lote_segundos,
         )
 
+        contrato = configuracion.obtener_contrato()
+        configuracion.validar_esquema_salida()
+        esquema = contrato.esquema_json()
+        evaluaciones = [asdict(r) for r in contrato.resultados]
         respuestas: list[dict[str, Any]] = []
-
         for entrada in lote:
-            # Filtrar estrictamente las columnas autorizadas para inferencia
-            if configuracion.columnas_evaluar:
-                campos_evaluar = {
-                    col: entrada.datos_para_modelo[col]
-                    for col in configuracion.columnas_evaluar
-                    if col in entrada.datos_para_modelo
-                }
-                if not campos_evaluar:
-                    respuestas.append(
-                        {
-                            "identificador": entrada.identificador,
-                            "error_configuracion": (
-                                "Ninguna de las columnas configuradas para evaluar "
-                                f"{configuracion.columnas_evaluar} existe en el registro."
-                            ),
-                        }
-                    )
-                    continue
-            else:
-                campos_evaluar = entrada.datos_para_modelo
-
-            if not campos_evaluar:
-                respuestas.append(
-                    {
-                        "identificador": entrada.identificador,
-                        "error_configuracion": "El registro no contiene datos para evaluar.",
-                    }
-                )
+            try:
+                datos = contrato.preparar_datos_delimitados(entrada.datos_para_modelo)
+            except KeyError:
+                respuestas.append({
+                    "identificador": entrada.identificador,
+                    "error_configuracion": "Faltan columnas de entrada vinculadas; no se envio el registro",
+                })
                 continue
-
             prompt = (
-                f"{configuracion.prompt_sistema}\n\n"
-                f"Identificador de registro: {entrada.identificador}\n"
-                f"Datos de entrada:\n{json.dumps(campos_evaluar, ensure_ascii=False)}\n\n"
-                "Responde unicamente en JSON valido que incluya obligatoriamente el campo "
-                f"'identificador': '{entrada.identificador}'."
+                f"### CRITERIOS Y REGLAS DE EVALUACION:\n{configuracion.prompt_sistema}\n\n"
+                f"### EVALUACIONES REQUERIDAS:\n{json.dumps(evaluaciones, ensure_ascii=False, indent=2)}\n\n"
+                f"### DATOS DE ENTRADA A EVALUAR:\n{json.dumps(datos, ensure_ascii=False, indent=2)}\n\n"
+                f"### ESQUEMA JSON DE RESPUESTA REQUERIDO:\n{json.dumps(esquema, ensure_ascii=False, indent=2)}\n"
             )
-
             try:
                 salida = self._cliente.generar_estructurado(
-                    modelo=configuracion.nombre_modelo,
-                    prompt=prompt,
-                    opciones=opciones,
+                    modelo=configuracion.nombre_modelo, prompt=prompt,
+                    esquema_salida=esquema, opciones=opciones, sistema=self._instruccion,
                 )
-                # Garantizar que el identificador corresponda fielmente sin aliasing
-                if isinstance(salida, dict):
-                    salida_copia = dict(salida)
-                    salida_copia["identificador"] = entrada.identificador
-                    respuestas.append(salida_copia)
-                else:
-                    respuestas.append(
-                        {
-                            "identificador": entrada.identificador,
-                            "error_formato": "La salida del modelo no es un objeto JSON",
-                        }
-                    )
-            except Exception as error:
-                # Fallo aislado en un registro: no aborta el lote completo
-                respuestas.append(
-                    {
+                errores = contrato.validar_salida(salida) if isinstance(salida, dict) else ("La salida no es un objeto JSON",)
+                if errores:
+                    respuestas.append({
                         "identificador": entrada.identificador,
-                        "error_inferencia": str(error),
-                    }
-                )
-
+                        "error_formato": "; ".join(errores),
+                    })
+                else:
+                    # La identidad pertenece a la peticion Python, nunca al texto del modelo.
+                    respuestas.append({"identificador": entrada.identificador, **salida})
+            except Exception as error:
+                respuestas.append({
+                    "identificador": entrada.identificador, "error_inferencia": str(error),
+                })
         return respuestas
 
     def liberar_memoria(self, modelo: str) -> bool:

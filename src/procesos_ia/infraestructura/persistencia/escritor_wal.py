@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import TextIO
 
 from procesos_ia.dominio.excepciones import ErrorIntegridadWal, ErrorProcesamiento
-from procesos_ia.dominio.modelos import RegistroConfirmado, TransaccionWal
+from procesos_ia.dominio.modelos import ConfiguracionTrabajo, RegistroConfirmado, TransaccionWal
+from procesos_ia.infraestructura.persistencia.identidad_trabajo import IdentidadTrabajo
 
 
 class EscritorWal:
@@ -37,6 +38,10 @@ class EscritorWal:
         self._manejador_consolidado: TextIO | None = None
         self._escritor_csv: csv.DictWriter | None = None
         self._transaccion_pendiente: TransaccionWal | None = None
+        self._identidad: IdentidadTrabajo | None = None
+
+    def vincular_trabajo(self, configuracion: ConfiguracionTrabajo) -> None:
+        self._identidad = IdentidadTrabajo(configuracion)
 
     @property
     def ultimo_confirmado(self) -> int:
@@ -47,6 +52,18 @@ class EscritorWal:
         self._directorio = directorio_base
         self._directorio.mkdir(parents=True, exist_ok=True)
         self._encabezados = list(encabezados)
+        if self._identidad is not None:
+            origen = self._identidad.origen
+            base = Path(self._nombre_consolidado)
+            if origen.parent == directorio_base.resolve() and (
+                origen.name == base.name or origen.name.startswith(base.stem + "_parte")
+            ):
+                raise ErrorProcesamiento("El origen coincide con un archivo de salida; elija otra carpeta")
+            existe_progreso = any(
+                (directorio_base / nombre).exists() and (directorio_base / nombre).stat().st_size > 0
+                for nombre in (self._nombre_checkpoint, self._nombre_wal, self._nombre_consolidado)
+            )
+            self._identidad.vincular(directorio_base, existe_progreso)
 
         ruta_checkpoint = self._directorio / self._nombre_checkpoint
         bytes_confirmados: int | None = None
@@ -74,6 +91,8 @@ class EscritorWal:
         """Escribe la transaccion en el WAL y asegura su persistencia física con fsync."""
         if self._manejador_wal is None:
             raise ErrorProcesamiento("El escritor WAL no ha sido inicializado")
+        if self._identidad is not None:
+            self._identidad.verificar_origen()
 
         linea_wal = json.dumps(
             {

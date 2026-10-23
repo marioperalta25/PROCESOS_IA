@@ -89,6 +89,7 @@ class PruebaOllama(unittest.TestCase):
             columnas_evaluar=("mensaje",),
             prompt_sistema="Clasifica el mensaje.",
             formato_salida="csv",
+            columnas_salida_modelo=("clasificacion", "categoria"),
         )
 
         lote = [
@@ -118,6 +119,7 @@ class PruebaOllama(unittest.TestCase):
             columnas_evaluar=("columna_inexistente",),
             prompt_sistema="Clasifica.",
             formato_salida="csv",
+            columnas_salida_modelo=("clasificacion",),
         )
 
         lote = [
@@ -127,7 +129,7 @@ class PruebaOllama(unittest.TestCase):
         respuestas = servicio.procesar_lote(lote, config)
         self.assertEqual(len(respuestas), 1)
         self.assertIn("error_configuracion", respuestas[0])
-        self.assertIn("Ninguna de las columnas", respuestas[0]["error_configuracion"])
+        self.assertIn("Faltan columnas", respuestas[0]["error_configuracion"])
         cliente_mock.generar_estructurado.assert_not_called()
 
     def test_verificar_estado_error_conexion_en_http_503(self) -> None:

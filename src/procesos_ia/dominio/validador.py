@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from procesos_ia.dominio.evaluaciones import ContratoEvaluacion
 from procesos_ia.dominio.modelos import RegistroEntrada, ResultadoEvaluacion
+from procesos_ia.dominio.normalizador import normalizar_clave_comparacion
 
 
 class ValidadorSemantico:
@@ -15,10 +17,12 @@ class ValidadorSemantico:
         campos_requeridos: tuple[str, ...] = (),
         categorias_permitidas: dict[str, tuple[str, ...]] | None = None,
         verificar_identificador: bool = True,
+        contrato: ContratoEvaluacion | None = None,
     ) -> None:
         self._campos_requeridos = campos_requeridos
         self._categorias_permitidas = categorias_permitidas or {}
         self._verificar_id = verificar_identificador
+        self._contrato = contrato
 
     def validar_respuesta(
         self,
@@ -56,15 +60,15 @@ class ValidadorSemantico:
 
         # 3. Comprobacion de campos requeridos
         for campo in self._campos_requeridos:
-            if campo not in respuesta_cruda or str(respuesta_cruda[campo]).strip() == "":
+            if campo not in respuesta_cruda or respuesta_cruda[campo] is None or str(respuesta_cruda[campo]).strip() == "":
                 errores.append(f"Campo obligatorio faltante o vacio: '{campo}'")
 
         # 4. Comprobacion de valores en categorias permitidas
         for campo, opciones in self._categorias_permitidas.items():
             if campo in respuesta_cruda:
-                valor_str = str(respuesta_cruda[campo]).strip().lower()
-                opciones_normalizadas = tuple(op.strip().lower() for op in opciones)
-                if valor_str not in opciones_normalizadas:
+                valor_norm = normalizar_clave_comparacion(str(respuesta_cruda[campo]))
+                opciones_norm = tuple(normalizar_clave_comparacion(op) for op in opciones)
+                if valor_norm not in opciones_norm:
                     errores.append(
                         f"Valor '{respuesta_cruda[campo]}' no admitido para '{campo}'. Opciones: {opciones}"
                     )
@@ -72,6 +76,10 @@ class ValidadorSemantico:
         salida_limpia = {
             k: v for k, v in respuesta_cruda.items() if k != "identificador"
         }
+        if self._contrato is not None:
+            errores.extend(self._contrato.validar_salida(salida_limpia))
+            if not errores:
+                salida_limpia = self._contrato.asignar_salida(salida_limpia)
         if not salida_limpia:
             errores.append("La respuesta no contiene campos de evaluacion estructurada")
 

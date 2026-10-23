@@ -28,14 +28,13 @@ class GestorRecursos:
         return self._directorio_imagenes / "icono-dragon-sol.png"
 
     def obtener_icono_aplicacion(self) -> QIcon:
-        """Devuelve el QIcon principal de la aplicación o uno vacío si no se encuentra."""
-        ruta = self.ruta_icono_aplicacion
-        if ruta.is_file():
-            return QIcon(str(ruta))
-        ruta_png = self.ruta_emblema_dragon
-        if ruta_png.is_file():
-            return QIcon(str(ruta_png))
-        return QIcon()
+        """Devuelve el QIcon principal de la aplicación con sus variantes de resolución."""
+        icono = QIcon()
+        if self.ruta_icono_aplicacion.is_file():
+            icono.addFile(str(self.ruta_icono_aplicacion))
+        if self.ruta_emblema_dragon.is_file():
+            icono.addFile(str(self.ruta_emblema_dragon))
+        return icono
 
     def obtener_pixmap_emblema(self, ancho: int = 48, alto: int = 48) -> QPixmap:
         """Devuelve el emblema del dragón escalado de forma nítida."""

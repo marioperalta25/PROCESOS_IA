@@ -12,6 +12,16 @@ from procesos_ia.interfaz.ventana_principal import VentanaPrincipal
 
 def crear_aplicacion(argumentos: list[str] | None = None) -> QApplication:
     """Crea y configura la instancia de QApplication con soporte de alta densidad."""
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                "procesos_ia.herramienta.escritorio.1_0"
+            )
+        except Exception:
+            pass
+
     # Configurar escalado y soporte de alta densidad antes de instanciar
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough

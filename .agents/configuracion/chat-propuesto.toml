@@ -1,0 +1,35 @@
+# Referencia inicial; no es leída por la aplicación. Parámetros activos: recursos/configuracion/chat.toml.
+estado = "referencia_historica"
+
+[historial]
+limite_total_bytes = 10000000
+incluye_indices_metadatos_resumenes_y_temporales = true
+borrado_automatico = false
+conversaciones_maximas_propuestas = 100
+pagina_conversaciones = 20
+mensajes_visibles = 40
+limite_texto_visible_bytes = 131072
+cache_serializada_objetivo_bytes = 1048576
+
+[mensajes]
+entrada_maxima_bytes = 16384
+respuesta_maxima_bytes = 32768
+reintentos_automaticos = 0
+inferencia_simultanea_por_aplicacion = 1
+
+[memoria]
+resumen_maximo_bytes = 8192
+resumen_revisable = true
+compartir_entre_conversaciones = false
+contexto_derivado_del_modelo_y_usuario = true
+reserva_respuesta_tokens_propuesta = 512
+margen_protocolo_tokens_propuesto = 256
+persistir_razonamiento_interno = false
+
+[ventana]
+ancho_inicial = 1040
+alto_inicial = 720
+ajustar_al_area_util = true
+historial_desplegable_en_ancho_reducido = true
+contenido = "texto_plano"
+archivos_audio_imagenes = false

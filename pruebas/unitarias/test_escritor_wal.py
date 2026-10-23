@@ -102,6 +102,7 @@ class PruebaEscritorWal(unittest.TestCase):
             columnas_evaluar=("producto",),
             prompt_sistema="Evaluar",
             formato_salida="csv",
+            columnas_salida_modelo=("evaluacion",),
         )
 
         # 2. Primera ejecucion: procesar solo 1 lote de 2 filas y simular interrupcion

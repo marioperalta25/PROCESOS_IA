@@ -1,0 +1,5 @@
+# Limites del supervisor local; no descarga ni instala componentes.
+intervalo_sondeo_segundos = 0.1
+limite_consulta_segundos = 1.0
+limite_diagnostico_bytes = 4096
+tamano_lectura_bytes = 256

@@ -7,6 +7,14 @@ class ErrorProcesamiento(Exception):
     """Excepcion base para fallos durante el procesamiento de datos."""
 
 
+class ErrorConexionRechazada(ErrorProcesamiento):
+    """El destino rechazo la conexion; no implica instalacion ausente."""
+
+
+class OperacionCancelada(ErrorProcesamiento):
+    """La operación terminó por una solicitud de cancelación cooperativa."""
+
+
 class ErrorValidacionSemantica(ErrorProcesamiento):
     """Indica que una respuesta del modelo no cumple las reglas de negocio."""
 

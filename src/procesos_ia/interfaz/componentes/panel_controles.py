@@ -9,6 +9,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
+from procesos_ia.interfaz.responsivo import ModoPantalla
+
 
 class PanelControles(QWidget):
     """Acciones principales: Iniciar, Pausar/Reanudar, Cancelar y Cuidado de Memoria."""
@@ -34,26 +37,38 @@ class PanelControles(QWidget):
         # Boton Iniciar
         self.btn_iniciar = QPushButton("Iniciar Procesamiento", self)
         self.btn_iniciar.setObjectName("btn_principal")
-        self.btn_iniciar.clicked.connect(self.solicitar_iniciar.emit)
+        conectar_boton_protegido(
+            self.btn_iniciar, self.solicitar_iniciar.emit,
+            "[INFO] Iniciando verificación y preparación de trabajo...", tiempo_bloqueo_ms=800,
+        )
         layout.addWidget(self.btn_iniciar, stretch=2)
 
         # Boton Pausar / Reanudar
         self.btn_pausar = QPushButton("Pausar", self)
         self.btn_pausar.setEnabled(False)
-        self.btn_pausar.clicked.connect(self._alternar_pausa)
+        conectar_boton_protegido(
+            self.btn_pausar, self._alternar_pausa,
+            "[INFO] Alternando estado de pausa...", tiempo_bloqueo_ms=500,
+        )
         layout.addWidget(self.btn_pausar, stretch=1)
 
         # Boton Cancelar
         self.btn_cancelar = QPushButton("Cancelar", self)
         self.btn_cancelar.setObjectName("btn_peligro")
         self.btn_cancelar.setEnabled(False)
-        self.btn_cancelar.clicked.connect(self.solicitar_cancelacion.emit)
+        conectar_boton_protegido(
+            self.btn_cancelar, self.solicitar_cancelacion.emit,
+            "[INFO] Solicitando cancelación del proceso actual...", tiempo_bloqueo_ms=1000,
+        )
         layout.addWidget(self.btn_cancelar, stretch=1)
 
         # Boton Liberar Memoria (cuidado de hardware)
         self.btn_memoria = QPushButton("Liberar VRAM", self)
         self.btn_memoria.setToolTip("Descargar modelo de memoria VRAM (keep_alive: 0)")
-        self.btn_memoria.clicked.connect(self.solicitar_liberar_memoria.emit)
+        conectar_boton_protegido(
+            self.btn_memoria, self.solicitar_liberar_memoria.emit,
+            "[INFO] Solicitando descarga de modelo en memoria VRAM...", tiempo_bloqueo_ms=1000,
+        )
         layout.addWidget(self.btn_memoria, stretch=1)
 
     def _alternar_pausa(self) -> None:
@@ -76,3 +91,27 @@ class PanelControles(QWidget):
         self.btn_pausar.setText("Pausar")
         self.btn_cancelar.setEnabled(en_ejecucion)
         self.btn_memoria.setEnabled(not en_ejecucion)
+
+    def adaptar_modo(self, modo: ModoPantalla) -> None:
+        """Ajusta etiquetas y dimensiones de botones para evitar desbordes o estiramientos feos."""
+        if modo == ModoPantalla.COMPACTO:
+            self.btn_iniciar.setText("Iniciar")
+            self.btn_memoria.setText("VRAM")
+            self.btn_iniciar.setMaximumWidth(16777215)
+            self.btn_pausar.setMaximumWidth(16777215)
+            self.btn_cancelar.setMaximumWidth(16777215)
+            self.btn_memoria.setMaximumWidth(16777215)
+        elif modo == ModoPantalla.AMPLIO:
+            self.btn_iniciar.setText("Iniciar Procesamiento")
+            self.btn_memoria.setText("Liberar VRAM")
+            self.btn_iniciar.setMaximumWidth(320)
+            self.btn_pausar.setMaximumWidth(180)
+            self.btn_cancelar.setMaximumWidth(180)
+            self.btn_memoria.setMaximumWidth(200)
+        else:
+            self.btn_iniciar.setText("Iniciar Procesamiento")
+            self.btn_memoria.setText("Liberar VRAM")
+            self.btn_iniciar.setMaximumWidth(16777215)
+            self.btn_pausar.setMaximumWidth(16777215)
+            self.btn_cancelar.setMaximumWidth(16777215)
+            self.btn_memoria.setMaximumWidth(16777215)

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'">
+  <title>Plano de conversación local · PROCESOS_IA</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="barra-plano">
+    <p><strong>Plano interactivo</strong><span>Diseño propuesto · datos ficticios · sin conexión a Ollama</span></p>
+    <label>Explorar estado <select id="vista"><option value="normal">Conversación</option><option value="vacio">Chat nuevo</option><option value="desconectado">Sin conexión</option><option value="lleno">Historial lleno</option><option value="generando">Generando respuesta</option></select></label>
+  </div>
+  <main class="ventana" aria-label="Propuesta de ventana de conversación">
+    <aside class="lateral" id="historial">
+      <div class="marca"><img src="../../imagenes/icono-dragon-sol.png" width="42" height="42" alt=""><div>PROCESOS_IA<small>Conversación local</small></div></div>
+      <button class="nuevo" id="nuevo">Nueva conversación <span aria-hidden="true">+</span></button>
+      <div class="rotulo">TU ESPACIO DE TRABAJO</div>
+      <nav id="lista" aria-label="Conversaciones de ejemplo"></nav>
+      <div class="pie-historial">
+        <div><span>Historial local</span><strong>1,8 / 10 MB</strong></div>
+        <progress value="18" max="100" aria-label="Ejemplo de almacenamiento: 18 por ciento"></progress>
+        <small>Indicador ilustrativo. Borrado bajo tu control.</small>
+      </div>
+    </aside>
+    <section class="chat" aria-label="Conversación seleccionada">
+      <header class="encabezado">
+        <div class="identidad"><span class="etiqueta">CONVERSACIÓN</span><h1 id="titulo">Criterios para clasificar negocios</h1><p>Texto plano, ideas claras y contexto propio.</p></div>
+        <div class="acciones"><button id="renombrar" class="discreto">Renombrar</button><button id="borrar" class="discreto peligro">Borrar</button></div>
+      </header>
+      <div class="contexto">
+        <span class="conexion"><i aria-hidden="true"></i><span id="conexion">Modelo local seleccionado</span></span>
+        <button id="ver-memoria" class="discreto">Memoria de este chat</button>
+      </div>
+      <p class="aviso" id="aviso" role="status" hidden></p>
+      <div id="mensajes" class="mensajes" aria-live="polite" aria-relevant="additions text"></div>
+      <form id="formulario" class="compositor">
+        <label for="entrada">Tu mensaje</label>
+        <textarea id="entrada" rows="3" maxlength="4000" placeholder="Escribe una idea o continúa la conversación…"></textarea>
+        <div class="fila-envio"><span id="ayuda">Enter para enviar · Mayús + Enter para otra línea</span><button type="submit" id="enviar">Enviar <span aria-hidden="true">→</span></button></div>
+      </form>
+      <footer class="pie-chat">PROCESOS_IA <span>Una conversación a la vez. Tú eliges qué conservar.</span></footer>
+    </section>
+  </main>
+  <dialog id="memoria" aria-labelledby="titulo-memoria">
+    <form method="dialog"><h2 id="titulo-memoria">Memoria de esta conversación</h2><p>El modelo recibirá un resumen breve y los mensajes recientes de este chat.</p><label for="resumen">Resumen de ejemplo, revisable</label><textarea id="resumen" rows="5"></textarea><p class="nota">Este plano no guarda contenido. La memoria propuesta será local e independiente para cada conversación.</p><div class="botones-dialogo"><button value="volver" class="discreto">Volver</button><button value="guardar">Guardar resumen de ejemplo</button></div></form>
+  </dialog>
+  <dialog id="editor-nombre" aria-labelledby="titulo-nombre">
+    <form id="form-nombre"><h2 id="titulo-nombre">Nombre de conversación</h2><label for="nombre">Un título claro y breve</label><input id="nombre" maxlength="70" required><div class="botones-dialogo"><button type="button" id="cancelar-nombre" class="discreto">Volver</button><button>Guardar nombre</button></div></form>
+  </dialog>
+  <dialog id="confirmacion" aria-labelledby="titulo-borrado">
+    <form method="dialog"><h2 id="titulo-borrado">Borrar conversación de ejemplo</h2><p>Se quitará únicamente el chat seleccionado de esta vista previa.</p><div class="botones-dialogo"><button value="volver" class="discreto">Conservar</button><button value="borrar" class="peligro-solido">Borrar conversación</button></div></form>
+  </dialog>
+  <script src="interacciones.js"></script>
+</body>
+</html>

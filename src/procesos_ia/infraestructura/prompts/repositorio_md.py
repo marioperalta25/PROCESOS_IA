@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from dataclasses import asdict
+import json
 
 from procesos_ia.dominio.excepciones import ErrorProcesamiento
 from procesos_ia.dominio.prompts import PlantillaPrompt
+from procesos_ia.dominio.evaluaciones import resultados_desde_datos
 
 
 class RepositorioPromptsMd:
@@ -32,6 +35,7 @@ class RepositorioPromptsMd:
             f"columnas_requeridas: {', '.join(plantilla.columnas_requeridas)}",
             f"columnas_salida: {', '.join(plantilla.columnas_salida)}",
             f"version: {plantilla.version}",
+            "resultados_json: " + json.dumps([asdict(r) for r in plantilla.resultados], ensure_ascii=False),
             f"creado_en_utc: {plantilla.creado_en_utc}",
             "---",
             plantilla.contenido.strip(),
@@ -80,12 +84,12 @@ class RepositorioPromptsMd:
         if not texto.startswith("---"):
             return None
 
-        partes = texto.split("---", 2)
-        if len(partes) < 3:
+        lineas = texto.splitlines()
+        fin = next((i for i in range(1, len(lineas)) if lineas[i] == "---"), None)
+        if fin is None:
             return None
-
-        metadatos_raw = partes[1].strip().splitlines()
-        contenido = partes[2].strip()
+        metadatos_raw = lineas[1:fin]
+        contenido = "\n".join(lineas[fin + 1:]).strip()
 
         meta: dict[str, str] = {}
         for linea in metadatos_raw:
@@ -113,4 +117,5 @@ class RepositorioPromptsMd:
             columnas_salida=parsear_lista(meta.get("columnas_salida", "")),
             creado_en_utc=meta.get("creado_en_utc", ""),
             version=version,
+            resultados=resultados_desde_datos(json.loads(meta.get("resultados_json", "[]"))),
         )

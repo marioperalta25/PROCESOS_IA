@@ -18,6 +18,15 @@ from procesos_ia.dominio.modelos import (
     ResultadoEvaluacion,
     TransaccionWal,
 )
+from procesos_ia.dominio.normalizador import (
+    formatear_columnas_delimitadas,
+    limpiar_espacios,
+    normalizar_clave_comparacion,
+    normalizar_datos_modelo,
+    normalizar_texto,
+    quitar_acentos,
+    reemplazar_enies,
+)
 from procesos_ia.dominio.prompts import (
     PeticionRefinamiento,
     PlantillaPrompt,
@@ -42,4 +51,11 @@ __all__ = [
     "ResultadoRefinamiento",
     "TransaccionWal",
     "ValidadorSemantico",
+    "formatear_columnas_delimitadas",
+    "limpiar_espacios",
+    "normalizar_clave_comparacion",
+    "normalizar_datos_modelo",
+    "normalizar_texto",
+    "quitar_acentos",
+    "reemplazar_enies",
 ]

@@ -7,12 +7,15 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
-import time
 import urllib.error
 import urllib.request
+from threading import Event, Lock
 from typing import Any
 
-from procesos_ia.dominio.excepciones import ErrorProcesamiento
+from procesos_ia.dominio.excepciones import ErrorConexionRechazada, ErrorProcesamiento
+from procesos_ia.infraestructura.ollama.servicio_local import ServicioLocalOllama
+from procesos_ia.infraestructura.ollama.parametros_chat import cargar_parametros_chat
+from procesos_ia.infraestructura.ollama.transporte import controlar_inferencia, ejecutar_solicitud_json
 from procesos_ia.infraestructura.ollama.modelos import (
     DiagnosticoOllama,
     EstadoServicioOllama,
@@ -33,6 +36,9 @@ class ClienteHttpOllama:
         self._url_base = url_base.rstrip("/")
         self._tiempo_limite = tiempo_limite_defecto
         self._reintentos = reintentos_maximos
+        self._puerta_inferencia = Lock()
+        self._textos_chat = cargar_parametros_chat()["textos"]
+        self._servicio_local = ServicioLocalOllama(self._url_base)
 
     @property
     def url_base(self) -> str:
@@ -89,10 +95,20 @@ class ClienteHttpOllama:
             mensaje="No se encontro el ejecutable de Ollama en el sistema",
         )
 
-    def listar_modelos(self) -> list[InformacionModelo]:
+    def listar_modelos(
+        self,
+        tiempo_limite: float | None = 3.0,
+        reintentos: int | None = 0,
+    ) -> list[InformacionModelo]:
         """Consulta los modelos instalados localmente y sus metadatos tecnicos."""
         url = f"{self._url_base}/api/tags"
-        datos = self._ejecutar_solicitud_json(url, metodo="GET", cuerpo=None)
+        datos = self._ejecutar_solicitud_json(
+            url,
+            metodo="GET",
+            cuerpo=None,
+            tiempo_limite=tiempo_limite,
+            reintentos=reintentos,
+        )
 
         modelos: list[InformacionModelo] = []
         for item in datos.get("models", []):
@@ -116,6 +132,7 @@ class ClienteHttpOllama:
         prompt: str,
         esquema_salida: dict[str, Any] | None = None,
         opciones: OpcionesInferencia | None = None,
+        sistema: str | None = None,
     ) -> dict[str, Any]:
         """Solicita inferencia a Ollama con salida garantizada en formato JSON."""
         opcs = opciones or OpcionesInferencia()
@@ -133,6 +150,8 @@ class ClienteHttpOllama:
         }
         if opcs.seed is not None:
             cuerpo["options"]["seed"] = opcs.seed
+        if sistema is not None:
+            cuerpo["system"] = sistema
 
         url = f"{self._url_base}/api/generate"
         respuesta = self._ejecutar_solicitud_json(
@@ -159,50 +178,33 @@ class ClienteHttpOllama:
             return False
 
     def _ejecutar_solicitud_json(
-        self,
-        url: str,
-        metodo: str,
-        cuerpo: dict[str, Any] | None,
-        tiempo_limite: float | None = None,
+        self, url: str, metodo: str, cuerpo: dict[str, Any] | None,
+        tiempo_limite: float | None = None, reintentos: int | None = None,
+        limite_respuesta_bytes: int | None = None, *, al_evento=None,
+        cancelacion: Event | None = None, limite_linea_bytes: int | None = None,
     ) -> dict[str, Any]:
-        limite = tiempo_limite or self._tiempo_limite
-        datos_bytes = json.dumps(cuerpo).encode("utf-8") if cuerpo is not None else None
-        cabeceras = {"Content-Type": "application/json"} if cuerpo is not None else {}
+        with controlar_inferencia(self._puerta_inferencia, bool(cuerpo and "model" in cuerpo),
+                                  self._textos_chat["ocupado"]):
+            return ejecutar_solicitud_json(
+                url, metodo, cuerpo, tiempo_limite, reintentos, self._tiempo_limite,
+                self._reintentos, limite_respuesta_bytes, self._textos_chat["respuesta_grande"],
+                al_evento=al_evento, cancelacion=cancelacion, limite_linea_bytes=limite_linea_bytes,
+                mensaje_invalido=self._textos_chat["respuesta_invalida"],
+            )
 
-        ultimo_error: Exception | None = None
-        for intento in range(self._reintentos + 1):
-            try:
-                solicitud = urllib.request.Request(
-                    url, data=datos_bytes, headers=cabeceras, method=metodo
-                )
-                with urllib.request.urlopen(solicitud, timeout=limite) as resp:
-                    contenido = resp.read().decode("utf-8")
-                    try:
-                        return json.loads(contenido)
-                    except json.JSONDecodeError as err_json:
-                        raise ErrorProcesamiento(
-                            f"Respuesta de Ollama ({url}) no es un JSON valido: {err_json}"
-                        ) from err_json
-            except urllib.error.HTTPError as error_http:
-                if 400 <= error_http.code < 500:
-                    try:
-                        cuerpo_error = error_http.read().decode("utf-8")
-                        detalle = json.loads(cuerpo_error).get("error", error_http.reason)
-                    except Exception:
-                        detalle = error_http.reason
-                    raise ErrorProcesamiento(
-                        f"Error HTTP {error_http.code} en Ollama ({url}): {detalle}"
-                    ) from error_http
-                ultimo_error = error_http
-                if intento < self._reintentos:
-                    time.sleep(0.5 * (2**intento))
-            except (urllib.error.URLError, TimeoutError, OSError) as error:
-                ultimo_error = error
-                if intento < self._reintentos:
-                    time.sleep(0.5 * (2**intento))
+    def es_ejecutable_disponible(self) -> bool:
+        """Indica si el ejecutable de Ollama esta disponible en el sistema."""
+        return self._localizar_ejecutable() is not None
 
-        raise ErrorProcesamiento(
-            f"Fallo en peticion HTTP a Ollama ({url}): {ultimo_error}"
+    def iniciar_servicio(
+        self, tiempo_espera: float = 6.0, cancelacion: Event | None = None,
+    ) -> bool:
+        """Delega el arranque local supervisado; no instala ni descarga recursos."""
+        ruta = self._localizar_ejecutable()
+        if ruta is None:
+            raise ErrorProcesamiento("No se encontro el ejecutable de Ollama")
+        return self._servicio_local.iniciar(
+            ruta, self.listar_modelos, tiempo_espera, cancelacion,
         )
 
     def _localizar_ejecutable(self) -> Path | None:

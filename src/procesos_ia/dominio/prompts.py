@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
+from procesos_ia.dominio.evaluaciones import DefinicionResultado
+
 
 @dataclass(frozen=True, slots=True)
 class PlantillaPrompt:
@@ -19,6 +21,7 @@ class PlantillaPrompt:
     columnas_salida: tuple[str, ...] = field(default_factory=tuple)
     creado_en_utc: str = ""
     version: int = 1
+    resultados: tuple[DefinicionResultado, ...] = field(default_factory=tuple)
 
     @classmethod
     def normalizar_identificador(cls, texto: str) -> str:
@@ -44,3 +47,4 @@ class ResultadoRefinamiento:
     prompt_refinado: str
     columnas_salida_sugeridas: tuple[str, ...]
     explicacion_resumen: str
+    resultados: tuple[DefinicionResultado, ...] = field(default_factory=tuple)

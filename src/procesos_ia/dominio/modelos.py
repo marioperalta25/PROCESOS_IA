@@ -7,6 +7,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from procesos_ia.dominio.excepciones import ErrorProcesamiento
+from procesos_ia.dominio.evaluaciones import (
+    ContratoEvaluacion, VinculoEntrada, VinculoSalida, resultados_desde_columnas,
+)
+
 
 class EstadoProcesamiento(str, Enum):
     """Estados del ciclo de vida del proceso de inferencia masiva."""
@@ -99,3 +104,33 @@ class ConfiguracionTrabajo:
     prompt_sistema: str
     formato_salida: str
     columnas_salida_modelo: tuple[str, ...] = field(default_factory=tuple)
+    contrato_evaluacion: ContratoEvaluacion | None = None
+    identificador_plantilla: str = ""
+    version_plantilla: int = 0
+    carpeta_imagenes: Path | None = None
+    rotacion_chat_cada: int = 1
+    modo_procesamiento: str = "lote"
+
+    def obtener_contrato(self) -> ContratoEvaluacion:
+        """Adapta configuraciones anteriores a un contrato explicito."""
+        if self.contrato_evaluacion is not None:
+            return self.contrato_evaluacion
+        return ContratoEvaluacion(
+            resultados_desde_columnas(self.columnas_salida_modelo),
+            (VinculoEntrada("datos", self.columnas_evaluar),),
+            tuple(VinculoSalida(c, c) for c in self.columnas_salida_modelo),
+        )
+
+    def validar_esquema_salida(self) -> None:
+        """Exige columnas explicitas para no descartar resultados silenciosamente."""
+        columnas = self.columnas_salida_modelo
+        if not columnas or any(not columna.strip() for columna in columnas):
+            raise ErrorProcesamiento("Indique al menos una columna de salida del modelo")
+        if len(set(columnas)) != len(columnas):
+            raise ErrorProcesamiento("Las columnas de salida no pueden estar duplicadas")
+        if set(columnas) & {"identificador", "estado_ia", "error_ia"}:
+            raise ErrorProcesamiento("Las columnas de salida usan nombres reservados de control")
+        contrato = self.obtener_contrato()
+        if tuple(s.columna for s in contrato.salidas) != columnas:
+            raise ErrorProcesamiento("Las columnas de salida no coinciden con el contrato")
+        contrato.validar(self.columnas_evaluar)

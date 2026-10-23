@@ -57,6 +57,9 @@ class FalsoEscritorWal:
         self.checkpoints_llamados = 0
         self.cerrado = False
 
+    def vincular_trabajo(self, configuracion: ConfiguracionTrabajo) -> None:
+        self.configuracion = configuracion
+
     def inicializar(self, directorio_base: Path, encabezados: list[str]) -> int:
         return self._ultimo_confirmado
 
@@ -144,6 +147,7 @@ class PruebaCoordinador(unittest.TestCase):
             columnas_evaluar=("texto",),
             prompt_sistema="Clasifica el texto.",
             formato_salida="csv",
+            columnas_salida_modelo=("clasificacion",),
         )
         self.registros = [
             RegistroEntrada("r1", 1, {"id": "1", "texto": "a"}, {"texto": "a"}),

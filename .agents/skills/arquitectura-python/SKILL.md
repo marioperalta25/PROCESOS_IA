@@ -38,6 +38,13 @@ se aplica antes de cambiar contratos, según el procedimiento común.
   empaquetados de datos modificables del usuario.
 - Prohibido hardcodear en código: rutas, puertos, URLs, nombres de modelo, números
   mágicos o textos fijos deben ser siempre configurables o inyectados.
+- Almacenamiento centralizado y gestor de rutas: Todo módulo debe canalizar sus
+  entradas, salidas y archivos de trabajo mediante `EnrutadorSalidas`.
+  La carpeta raíz predeterminada (`PROCESOS_IA_SALIDAS` o la configurada por el usuario en la ventana principal)
+  se segmenta de forma determinista en subcarpetas estructuradas: `datos/` (archivos CSV, Excel y datos de entrada),
+  `imagenes/` (archivos visuales locales), `analisis/` (enriquecimientos tabulares organizados por subdirectorios de trabajo y fecha),
+  `extracciones/` (resultados de Google Lens, Gemini y DeepSeek), `plantillas/`, `conversaciones/`, `reportes/` y `temporales/`.
+  Ninguna vista ni servicio debe dispersar archivos en ubicaciones arbitrarias ni asumir `Path.home()` como carpeta por defecto para datos.
 
 ## Resultado verificable
 
