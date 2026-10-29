@@ -39,6 +39,16 @@ class PruebaLectoresArchivos(unittest.TestCase):
         self.assertEqual(inspeccion.indice_fila_encabezado, 1)
         self.assertEqual(inspeccion.encabezados, ["id", "nombre", "descripcion"])
 
+    def test_deteccion_encabezados_urls_no_es_encabezado(self) -> None:
+        filas = [
+            ["https://encrypted-tbn0.gstatic.com/images?q=tbn:1"],
+            ["https://encrypted-tbn0.gstatic.com/images?q=tbn:2"],
+        ]
+        inspeccion = detectar_encabezados(filas)
+        self.assertFalse(inspeccion.tiene_encabezado)
+        self.assertEqual(inspeccion.indice_fila_encabezado, 0)
+        self.assertEqual(inspeccion.encabezados, ["columna_1"])
+
     def test_lector_csv_rfc4180_con_saltos_linea_en_comillas(self) -> None:
         ruta_csv = self.raiz / "prueba_rfc4180.csv"
         # CSV con salto de linea legitimo dentro de comillas

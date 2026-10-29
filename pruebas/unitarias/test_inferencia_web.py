@@ -1,4 +1,4 @@
-"""Pruebas unitarias para la infraestructura de inferencia web y manipulación DOM."""
+﻿"""Pruebas unitarias para la infraestructura de inferencia web y manipulación DOM."""
 
 from __future__ import annotations
 
@@ -11,18 +11,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from procesos_ia.aplicacion.contratos import ServicioInferenciaProtocol
 from procesos_ia.dominio.evaluaciones import ContratoEvaluacion, DefinicionResultado
 from procesos_ia.dominio.modelos import ConfiguracionTrabajo, RegistroEntrada
-from procesos_ia.infraestructura.web.configuracion_web import (
+from procesos_ia.infraestructura.web.base.configuracion_web import (
     ConfiguracionVentanaWeb,
     ConfiguracionWeb,
 )
-from procesos_ia.infraestructura.web.controlador_ventana import (
+from procesos_ia.infraestructura.web.base.controlador_ventana import (
     buscar_manejador_ventana,
     es_plataforma_compatible,
 )
-from procesos_ia.infraestructura.web.extractor_json import (
+from procesos_ia.infraestructura.web.base.extractor_json import (
     extraer_y_reparar_json,
 )
-from procesos_ia.infraestructura.web.servicio_inferencia_web import ServicioInferenciaWeb
+from procesos_ia.infraestructura.web.base.servicio_inferencia_web import ServicioInferenciaWeb
 
 
 class TestInferenciaWeb(unittest.TestCase):
@@ -73,7 +73,7 @@ class TestInferenciaWeb(unittest.TestCase):
         self.assertTrue(hasattr(servicio, "procesar_lote"))
         self.assertTrue(callable(servicio.procesar_lote))
 
-    @patch("procesos_ia.infraestructura.web.gestor_sesion_nodriver.GestorSesionNodriver.navegar_o_reutilizar")
+    @patch("procesos_ia.infraestructura.web.base.gestor_sesion_nodriver.GestorSesionNodriver.navegar_o_reutilizar")
     def test_servicio_inferencia_web_procesar_lote_con_mock(self, mock_navegar: MagicMock) -> None:
         async def mock_evaluar(script: str) -> Any:
             if "data-test-id=\"code-content\"" in script or "model-response-text" in script:
@@ -169,7 +169,7 @@ class TestInferenciaWeb(unittest.TestCase):
         self.assertEqual(len(res), 2)
         self.assertEqual(res[0]["identificador"], "ID_1")
 
-    @patch("procesos_ia.infraestructura.web.gestor_sesion_nodriver.GestorSesionNodriver.navegar_o_reutilizar")
+    @patch("procesos_ia.infraestructura.web.base.gestor_sesion_nodriver.GestorSesionNodriver.navegar_o_reutilizar")
     def test_servicio_inferencia_web_lote_tabular_sin_imagenes(self, mock_navegar: MagicMock) -> None:
         async def mock_evaluar(script: str) -> Any:
             if any(s in script for s in ("ds-assistant-message-main-content", "model-response-text", "code-content")):

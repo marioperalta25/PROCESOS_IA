@@ -97,6 +97,20 @@ def detectar_encabezados(
     if son_numericos == len(fila_candidata) and len(fila_candidata) > 0:
         tiene_encabezado = False
 
+    # Si contiene URLs, URIs o extensiones de imagen/archivo, es un registro de datos, no un encabezado
+    patrones_dato_url = ("http://", "https://", "www.", "data:image", "ftp://")
+    extensiones_archivo = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg", ".pdf", ".tiff")
+    es_dato_evidente = any(
+        c.lower().startswith(patrones_dato_url)
+        or "http://" in c.lower()
+        or "https://" in c.lower()
+        or any(c.lower().endswith(ext) for ext in extensiones_archivo)
+        or ("@" in c and "." in c.split("@")[-1] and not c.lower().startswith("columna"))
+        for c in fila_candidata
+    )
+    if es_dato_evidente:
+        tiene_encabezado = False
+
     # Si hay filas subsiguientes, comparar tipos
     if primer_indice_no_vacio + 1 < len(filas_iniciales):
         siguiente_fila = [

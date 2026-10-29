@@ -1,4 +1,4 @@
-"""Activación de vistas integradas y composición diferida del chat."""
+﻿"""Activación de vistas integradas y composición diferida del chat."""
 
 from pathlib import Path
 from functools import partial
@@ -51,7 +51,7 @@ class NavegacionVistas:
             return
         motor = getattr(ventana, "_motor_activo", "ollama")
         if self.vista_motores is None:
-            from procesos_ia.interfaz.vista_motores import VistaConfiguracionMotores
+            from procesos_ia.interfaz.ia_web.vistas.vista_motores import VistaConfiguracionMotores
             self.vista_motores = VistaConfiguracionMotores(
                 motor, ventana._config_web, ventana,
             )
@@ -81,7 +81,7 @@ class NavegacionVistas:
         if ventana._cierre.pendiente:
             return
         if self.vista_ia_general is None:
-            from procesos_ia.interfaz.vista_ia_general import VistaIAGeneral
+            from procesos_ia.interfaz.ia_web.vistas.vista_ia_general import VistaIAGeneral
             self.vista_ia_general = VistaIAGeneral(
                 configuracion_web=ventana._config_web,
                 servicio_prompts=getattr(ventana, "_servicio_prompts", None),

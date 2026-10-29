@@ -1,4 +1,4 @@
-"""Ventana principal de escritorio que coordina los paneles y flujos de trabajo."""
+﻿"""Ventana principal de escritorio que coordina los paneles y flujos de trabajo."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from procesos_ia.infraestructura.ollama.modelos import DiagnosticoOllama, Estado
 from procesos_ia.infraestructura.ollama.servicio_inferencia import ServicioInferenciaOllama
 from procesos_ia.infraestructura.prompts.refinador_ollama import RefinadorPromptOllama
 from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd
-from procesos_ia.infraestructura.web.configuracion_web import ConfiguracionWeb
+from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
 from procesos_ia.interfaz.borradores import GestorBorradores
 from procesos_ia.interfaz.cierre import CierreCooperativo
 from procesos_ia.interfaz.composicion_ventana import construir_paneles

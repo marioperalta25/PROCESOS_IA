@@ -8,15 +8,15 @@ import tempfile
 import unittest
 from unittest.mock import AsyncMock, MagicMock
 
-from procesos_ia.dominio.parseador_ficha_lens import parsear_sintesis_negocio
-from procesos_ia.infraestructura.web.manipulador_dom_lens import (
+from procesos_ia.dominio.ia_web.parseador_ficha_lens import parsear_sintesis_negocio
+from procesos_ia.infraestructura.web.visual_1a1.manipulador_dom_lens import (
     abrir_modal_lens,
     cargar_archivo_en_lens,
     cargar_url_en_lens,
     esperar_vision_general_ia,
     extraer_enlaces_relacionados,
 )
-from procesos_ia.infraestructura.web.selectores_lens import SELECTORES_LENS
+from procesos_ia.infraestructura.web.visual_1a1.selectores_lens import SELECTORES_LENS
 
 
 class TestManipuladorDOMLens(unittest.IsolatedAsyncioTestCase):
@@ -186,7 +186,7 @@ class TestManipuladorDOMLens(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(ficha.propietario, "Auner Fuentes")
         self.assertEqual(ficha.negocio, "Remodeling")
         self.assertEqual(ficha.categoria, "remodelacion")
-        self.assertEqual(ficha.telefono, "+813 720 9732 / +813 515 6403")
+        self.assertEqual(ficha.telefono, "(813) 720-9732 / (813) 515-6403")
         self.assertEqual(ficha.ubicacion, "Tampa, Florida")
         self.assertEqual(ficha.sitio_web, "moisesluxuryremodeling.com")
         self.assertIn("moisesluxuryremodeling.com", ficha.enlaces[0])
@@ -222,8 +222,74 @@ class TestManipuladorDOMLens(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(ficha.negocio, "Moises Luxury Remodeling")
         self.assertEqual(ficha.propietario, "Auner Fuentes")
         self.assertIn("moisesluxuryremodeling.com", ficha.sitio_web)
-        self.assertIn("+1 (813) 720-9732", ficha.telefono)
-        self.assertIn("+1 (813) 515-6403", ficha.telefono)
+        self.assertIn("(813) 720-9732", ficha.telefono)
+        self.assertIn("(813) 515-6403", ficha.telefono)
         self.assertEqual(ficha.ubicacion, "Tampa, FL")
         self.assertEqual(ficha.categoria, "remodelacion")
+
+    def test_parsear_tarjeta_g_construction_propietarios_multiples(self) -> None:
+        texto = (
+            "Información de la empresa y contacto en la tarjeta:\n\n"
+            "• Negocio: G Construction LLC / Garcia's custom iron doors\n"
+            "• Propietarios: Jose Garcia / Jr. Garcia (Owner)\n"
+            "• Especialidad: Contratista general (cocinas, baños, duchas, techos, pintura, molduras, puertas, ventanas, aire acondicionado, terrazas, patios y pisos)\n"
+            "• Dirección: 7715 North Freeway, Houston, TX 77037\n"
+            "• Teléfonos: 832-274-9087 / 832-874-3676\n"
+            "• Correo electrónico: jose@gconstructionhouston.com / www.gconstructionllctx.com"
+        )
+        ficha = parsear_sintesis_negocio(texto=texto, id_registro="g_const_1", fuente_imagen="g_const.jpg")
+        self.assertEqual(ficha.negocio, "G Construction LLC / Garcia's custom iron doors")
+        self.assertEqual(ficha.propietario, "Jose Garcia / Jr. Garcia (Owner)")
+        self.assertIn("Contratista general", ficha.categoria)
+        self.assertEqual(ficha.ubicacion, "7715 North Freeway, Houston, TX 77037")
+        self.assertIn("(832) 274-9087", ficha.telefono)
+        self.assertIn("(832) 874-3676", ficha.telefono)
+        self.assertEqual(ficha.correo_electronico, "jose@gconstructionhouston.com")
+        self.assertEqual(ficha.sitio_web, "www.gconstructionllctx.com")
+
+    def test_parsear_servicios_ofrecidos_y_citas_garcia_construction(self) -> None:
+        texto = (
+            "Información de contacto y servicios\n"
+            "Propietario: Tomás García\n"
+            "Teléfono: (919) 747-1050\n"
+            "Correo electrónico: tomastgarcia19@gmail.com / owner@garcia-construction.com\n"
+            "Sitio web: [garcia-construction.com](https://garcia-construction.com/)\n"
+            "Área principal: Raleigh, Chapel Hill y zonas cercanas en Carolina del Norte, EE. UU. [[1](https://nextdoor.com/pages/garcia-construction-general-contractor-raleigh-nc/), [2](https://www.facebook.com/garciaconstruction.co/)]\n"
+            "Servicios ofrecidos\n"
+            "Decks (Terrazas)\n"
+            "Painting (Pintura interior y exterior)\n"
+            "Additions (Ampliaciones)\n"
+            "Drywalling (Tablaroca / Panel de yeso)\n"
+            "Concrete (Concreto)\n"
+            "Sun Rooms (Salas de sol / Solariums)\n"
+            "Screen Porches (Porches con mosquitero)\n"
+            "Roofing (Techados)\n"
+            "Interior & Exterior Renovations (Renovaciones interiores y exteriores) [[1](https://www.facebook.com/garciaconstruction.co/)]"
+        )
+        ficha = parsear_sintesis_negocio(texto=texto, id_registro="garcia_1", fuente_imagen="garcia.jpg")
+        self.assertEqual(ficha.propietario, "Tomas Garcia")
+        self.assertEqual(ficha.telefono, "(919) 747-1050")
+        self.assertIn("tomastgarcia19@gmail.com", ficha.correo_electronico)
+        self.assertIn("owner@garcia-construction.com", ficha.correo_electronico)
+        self.assertEqual(ficha.sitio_web, "garcia-construction.com")
+        self.assertEqual(ficha.negocio, "Garcia Construction")
+        self.assertEqual(ficha.ubicacion, "Raleigh, Chapel Hill y zonas cercanas en Carolina del Norte, EE. UU.")
+        self.assertIn("Decks (Terrazas)", ficha.categoria)
+        self.assertIn("Roofing (Techados)", ficha.categoria)
+        self.assertTrue(any("nextdoor.com" in e for e in ficha.enlaces))
+        self.assertTrue(any("facebook.com" in e for e in ficha.enlaces))
+
+    def test_clasificacion_etiquetas_variantes_ingles_y_calificadores(self) -> None:
+        texto = (
+            "Company name: Apex Solutions\n"
+            "Personal email: dev@apex.com\n"
+            "Work phone: 555-123-4567\n"
+            "Office address: 123 Tech Way, Austin, TX"
+        )
+        ficha = parsear_sintesis_negocio(texto=texto)
+        self.assertEqual(ficha.negocio, "Apex Solutions")
+        self.assertEqual(ficha.correo_electronico, "dev@apex.com")
+        self.assertEqual(ficha.telefono, "(555) 123-4567")
+        self.assertEqual(ficha.ubicacion, "123 Tech Way, Austin, TX")
+
 

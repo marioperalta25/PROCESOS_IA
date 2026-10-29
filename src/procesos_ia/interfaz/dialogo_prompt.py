@@ -1,4 +1,4 @@
-"""Diálogo para gestión, creación y refinamiento de prompts asistido por Ollama."""
+﻿"""Diálogo para gestión, creación y refinamiento de prompts asistido por Ollama."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ class DialogoGestionPrompts(QWidget):
         self._hilo_refinamiento = None
         self._cerrar_pendiente = False
         self._servicio = servicio_prompts
-        from procesos_ia.aplicacion.prompts_ia_web import asegurar_plantillas_ia_web
+        from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import asegurar_plantillas_ia_web
         asegurar_plantillas_ia_web(self._servicio)
         self._modelo_activo = modelo_activo
         self._plantilla_actual: PlantillaPrompt | None = None
@@ -158,7 +158,7 @@ class DialogoGestionPrompts(QWidget):
         self.texto_contenido.clear()
 
     def _insertar_delimitador(self) -> None:
-        from procesos_ia.aplicacion.prompts_ia_web import AYUDA_DELIMITADOR_COLUMNAS
+        from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import AYUDA_DELIMITADOR_COLUMNAS
         self.texto_contenido.insertPlainText(f"\n{AYUDA_DELIMITADOR_COLUMNAS}\n")
 
     def _guardar_actual(self, mostrar_aviso: bool = True) -> PlantillaPrompt | None:

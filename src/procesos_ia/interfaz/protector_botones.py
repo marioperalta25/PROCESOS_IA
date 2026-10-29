@@ -40,6 +40,7 @@ class ProtectorBotones(QObject):
         mensaje_notificacion: str | None = None,
         notificador: Callable[[str], None] | None = None,
         tiempo_bloqueo_ms: int = 600,
+        auto_desbloquear: bool = True,
     ) -> None:
         """Conecta un botón con guarda antirebote y notificación inmediata de la acción iniciada."""
 
@@ -61,7 +62,7 @@ class ProtectorBotones(QObject):
             try:
                 accion()
             finally:
-                if tiempo_bloqueo_ms > 0:
+                if auto_desbloquear and tiempo_bloqueo_ms > 0:
                     QTimer.singleShot(
                         tiempo_bloqueo_ms,
                         lambda: self._desbloquear(boton, btn_id),
@@ -69,10 +70,17 @@ class ProtectorBotones(QObject):
 
         boton.clicked.connect(slot_protegido)
 
+    def liberar(self, boton: QPushButton, habilitar: bool = True) -> None:
+        """Libera manualmente un botón del estado de enfriamiento."""
+        self._en_enfriamiento.discard(id(boton))
+        try:
+            boton.setEnabled(habilitar)
+        except RuntimeError:
+            pass
+
     def _desbloquear(self, boton: QPushButton, btn_id: int) -> None:
         self._en_enfriamiento.discard(btn_id)
         try:
-            # Solo reactiva si el botón sigue existiendo en el árbol de Qt
             boton.setEnabled(True)
         except RuntimeError:
             pass
@@ -84,6 +92,7 @@ def conectar_boton_protegido(
     mensaje_notificacion: str | None = None,
     notificador: Callable[[str], None] | None = None,
     tiempo_bloqueo_ms: int = 600,
+    auto_desbloquear: bool = True,
 ) -> None:
     """Función de conveniencia para proteger un botón individual contra doble clic."""
     protector = getattr(boton, "_protector_instancia", None)
@@ -96,4 +105,17 @@ def conectar_boton_protegido(
         mensaje_notificacion=mensaje_notificacion,
         notificador=notificador,
         tiempo_bloqueo_ms=tiempo_bloqueo_ms,
+        auto_desbloquear=auto_desbloquear,
     )
+
+
+def liberar_boton_protegido(boton: QPushButton, habilitar: bool = True) -> None:
+    """Libera el estado de enfriamiento de un botón protegido."""
+    protector = getattr(boton, "_protector_instancia", None)
+    if protector is not None:
+        protector.liberar(boton, habilitar)
+    else:
+        try:
+            boton.setEnabled(habilitar)
+        except RuntimeError:
+            pass

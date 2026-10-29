@@ -96,6 +96,30 @@ class PruebaProtectorBotones(unittest.TestCase):
         instancia_1 = getattr(boton, "_protector_instancia", None)
         self.assertIsNotNone(instancia_1)
 
+    def test_sin_auto_desbloqueo_permanece_deshabilitado(self) -> None:
+        boton = QPushButton("Cancelar")
+        contador = 0
+
+        def accion() -> None:
+            nonlocal contador
+            contador += 1
+
+        from procesos_ia.interfaz.protector_botones import liberar_boton_protegido
+        conectar_boton_protegido(boton, accion, auto_desbloquear=False)
+        boton.click()
+        self.assertEqual(contador, 1)
+        self.assertFalse(boton.isEnabled())
+
+        # Un segundo clic no hace nada
+        boton.click()
+        self.assertEqual(contador, 1)
+
+        # Liberar manualmente
+        liberar_boton_protegido(boton, habilitar=True)
+        self.assertTrue(boton.isEnabled())
+        boton.click()
+        self.assertEqual(contador, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

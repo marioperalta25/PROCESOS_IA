@@ -41,6 +41,7 @@ htmlcov/
 /temporales/
 /tmp/
 /temp/
+/pruebas/
 
 # Archivos tabulares: proteger datos reales aunque se copien fuera del almacen
 *.csv

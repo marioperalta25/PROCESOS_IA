@@ -1,4 +1,4 @@
-"""Pruebas unitarias para la vista de configuración de motores y selector de IA."""
+﻿"""Pruebas unitarias para la vista de configuración de motores y selector de IA."""
 
 from __future__ import annotations
 
@@ -10,10 +10,10 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 from PySide6.QtWidgets import QApplication
 
-from procesos_ia.infraestructura.web.configuracion_web import ConfiguracionWeb
+from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
 from procesos_ia.interfaz.app import crear_aplicacion
 from procesos_ia.interfaz.componentes.panel_configuracion import PanelConfiguracionIA
-from procesos_ia.interfaz.vista_motores import VistaConfiguracionMotores
+from procesos_ia.interfaz.ia_web.vistas.vista_motores import VistaConfiguracionMotores
 
 
 class TestVistaConfiguracionMotores(unittest.TestCase):
@@ -87,7 +87,7 @@ class TestVistaConfiguracionMotores(unittest.TestCase):
         self.assertIn(" | ", vista.txt_instrucciones.toPlainText())
 
     def test_servicio_procesamiento_web_instanciacion(self) -> None:
-        from procesos_ia.aplicacion.servicio_procesamiento_web import ServicioProcesamientoWeb
+        from procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web import ServicioProcesamientoWeb
         servicio = ServicioProcesamientoWeb()
         self.assertFalse(servicio._cancelado)
         servicio.cancelar()

@@ -9,17 +9,17 @@ import unittest
 from PySide6.QtWidgets import QApplication
 
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
-from procesos_ia.aplicacion.servicio_ia_general import ServicioIAGeneral
-from procesos_ia.dominio.ficha_negocio import FichaNegocioLens
-from procesos_ia.infraestructura.web.configuracion_web import ConfiguracionWeb
-from procesos_ia.infraestructura.web.manipulador_dom_lens import (
+from procesos_ia.aplicacion.ia_web.visual_1a1.servicio_ia_general import ServicioIAGeneral
+from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
+from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
+from procesos_ia.infraestructura.web.visual_1a1.manipulador_dom_lens import (
     parsear_sintesis_negocio,
 )
-from procesos_ia.infraestructura.web.manipulador_dom_modo_ia import (
+from procesos_ia.infraestructura.web.conversacional.manipulador_dom_modo_ia import (
     extraer_datos_estructurados_modo_ia,
 )
-from procesos_ia.interfaz.vista_ia_general import VistaIAGeneral
-from procesos_ia.interfaz.vista_motores import VistaConfiguracionMotores
+from procesos_ia.interfaz.ia_web.vistas.vista_ia_general import VistaIAGeneral
+from procesos_ia.interfaz.ia_web.vistas.vista_motores import VistaConfiguracionMotores
 
 _APP = QApplication.instance() or QApplication([])
 
@@ -47,14 +47,14 @@ class TestIAGeneralDominio(unittest.TestCase):
         ficha = parsear_sintesis_negocio(texto, id_registro="roofing_1")
 
         self.assertEqual(ficha.propietario, "Joseph Tapia")
-        self.assertIn("505 316 1088", ficha.telefono)
+        self.assertIn("(505) 316-1088", ficha.telefono)
 
     def test_parsear_ejemplo_jesus_lopez(self) -> None:
         texto = "Lopez Landscaping And Masonry Owner Jesus Lopez 602 579 4177 Service Tech Julian Argot 602 354 6803"
         ficha = parsear_sintesis_negocio(texto, id_registro="lopez_1")
 
         self.assertEqual(ficha.propietario, "Jesus Lopez")
-        self.assertIn("602 579 4177", ficha.telefono)
+        self.assertIn("(602) 579-4177", ficha.telefono)
 
     def test_parsear_idiomas(self) -> None:
         texto = "Star Roofing & Construction\nPropietario: Ulises Garcia\nIdiomas: Hablamos Español / We speak English"
@@ -148,8 +148,16 @@ class TestInterfazIAGeneral(unittest.TestCase):
         self.assertTrue(hasattr(vista, "consola"))
         self.assertTrue(hasattr(vista, "panel_archivo"))
 
+    def test_ejecutar_accion_validacion_carpeta(self) -> None:
+        vista = VistaIAGeneral()
+        idx_carpeta = vista.combo_flujo.findData("carpeta")
+        vista.combo_flujo.setCurrentIndex(idx_carpeta)
+        vista.input_alt.setText("ruta_inexistente_xyz_123")
+        vista._ejecutar_accion()
+        self.assertIn("válida", vista.banner.texto)
+
     def test_consola_ia_general(self) -> None:
-        from procesos_ia.interfaz.componentes.consola_ia_general import ConsolaIAGeneral
+        from procesos_ia.interfaz.ia_web.componentes.consola_ia_general import ConsolaIAGeneral
         consola = ConsolaIAGeneral()
         consola.agregar_log("[INFO] Prueba de lote enviado")
         self.assertIn("Prueba de lote enviado", consola.texto_log.toPlainText())
@@ -157,7 +165,7 @@ class TestInterfazIAGeneral(unittest.TestCase):
         self.assertIn("Bitácora reiniciada", consola.texto_log.toPlainText())
 
     def test_panel_archivo_general(self) -> None:
-        from procesos_ia.interfaz.componentes.panel_archivo_general import PanelArchivoGeneral
+        from procesos_ia.interfaz.ia_web.componentes.panel_archivo_general import PanelArchivoGeneral
         with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8") as f:
             f.write("id,nombre,imagen_url\n1,Carlos,https://img.jpg\n")
             ruta = Path(f.name)
@@ -174,7 +182,7 @@ class TestInterfazIAGeneral(unittest.TestCase):
 
     def test_plantillas_ia_web_sembrado_y_delimitador(self) -> None:
         from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
-        from procesos_ia.aplicacion.prompts_ia_web import asegurar_plantillas_ia_web, CATEGORIA_IA_WEB
+        from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import asegurar_plantillas_ia_web, CATEGORIA_IA_WEB
         from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -189,6 +197,8 @@ class TestInterfazIAGeneral(unittest.TestCase):
 
     def test_seleccion_plantilla_en_vista_ia_general(self) -> None:
         vista = VistaIAGeneral()
+        self.assertTrue(hasattr(vista, "check_auditoria_md"))
+        self.assertTrue(vista.check_auditoria_md.isChecked())
         self.assertGreater(vista.combo_plantillas.count(), 1)
 
         # Seleccionar la primera plantilla real (indice 1)
@@ -246,7 +256,7 @@ class TestInterfazIAGeneral(unittest.TestCase):
         self.assertEqual(editor._altura_actual, altura_antes)
 
     def test_consola_ia_general_expansion(self) -> None:
-        from procesos_ia.interfaz.componentes.consola_ia_general import ConsolaIAGeneral
+        from procesos_ia.interfaz.ia_web.componentes.consola_ia_general import ConsolaIAGeneral
 
         consola = ConsolaIAGeneral()
         alt_inicial = consola._altura_actual

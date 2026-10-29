@@ -27,6 +27,16 @@ from procesos_ia.dominio.normalizador import (
     quitar_acentos,
     reemplazar_enies,
 )
+from procesos_ia.dominio.ia_web.desglosador_telefonos import (
+    desglosar_archivo_csv_telefonos,
+    desglosar_ficha_por_telefono,
+    desglosar_fichas_por_telefono,
+    desglosar_fila_por_telefono,
+    desglosar_filas_por_telefono,
+    separar_telefonos,
+)
+from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
+from procesos_ia.dominio.ia_web.parseador_ficha_lens import parsear_sintesis_negocio
 from procesos_ia.dominio.prompts import (
     PeticionRefinamiento,
     PlantillaPrompt,
@@ -41,6 +51,7 @@ __all__ = [
     "ErrorRecuperacionProgreso",
     "ErrorValidacionSemantica",
     "EstadoProcesamiento",
+    "FichaNegocioLens",
     "IdentificadorRegistro",
     "MetricasProgreso",
     "PeticionRefinamiento",
@@ -51,11 +62,19 @@ __all__ = [
     "ResultadoRefinamiento",
     "TransaccionWal",
     "ValidadorSemantico",
+    "desglosar_archivo_csv_telefonos",
+    "desglosar_ficha_por_telefono",
+    "desglosar_fichas_por_telefono",
+    "desglosar_fila_por_telefono",
+    "desglosar_filas_por_telefono",
     "formatear_columnas_delimitadas",
     "limpiar_espacios",
     "normalizar_clave_comparacion",
     "normalizar_datos_modelo",
     "normalizar_texto",
+    "parsear_sintesis_negocio",
     "quitar_acentos",
     "reemplazar_enies",
+    "separar_telefonos",
 ]
+
