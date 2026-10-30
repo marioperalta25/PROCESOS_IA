@@ -138,6 +138,8 @@ class PruebaRutasSalida(unittest.TestCase):
         archivo.write_text("nombre,telefono\nJuan,123\n", encoding="utf-8")
 
         panel.cargar_archivo(archivo)
-        self.assertTrue(str(panel.ruta_salida).startswith(str(self.base / "analisis" / "contactos_")))
+        self.assertTrue(str(panel.ruta_salida).startswith(
+            str(self.base / "extracciones" / "ia_local" / "en_proceso" / "contactos_")
+        ))
         self.assertEqual(panel.input_salida.text(), str(panel.ruta_salida))
 

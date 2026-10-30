@@ -41,7 +41,14 @@ htmlcov/
 /temporales/
 /tmp/
 /temp/
-/pruebas/
+# Solo se incluyen estos contratos sinteticos; los demas archivos siguen privados.
+/pruebas/*
+!/pruebas/unitarias/
+/pruebas/unitarias/*
+!/pruebas/unitarias/test_rutas_salida.py
+!/pruebas/unitarias/test_salidas_proceso.py
+!/pruebas/unitarias/test_integracion_salidas.py
+!/pruebas/unitarias/test_regresiones_conexiones.py
 
 # Archivos tabulares: proteger datos reales aunque se copien fuera del almacen
 *.csv

@@ -51,7 +51,7 @@ class HiloProcesamientoWeb(QThread):
         try:
             asyncio.run(self._ejecutar())
         except Exception as error:
-            self.proceso_fallido.emit(str(error))
+            self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
 
     async def _ejecutar(self) -> None:
         def on_progreso(act: int, tot: int, det: str) -> None:

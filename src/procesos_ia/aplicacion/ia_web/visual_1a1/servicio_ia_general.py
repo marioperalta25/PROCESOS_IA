@@ -41,6 +41,7 @@ class ServicioIAGeneral:
         self._gestor = gestor_sesion or GestorSesionNodriver(self._config)
         self._enrutador = enrutador or EnrutadorSalidas()
         self._cancelado = False
+        self.ultima_salida: Path | None = None
 
         self._procesador_url = ProcesadorUrlIndividual(
             self._gestor, self._enrutador, self._config, self.procesar_imagen_lens
@@ -162,7 +163,7 @@ class ServicioIAGeneral:
     ) -> tuple[FichaNegocioLens, Path | None]:
         """Procesa una URL individual mediante el subservicio dedicado, guardando CSV y cerrando sesion."""
         self._cancelado = False
-        return await self._procesador_url.ejecutar(
+        resultado = await self._procesador_url.ejecutar(
             fuente_imagen=fuente_imagen,
             id_registro=id_registro,
             carpeta_salida=carpeta_salida,
@@ -170,6 +171,8 @@ class ServicioIAGeneral:
             callback_log=callback_log,
             generar_auditoria_md=generar_auditoria_md,
         )
+        self.ultima_salida = resultado[1]
+        return resultado
 
     async def procesar_csv_con_lens(
         self,
@@ -182,7 +185,7 @@ class ServicioIAGeneral:
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Procesa un archivo tabular (CSV o Excel) mediante el subservicio especializado."""
         self._cancelado = False
-        return await self._procesador_archivo.ejecutar(
+        resultado = await self._procesador_archivo.ejecutar(
             ruta_archivo=ruta_csv,
             columna_imagen=columna_imagen,
             carpeta_salida=carpeta_salida,
@@ -191,6 +194,8 @@ class ServicioIAGeneral:
             verificador_cancelacion=lambda: self._cancelado,
             generar_auditoria_md=generar_auditoria_md,
         )
+        self.ultima_salida = resultado[1]
+        return resultado
 
     async def procesar_carpeta_imagenes_lens(
         self,
@@ -205,7 +210,7 @@ class ServicioIAGeneral:
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Procesa una coleccion de imagenes mediante el subservicio incremental especializado."""
         self._cancelado = False
-        return await self._procesador_carpeta.ejecutar(
+        resultado = await self._procesador_carpeta.ejecutar(
             carpeta=carpeta,
             callback_progreso=callback_progreso,
             callback_log=callback_log,
@@ -216,6 +221,8 @@ class ServicioIAGeneral:
             verificador_cancelacion=lambda: self._cancelado,
             generar_auditoria_md=generar_auditoria_md,
         )
+        self.ultima_salida = resultado[1]
+        return resultado
 
     async def procesar_modo_ia_lote(
         self,
@@ -230,7 +237,7 @@ class ServicioIAGeneral:
     ) -> tuple[list[dict[str, Any]], Path | None]:
         """Procesa registros en Modo IA mediante el subservicio conversacional especializado."""
         self._cancelado = False
-        return await self._procesador_modo_ia.ejecutar(
+        resultado = await self._procesador_modo_ia.ejecutar(
             filas=filas,
             instrucciones=instrucciones,
             columnas=columnas,
@@ -241,3 +248,5 @@ class ServicioIAGeneral:
             carpeta_salida=carpeta_salida,
             verificador_cancelacion=lambda: self._cancelado,
         )
+        self.ultima_salida = resultado[1]
+        return resultado

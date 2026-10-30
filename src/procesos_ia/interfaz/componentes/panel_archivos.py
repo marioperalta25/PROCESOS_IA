@@ -42,7 +42,9 @@ class PanelArchivos(QGroupBox):
         super().__init__("1. Datos de Entrada y Destino", parent)
         self._enrutador = enrutador or EnrutadorSalidas()
         self._ruta_entrada: Path | None = None
-        self._directorio_base_salidas: Path = self._enrutador.analisis
+        self._raiz_salidas = self._enrutador.raiz
+        gestor = self._enrutador.gestor_procesos()
+        self._directorio_base_salidas = gestor.rama("ia_local") / gestor.configuracion["estados"]["en_proceso"]
         self._ruta_salida: Path = self._directorio_base_salidas
 
         self._iniciar_ui()
@@ -54,6 +56,15 @@ class PanelArchivos(QGroupBox):
     @property
     def ruta_salida(self) -> Path:
         return self._ruta_salida
+
+    @property
+    def raiz_salidas(self) -> Path:
+        return self._raiz_salidas
+
+    def mostrar_destino_salida(self, directorio: Path) -> None:
+        """Muestra el destino definitivo reservado o clasificado por el proceso."""
+        self._ruta_salida = directorio
+        self.input_salida.setText(str(directorio))
 
     @property
     def encabezados(self) -> tuple[str, ...]:
@@ -195,7 +206,9 @@ class PanelArchivos(QGroupBox):
             str(self._directorio_base_salidas),
         )
         if directorio:
-            self._directorio_base_salidas = Path(directorio)
+            self._raiz_salidas = Path(directorio)
+            gestor = self._enrutador.gestor_procesos(self._raiz_salidas)
+            self._directorio_base_salidas = gestor.rama("ia_local") / gestor.configuracion["estados"]["en_proceso"]
             if self._ruta_entrada:
                 self._ruta_salida = resolver_subcarpeta_salida(self._directorio_base_salidas, self._ruta_entrada)
             else:

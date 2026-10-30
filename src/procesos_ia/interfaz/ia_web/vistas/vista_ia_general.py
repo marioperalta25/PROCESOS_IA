@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QFileDialog, QGroupBox, QHBoxLayout, QLabel,
@@ -11,7 +12,9 @@ from PySide6.QtWidgets import (
     QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
-from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import verificar_estado_carpeta_imagenes
+from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
+    listar_imagenes_carpeta, verificar_estado_carpeta_imagenes,
+)
 from procesos_ia.aplicacion.ia_web.visual_1a1.servicio_ia_general import ServicioIAGeneral
 from procesos_ia.dominio.ia_web.desglosador_telefonos import desglosar_ficha_por_telefono
 from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
@@ -38,12 +41,13 @@ class VistaIAGeneral(QWidget):
         configuracion_web: ConfiguracionWeb | None = None,
         servicio_prompts: object | None = None,
         parent: QWidget | None = None,
+        enrutador: EnrutadorSalidas | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("IA General: Google Lens y Modo IA")
         self._config_web = configuracion_web or ConfiguracionWeb()
         self._gestor = gestor_sesion or GestorSesionNodriver(self._config_web)
-        self._servicio = ServicioIAGeneral(self._gestor, self._config_web)
+        self._servicio = ServicioIAGeneral(self._gestor, self._config_web, enrutador=enrutador)
         self._servicio_prompts = servicio_prompts or self._crear_servicio_prompts()
         self._hilo: HiloIAGeneral | None = None
         self._carpeta_salida_custom: Path | None = None
@@ -53,10 +57,9 @@ class VistaIAGeneral(QWidget):
         self._actualizar_visibilidad()
 
     def _crear_servicio_prompts(self) -> object:
-        from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
         from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
         from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd
-        return ServicioCatalogoPrompts(RepositorioPromptsMd(EnrutadorSalidas().plantillas))
+        return ServicioCatalogoPrompts(RepositorioPromptsMd(self._servicio.enrutador.plantillas))
 
     def _iniciar_ui(self) -> None:
         from procesos_ia.interfaz.componentes.contenedor_responsivo import ContenedorPantallaResponsiva
@@ -93,7 +96,7 @@ class VistaIAGeneral(QWidget):
         self.contenedor.agregar_widget(self.panel_modo_chat)
 
         # 3. Panel CSV y columnas para Google Lens
-        self.panel_archivo = PanelArchivoGeneral(self)
+        self.panel_archivo = PanelArchivoGeneral(self, enrutador=self._servicio.enrutador)
         self.panel_archivo.log_notificado.connect(self._registrar_log)
         self.contenedor.agregar_widget(self.panel_archivo)
 
@@ -167,15 +170,23 @@ class VistaIAGeneral(QWidget):
             if not c or not Path(c).is_dir():
                 self.banner.mostrar_error("[ERROR] Seleccione una carpeta válida."); return
             p_carp = Path(c)
-            estado = verificar_estado_carpeta_imagenes(p_carp, self._servicio.enrutador.extracciones, "extraccion_lens")
+            rama = self._servicio.enrutador.gestor_procesos(self._carpeta_salida_custom).rama("imagenes")
+            estado = verificar_estado_carpeta_imagenes(p_carp, rama, "extraccion_lens")
+            if not estado.csv_existente:
+                anterior = self._carpeta_salida_custom or self._servicio.enrutador.extracciones
+                estado = verificar_estado_carpeta_imagenes(p_carp, anterior, "extraccion_lens")
             if estado.total_imagenes == 0:
                 self.banner.mostrar_error("[ERROR] La carpeta seleccionada no contiene imágenes compatibles."); return
 
             if estado.csv_existente and not estado.hay_nuevas:
                 box = QMessageBox(self); box.setWindowTitle("Carpeta al día")
                 box.setText(f"No hay imágenes nuevas.\n\nCarpeta: {p_carp.resolve()}\nCSV: {estado.csv_existente.resolve()}")
-                box.addButton("Reprocesar todo desde cero", QMessageBox.ButtonRole.DestructiveRole)
+                reprocesar = box.addButton("Reprocesar todo desde cero", QMessageBox.ButtonRole.DestructiveRole)
                 box.addButton("Aceptar", QMessageBox.ButtonRole.AcceptRole); box.exec()
+                if box.clickedButton() != reprocesar:
+                    return
+                estado.imagenes_pendientes = listar_imagenes_carpeta(p_carp)
+                estado.csv_existente = None
 
             tipo = "carpeta_imagenes"
             params = {
@@ -261,7 +272,8 @@ class VistaIAGeneral(QWidget):
             self._carpeta_salida_custom = Path(ruta); self._registrar_log(f"[INFO] Destino personalizado: {ruta}")
 
     def _abrir_carpeta_salida(self) -> None:
-        salidas = self._carpeta_salida_custom or self._servicio.enrutador.extracciones
+        ultima = self._servicio.ultima_salida
+        salidas = ultima.parent if ultima else (self._carpeta_salida_custom or self._servicio.enrutador.extracciones)
         salidas.mkdir(parents=True, exist_ok=True); os.startfile(str(salidas))
 
     def _limpiar_formulario(self) -> None:

@@ -6,21 +6,20 @@ import os
 from pathlib import Path
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
-    QButtonGroup, QComboBox, QFileDialog, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTabWidget,
+    QButtonGroup, QFileDialog, QGroupBox, QHBoxLayout, QRadioButton, QTabWidget,
     QVBoxLayout, QWidget,
 )
 
+from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web import ServicioProcesamientoWeb
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
 from procesos_ia.interfaz.componentes.banner_notificacion import BannerNotificacion
 from procesos_ia.interfaz.componentes.barra_navegacion import BarraNavegacionSubvista
 from procesos_ia.interfaz.ia_web.componentes.consola_ia_general import ConsolaIAGeneral
-from procesos_ia.interfaz.ia_web.componentes.panel_archivo_general import PanelArchivoGeneral
 from procesos_ia.interfaz.ia_web.componentes.panel_opciones_web import PanelOpcionesAvanzadasWeb
 from procesos_ia.interfaz.ia_web.hilos.hilo_navegador import HiloLanzarNavegador
 from procesos_ia.interfaz.ia_web.hilos.hilo_procesamiento_web import HiloProcesamientoWeb
-from procesos_ia.interfaz.protector_botones import conectar_boton_protegido, liberar_boton_protegido
+from procesos_ia.interfaz.protector_botones import liberar_boton_protegido
 from procesos_ia.interfaz.responsivo import ModoPantalla
 
 
@@ -31,13 +30,14 @@ class VistaConfiguracionMotores(QWidget):
     ia_general_solicitado = Signal(); plantillas_web_solicitadas = Signal()
 
     def __init__(
-        self, motor_actual: str = "gemini", configuracion_web: ConfiguracionWeb | None = None, parent: QWidget | None = None
+        self, motor_actual: str = "gemini", configuracion_web: ConfiguracionWeb | None = None, parent: QWidget | None = None,
+        enrutador: EnrutadorSalidas | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("IA Web: Procesamiento y Motores (DeepSeek y Gemini)")
         self._motor_actual = motor_actual if motor_actual in ("gemini", "deepseek") else "gemini"
         self._config_web = configuracion_web or ConfiguracionWeb()
-        self._servicio_proc = ServicioProcesamientoWeb(configuracion_web=self._config_web)
+        self._servicio_proc = ServicioProcesamientoWeb(configuracion_web=self._config_web, enrutador=enrutador)
         self._hilo_nav: HiloLanzarNavegador | None = None
         self._hilo_proc: HiloProcesamientoWeb | None = None
         self._ultima_salida: Path | None = None
@@ -84,70 +84,8 @@ class VistaConfiguracionMotores(QWidget):
         self.contenedor.agregar_widget(self.consola)
 
     def _iniciar_tab_operacion(self) -> None:
-        lay = QVBoxLayout(self.tab_operacion); lay.setContentsMargins(8, 8, 8, 8); lay.setSpacing(6)
-
-        lay_op = QHBoxLayout(); lay_op.addWidget(QLabel("Operación Web:", self))
-        self.combo_operacion = QComboBox(self)
-        for t, d in (("Procesamiento por Lotes de Texto (CSV con delimitador '|')", "csv_texto"),
-                     ("CSV con Imágenes (1 a 1)", "csv_imagen"),
-                     ("Carpeta de Imágenes Directa (1 a 1)", "carpeta_imagenes"),
-                     ("Imagen Individual (Prueba puntual)", "imagen_individual")):
-            self.combo_operacion.addItem(t, d)
-        self.combo_operacion.currentIndexChanged.connect(self._al_cambiar_operacion)
-        lay_op.addWidget(self.combo_operacion, stretch=1); lay.addLayout(lay_op)
-
-        self.panel_archivo = PanelArchivoGeneral(self); lay.addWidget(self.panel_archivo)
-
-        # Entrada alternativa directa de imágenes (1 a 1 o carpeta)
-        self.grupo_directo = QGroupBox("Entrada Directa de Imágenes", self)
-        lay_d = QHBoxLayout(self.grupo_directo)
-        self.lbl_directo, self.input_directo = QLabel("Carpeta:", self), QLineEdit(self)
-        self.input_directo.setPlaceholderText("Seleccionar ruta...")
-        self.btn_examinar_directo = QPushButton("Examinar...", self)
-        self.btn_examinar_directo.clicked.connect(self._abrir_dialogo_directo)
-        lay_d.addWidget(self.lbl_directo); lay_d.addWidget(self.input_directo, stretch=1); lay_d.addWidget(self.btn_examinar_directo)
-        self.grupo_directo.setVisible(False); lay.addWidget(self.grupo_directo)
-
-        # Plantillas e instrucciones
-        self.grupo_prompt = QGroupBox("Instrucciones de Evaluación (Prompt)", self)
-        lay_p = QVBoxLayout(self.grupo_prompt); lay_p.setContentsMargins(6, 4, 6, 4); lay_p.setSpacing(4)
-        lay_top = QHBoxLayout(); lay_top.addWidget(QLabel("Plantilla IA Web:", self))
-        self.combo_plantillas = QComboBox(self)
-        self.combo_plantillas.currentIndexChanged.connect(self._al_seleccionar_plantilla)
-        self.btn_plantillas_ia_web = QPushButton("Gestionar Plantillas (|)", self)
-        self.btn_plantillas_ia_web.clicked.connect(self.plantillas_web_solicitadas.emit)
-        lay_top.addWidget(self.combo_plantillas, stretch=1); lay_top.addWidget(self.btn_plantillas_ia_web); lay_p.addLayout(lay_top)
-
-        from procesos_ia.interfaz.componentes.editor_texto_expandible import EditorTextoExpandible
-        self.txt_instrucciones = EditorTextoExpandible(placeholder="Instrucciones para DeepSeek o Gemini...", parent=self)
-        lay_p.addWidget(self.txt_instrucciones); lay.addWidget(self.grupo_prompt)
-
-        lay_opts = QHBoxLayout()
-        self.spin_lote, self.spin_rotacion = QSpinBox(self), QSpinBox(self)
-        self.spin_lote.setRange(1, 30); self.spin_lote.setValue(5)
-        self.spin_rotacion.setRange(1, 50); self.spin_rotacion.setValue(2)
-        self.input_imagenes = QLineEdit(self); self.input_imagenes.setPlaceholderText("Opcional...")
-        self.btn_examinar_imagenes = QPushButton("Examinar...", self)
-        self.btn_examinar_imagenes.clicked.connect(self._abrir_dialogo_imagenes)
-        for w in (QLabel("Filas por lote:", self), self.spin_lote, QLabel("Rotar chat cada:", self),
-                  self.spin_rotacion, QLabel("Carpeta imágenes:", self), self.input_imagenes, self.btn_examinar_imagenes):
-            lay_opts.addWidget(w, stretch=1 if w == self.input_imagenes else 0)
-        lay.addLayout(lay_opts)
-
-        self.barra_progreso = QProgressBar(self); self.barra_progreso.setRange(0, 100); self.barra_progreso.setValue(0)
-        lay.addWidget(self.barra_progreso)
-
-        lay_btns = QHBoxLayout()
-        self.btn_ejecutar = QPushButton("Iniciar Procesamiento Web", self); self.btn_ejecutar.setMinimumHeight(32)
-        conectar_boton_protegido(self.btn_ejecutar, self._ejecutar_procesamiento_web, "[INFO] Iniciando...", 800)
-        self.btn_cancelar = QPushButton("Detener", self); self.btn_cancelar.setEnabled(False)
-        conectar_boton_protegido(self.btn_cancelar, self._cancelar_procesamiento, tiempo_bloqueo_ms=0, auto_desbloquear=False)
-        self.btn_abrir_salida, self.btn_ia_general = QPushButton("Abrir Carpeta de Salida", self), QPushButton("IA General (Google Lens / Modo IA)", self)
-        conectar_boton_protegido(self.btn_abrir_salida, self._abrir_carpeta_salida, tiempo_bloqueo_ms=800)
-        conectar_boton_protegido(self.btn_ia_general, self.ia_general_solicitado.emit, tiempo_bloqueo_ms=800)
-        for b, s in ((self.btn_ejecutar, 2), (self.btn_cancelar, 1), (self.btn_abrir_salida, 1), (self.btn_ia_general, 1)):
-            lay_btns.addWidget(b, stretch=s)
-        lay.addLayout(lay_btns); self._al_cambiar_operacion()
+        from procesos_ia.interfaz.ia_web.componentes.operacion_motores import construir_operacion_motores
+        construir_operacion_motores(self)
 
     def _al_cambiar_operacion(self) -> None:
         op = self.combo_operacion.currentData()
@@ -190,10 +128,11 @@ class VistaConfiguracionMotores(QWidget):
         self._servicio_proc._config = self._construir_configuracion_web()
         rot = self.spin_rotacion.value()
         if op in ("csv_texto", "csv_imagen"):
-            ruta = self.panel_archivo.ruta_archivo
+            ruta = self.panel_archivo.obtener_ruta_csv()
             if not ruta or not ruta.is_file():
                 self.banner.mostrar_error("[ALERTA] Seleccione un CSV válido."); return
-            cols, col_img = self.panel_archivo.obtener_columnas_seleccionadas(), self.panel_archivo.columna_imagen
+            cols = self.panel_archivo.obtener_columnas_seleccionadas()
+            col_img = self.panel_archivo.obtener_columna_imagen() if op == "csv_imagen" else None
             if not cols and not col_img:
                 self.banner.mostrar_error("[ALERTA] Seleccione al menos una columna."); return
             carp = Path(self.input_imagenes.text().strip()) if self.input_imagenes.text().strip() else None
@@ -240,7 +179,8 @@ class VistaConfiguracionMotores(QWidget):
         if self._hilo_proc and self._hilo_proc.isRunning(): self._hilo_proc.cancelar(); self.consola.agregar_log("[ALERTA] Detención solicitada...")
 
     def _abrir_carpeta_salida(self) -> None:
-        c = self._ultima_salida.parent if self._ultima_salida else self._servicio_proc._enrutador.extracciones
+        motor = "gemini" if self.radio_gemini.isChecked() else "deepseek"
+        c = self._ultima_salida.parent if self._ultima_salida else self._servicio_proc._enrutador.gestor_procesos().rama(motor)
         c.mkdir(parents=True, exist_ok=True); os.startfile(str(c)) if hasattr(os, "startfile") else None
 
     def _abrir_dialogo_imagenes(self) -> None:

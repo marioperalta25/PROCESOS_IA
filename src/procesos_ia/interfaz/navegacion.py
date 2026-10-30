@@ -53,7 +53,7 @@ class NavegacionVistas:
         if self.vista_motores is None:
             from procesos_ia.interfaz.ia_web.vistas.vista_motores import VistaConfiguracionMotores
             self.vista_motores = VistaConfiguracionMotores(
-                motor, ventana._config_web, ventana,
+                motor, ventana._config_web, ventana, enrutador=ventana._enrutador,
             )
             self.vista_motores.volver_solicitado.connect(ventana._volver_a_principal)
             self.vista_motores.motor_configurado.connect(ventana._al_configurar_motor)
@@ -86,6 +86,7 @@ class NavegacionVistas:
                 configuracion_web=ventana._config_web,
                 servicio_prompts=getattr(ventana, "_servicio_prompts", None),
                 parent=ventana,
+                enrutador=ventana._enrutador,
             )
             self.vista_ia_general.volver_solicitado.connect(
                 lambda: self.activar(self.vista_motores)

@@ -14,6 +14,7 @@ from procesos_ia.aplicacion.contratos import (
     ValidadorSemanticoProtocol,
 )
 from procesos_ia.aplicacion.coordinador import CoordinadorTrabajo
+from procesos_ia.aplicacion.salidas_proceso import SalidaProceso
 from procesos_ia.dominio.excepciones import ErrorConexionRechazada, ErrorProcesamiento
 from procesos_ia.dominio.modelos import (
     ConfiguracionTrabajo,
@@ -31,6 +32,7 @@ from procesos_ia.infraestructura.ollama.servicio_inferencia import (
     ServicioInferenciaOllama,
 )
 from procesos_ia.infraestructura.persistencia.escritor_wal import EscritorWal
+from procesos_ia.interfaz.ejecucion_trabajo import ejecutar_trabajo
 
 
 class HiloListarModelos(QThread):
@@ -183,9 +185,11 @@ class HiloCoordinadorTrabajo(QThread):
         escritor_wal: EscritorWalProtocol | None = None,
         validador: ValidadorSemanticoProtocol | None = None,
         parent: QObject | None = None,
+        salida: SalidaProceso | None = None,
     ) -> None:
         super().__init__(parent)
         self._configuracion = configuracion
+        self._salida = salida
         self._cancelado = False
         self._pausado = False
         self._mutex = QMutex()
@@ -197,7 +201,8 @@ class HiloCoordinadorTrabajo(QThread):
             notificador = NotificadorProgresoQt(self)
             lec = lector or crear_lector_flujo(configuracion.ruta_entrada)
             esc = escritor_wal or EscritorWal(
-                limite_filas_particion=configuracion.limite_filas_particion
+                limite_filas_particion=configuracion.limite_filas_particion,
+                **({"nombre_consolidado": salida.nombre_archivo} if salida else {}),
             )
             inf = servicio_inferencia or ServicioInferenciaOllama()
             val = validador or ValidadorSemantico(
@@ -211,6 +216,10 @@ class HiloCoordinadorTrabajo(QThread):
                 notificador=notificador,
                 configuracion=configuracion,
             )
+
+    @property
+    def salida(self) -> SalidaProceso | None:
+        return self._salida
 
     def pausar(self) -> None:
         self._mutex.lock()
@@ -237,37 +246,4 @@ class HiloCoordinadorTrabajo(QThread):
         self.senial_mensaje.emit("[ALERTA] Solicitud de cancelacion recibida")
 
     def run(self) -> None:
-        try:
-            self._coordinador.iniciar_o_reanudar()
-
-            while not self._cancelado:
-                self._mutex.lock()
-                while self._pausado and not self._cancelado:
-                    self._condicion_pausa.wait(self._mutex)
-                cancelado = self._cancelado
-                self._mutex.unlock()
-
-                if cancelado:
-                    break
-
-                hay_mas = self._coordinador.procesar_siguiente_lote()
-                if not hay_mas:
-                    break
-
-            if self._cancelado:
-                self._coordinador.cancelar()
-                self.senial_fase_cambiada.emit("[CANCELADO]")
-                self.senial_finalizado.emit(
-                    False, "[ALERTA] Procesamiento cancelado por el usuario"
-                )
-            else:
-                self.senial_fase_cambiada.emit("[COMPLETADO]")
-                self.senial_finalizado.emit(
-                    True, "[OK] Procesamiento finalizado y confirmado en disco"
-                )
-
-        except Exception as error:
-            self.senial_fase_cambiada.emit("[ERROR]")
-            self.senial_error.emit(f"[ERROR] Fallo en la ejecucion: {error}")
-        finally:
-            self._coordinador.cerrar()
+        ejecutar_trabajo(self)

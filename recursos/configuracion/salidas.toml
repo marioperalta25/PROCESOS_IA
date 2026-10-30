@@ -1,0 +1,17 @@
+# Estructura comun de resultados. Las continuaciones las decide cada modulo.
+carpeta_padre = "extracciones"
+carpeta_reservas = "reservas"
+sufijo_copia = "_copia{numero}"
+
+[estados]
+en_proceso = "en_proceso"
+completados = "completados"
+fallidos = "fallidos"
+cancelados = "cancelados"
+
+[modulos]
+deepseek = ["deepseek"]
+gemini = ["gemini"]
+ia_local = ["ia_local"]
+imagenes = ["ia_general", "imagenes"]
+modo_ia = ["ia_general", "modo_ia"]

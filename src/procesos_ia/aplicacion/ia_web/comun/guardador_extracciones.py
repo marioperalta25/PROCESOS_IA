@@ -13,6 +13,7 @@ from procesos_ia.dominio.ia_web.desglosador_telefonos import (
     desglosar_filas_por_telefono,
 )
 from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
+from procesos_ia.infraestructura.archivos.escritor_csv import guardar_filas_csv
 
 COLUMNAS_FICHA_CSV = [
     "id_registro",
@@ -146,16 +147,4 @@ def guardar_filas_enriquecidas_csv(
 
     filas_desglosadas = desglosar_filas_por_telefono(filas, columna_telefono=col_tel)
 
-    ruta_salida.parent.mkdir(parents=True, exist_ok=True)
-    encabezados: list[str] = []
-    for f in filas_desglosadas:
-        for k in f.keys():
-            if k not in encabezados:
-                encabezados.append(k)
-
-    with open(ruta_salida, mode="w", newline="", encoding="utf-8-sig") as arch:
-        escritor = csv.DictWriter(arch, fieldnames=encabezados, extrasaction="ignore")
-        escritor.writeheader()
-        escritor.writerows(filas_desglosadas)
-
-    return ruta_salida
+    return guardar_filas_csv(filas_desglosadas, ruta_salida)

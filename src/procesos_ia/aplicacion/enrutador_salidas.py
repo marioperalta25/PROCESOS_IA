@@ -11,6 +11,9 @@ from procesos_ia.aplicacion.rutas_salida import (
     resolver_subcarpeta_salida,
     sanitizar_nombre_subcarpeta,
 )
+from procesos_ia.aplicacion.salidas_proceso import (
+    GestorSalidasProceso, SalidaProceso, cargar_configuracion_salidas,
+)
 
 
 def obtener_directorio_raiz_predeterminado() -> Path:
@@ -33,9 +36,12 @@ class EnrutadorSalidas:
         ├── analisis/          (procesamiento masivo y enriquecimiento de datos)
         │     └── <archivo>_<fecha>[_copia_n]/
         ├── conversaciones/    (historial y estado de chats locales)
-        ├── extracciones/      (extracciones web y analisis de documentos)
+        ├── extracciones/      (deepseek, gemini, ia_local, ia_general)
+        │     └── <modulo>/<estado>/<trabajo>[_copiaN]/
         ├── reportes/          (informes ejecutivos y consolidados)
         └── temporales/        (capturas y cache de trabajo temporal)
+
+    Los estados y ramas de procesos se declaran en recursos/configuracion/salidas.toml.
     """
 
     def __init__(self, directorio_raiz: Path | None = None) -> None:
@@ -44,6 +50,7 @@ class EnrutadorSalidas:
             if directorio_raiz is not None
             else obtener_directorio_raiz_predeterminado()
         )
+        self._configuracion_salidas = cargar_configuracion_salidas()
 
     @property
     def raiz(self) -> Path:
@@ -95,6 +102,16 @@ class EnrutadorSalidas:
         self._raiz = Path(nueva_raiz)
         self.asegurar_directorios()
 
+    def gestor_procesos(self, raiz_destino: Path | None = None) -> GestorSalidasProceso:
+        """Compone la politica comun sobre la raiz elegida por el usuario."""
+        return GestorSalidasProceso(raiz_destino or self._raiz, self._configuracion_salidas)
+
+    def reservar_salida(
+        self, modulo: str, nombre_archivo: str, nombre_trabajo: str | None = None,
+        raiz_destino: Path | None = None,
+    ) -> SalidaProceso:
+        return self.gestor_procesos(raiz_destino).reservar(modulo, nombre_archivo, nombre_trabajo)
+
     def asegurar_directorios(self) -> None:
         """Crea la estructura base de directorios si todavia no existe."""
         for destino in (
@@ -109,6 +126,7 @@ class EnrutadorSalidas:
             self.temporales,
         ):
             destino.mkdir(parents=True, exist_ok=True)
+        self.gestor_procesos().asegurar_directorios()
 
     def migrar_plantillas_previas(
         self, directorio_previo: Path | None = None

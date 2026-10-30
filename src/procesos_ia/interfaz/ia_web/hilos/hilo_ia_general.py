@@ -35,7 +35,7 @@ class HiloIAGeneral(QThread):
         try:
             asyncio.run(self._ejecutar_accion())
         except Exception as error:
-            self.proceso_fallido.emit(str(error))
+            self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
 
     async def _ejecutar_accion(self) -> None:
         def notificar_progreso(actual: int, total: int, detalle: str) -> None:
@@ -109,7 +109,8 @@ class HiloIAGeneral(QThread):
             nombre = self._parametros.get("nombre_salida", "evaluacion")
             notificar_log(f"[INFO] Iniciando evaluación en Modo IA con lotes de {tamano}...")
             resultado, ruta_salida = await self._servicio.procesar_modo_ia_lote(
-                filas, instrucciones, columnas, tamano, notificar_progreso, notificar_log, nombre
+                filas, instrucciones, columnas, tamano, notificar_progreso, notificar_log, nombre,
+                carpeta_salida=self._parametros.get("carpeta_salida"),
             )
             ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"
             notificar_log(f"[OK] Modo IA completado con {len(resultado)} respuestas.")

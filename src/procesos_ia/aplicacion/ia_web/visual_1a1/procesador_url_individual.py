@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -42,36 +41,27 @@ class ProcesadorUrlIndividual:
         if callback_log:
             callback_log(f"[INFO] Iniciando procesamiento individual de: {fuente_imagen}")
 
-        # Ejecuta la extraccion de Lens asegurando cerrar la pestana activa al finalizar
-        ficha: FichaNegocioLens = await self._ejecutor_lens(
-            fuente_imagen=fuente_imagen,
-            id_registro=id_registro,
-            cerrar_pestana=True,
-            callback_log=callback_log,
-        )
-
-        ruta_csv: Path | None = None
-        destino = carpeta_salida if carpeta_salida is not None else self._enrutador.extracciones
-
-        try:
-            ruta_csv = guardar_ficha_individual_csv(
-                ficha, destino, generar_auditoria_md=generar_auditoria_md
-            )
+        with self._enrutador.reservar_salida(
+            "imagenes", f"extraccion_url_{id_registro}.csv", raiz_destino=carpeta_salida,
+        ) as salida:
+            try:
+                ficha = await self._ejecutor_lens(
+                    fuente_imagen=fuente_imagen, id_registro=id_registro,
+                    cerrar_pestana=True, callback_log=callback_log,
+                )
+                guardar_ficha_individual_csv(
+                    ficha, salida.directorio, salida.nombre_archivo,
+                    generar_auditoria_md=generar_auditoria_md,
+                )
+            finally:
+                if cerrar_navegador_al_terminar:
+                    if callback_log:
+                        callback_log("[INFO] Cerrando navegador tras completar la URL individual...")
+                    await self._gestor.cerrar_navegador()
+            estado = "cancelados" if ficha.estado_ia == "CANCELADO" else "completados"
+            if ficha.estado_ia.startswith("ERROR") or ficha.estado_ia.startswith("TIMEOUT"):
+                estado = "fallidos"
+            ruta_csv = salida.finalizar(estado)
             if callback_log:
                 callback_log(f"[OK] Guardado en CSV: {ruta_csv.resolve()}")
-        except Exception as error:
-            if callback_log:
-                callback_log(f"[ERROR] No se pudo guardar en CSV: {error}")
-
-        if cerrar_navegador_al_terminar:
-            if callback_log:
-                callback_log("[INFO] Cerrando navegador tras completar la URL individual...")
-            try:
-                await self._gestor.cerrar_navegador()
-                if callback_log:
-                    callback_log("[OK] Navegador cerrado exitosamente.")
-            except Exception as error:
-                if callback_log:
-                    callback_log(f"[ALERTA] Detalle al cerrar navegador: {error}")
-
-        return ficha, ruta_csv
+            return ficha, ruta_csv

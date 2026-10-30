@@ -92,7 +92,7 @@ def buscar_csv_previo_carpeta(
         return None
 
     patron = f"{prefijo}_{nombre_carpeta}_*.csv"
-    coincidencias = list(directorio_salidas.glob(patron))
+    coincidencias = list(directorio_salidas.rglob(patron))
 
     csv_fijo = directorio_salidas / f"{prefijo}_{nombre_carpeta}.csv"
     if csv_fijo.is_file():

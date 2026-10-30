@@ -1,4 +1,4 @@
-﻿"""Ventana principal de escritorio que coordina los paneles y flujos de trabajo."""
+"""Ventana principal de escritorio que coordina los paneles y flujos de trabajo."""
 
 from __future__ import annotations
 
@@ -225,21 +225,8 @@ class VentanaPrincipal(QMainWindow):
     def _al_confirmar_trabajo(self, configuracion: ConfiguracionTrabajo) -> None:
         if self._cierre.pendiente or not self._navegacion.permitir_inferencia():
             return
-        self.pila_vistas.setCurrentWidget(self.vista_principal)
-        self.panel_telemetria.reiniciar_indicadores()
-        self.panel_controles.configurar_estado_ejecucion(en_ejecucion=True)
-
-        self._hilo_trabajo = HiloCoordinadorTrabajo(
-            configuracion=configuracion, coordinador=self._coordinador_inyectado,
-            servicio_inferencia=self._obtener_servicio_inferencia(), parent=self,
-        )
-        for s, sl in ((self._hilo_trabajo.senial_progreso, self.panel_telemetria.actualizar_progreso),
-                      (self._hilo_trabajo.senial_fase_cambiada, self.panel_telemetria.actualizar_fase),
-                      (self._hilo_trabajo.senial_mensaje, self.panel_telemetria.agregar_log),
-                      (self._hilo_trabajo.senial_finalizado, self._al_finalizar_trabajo),
-                      (self._hilo_trabajo.senial_error, self._al_fallar_trabajo)):
-            s.connect(sl)
-        self._hilo_trabajo.start()
+        from procesos_ia.interfaz.composicion_trabajo import iniciar_trabajo_local
+        iniciar_trabajo_local(self, configuracion)
 
     def _pausar_procesamiento(self) -> None:
         if self._hilo_trabajo and self._hilo_trabajo.isRunning(): self._hilo_trabajo.pausar()
@@ -251,12 +238,16 @@ class VentanaPrincipal(QMainWindow):
         if self._hilo_trabajo and self._hilo_trabajo.isRunning(): self._hilo_trabajo.cancelar()
 
     def _al_finalizar_trabajo(self, completado: bool, mensaje: str) -> None:
+        if self._hilo_trabajo and self._hilo_trabajo.salida:
+            self.panel_archivos.mostrar_destino_salida(self._hilo_trabajo.salida.directorio)
         self.panel_controles.configurar_estado_ejecucion(en_ejecucion=False)
         self.panel_telemetria.agregar_log(mensaje)
         if completado and not self._cierre.pendiente:
             QMessageBox.information(self, "Completado", mensaje)
 
     def _al_fallar_trabajo(self, err: str) -> None:
+        if self._hilo_trabajo and self._hilo_trabajo.salida:
+            self.panel_archivos.mostrar_destino_salida(self._hilo_trabajo.salida.directorio)
         self.panel_controles.configurar_estado_ejecucion(en_ejecucion=False)
         self.panel_telemetria.agregar_log(err)
         if not self._cierre.pendiente: QMessageBox.critical(self, "Error", err)
