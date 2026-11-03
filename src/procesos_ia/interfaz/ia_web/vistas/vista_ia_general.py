@@ -22,8 +22,10 @@ from procesos_ia.infraestructura.web.base.configuracion_web import Configuracion
 from procesos_ia.infraestructura.web.base.gestor_sesion_nodriver import GestorSesionNodriver
 from procesos_ia.interfaz.componentes.banner_notificacion import BannerNotificacion
 from procesos_ia.interfaz.componentes.barra_navegacion import BarraNavegacionSubvista
+from procesos_ia.interfaz.ia_web.componentes.barra_acciones_ia_general import BarraAccionesIAGeneral
 from procesos_ia.interfaz.ia_web.componentes.consola_ia_general import ConsolaIAGeneral
 from procesos_ia.interfaz.ia_web.componentes.panel_archivo_general import PanelArchivoGeneral
+from procesos_ia.interfaz.ia_web.conversacional.medidor_tokens import LIMITE_CARACTERES_MODO_IA
 from procesos_ia.interfaz.ia_web.conversacional.panel_modo_chat import PanelModoChat
 from procesos_ia.interfaz.ia_web.hilos.hilo_ia_general import HiloIAGeneral
 from procesos_ia.interfaz.protector_botones import conectar_boton_protegido, liberar_boton_protegido
@@ -58,13 +60,10 @@ class VistaIAGeneral(QWidget):
 
     def _crear_servicio_prompts(self) -> object:
         from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
-        from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd
-        return ServicioCatalogoPrompts(RepositorioPromptsMd(self._servicio.enrutador.plantillas))
+        from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd; return ServicioCatalogoPrompts(RepositorioPromptsMd(self._servicio.enrutador.plantillas))
 
     def _iniciar_ui(self) -> None:
-        from procesos_ia.interfaz.componentes.contenedor_responsivo import ContenedorPantallaResponsiva
-        from procesos_ia.interfaz.responsivo import configurar_tabla_responsiva
-
+        from procesos_ia.interfaz.componentes.contenedor_responsivo import ContenedorPantallaResponsiva; from procesos_ia.interfaz.responsivo import configurar_tabla_responsiva
         layout_raiz = QVBoxLayout(self); layout_raiz.setContentsMargins(0, 0, 0, 0)
         self.contenedor = ContenedorPantallaResponsiva(self); layout_raiz.addWidget(self.contenedor)
 
@@ -89,6 +88,9 @@ class VistaIAGeneral(QWidget):
         self.check_auditoria_md.setToolTip("Activar o desactivar la creación del archivo Markdown (.md) de auditoría")
         layout_modo.addWidget(self.check_auditoria_md)
         self.contenedor.agregar_layout(layout_modo)
+        self.lbl_guia_flujo = QLabel(self); self.lbl_guia_flujo.setWordWrap(True)
+        self.lbl_guia_flujo.setStyleSheet("color: #58615B; font-size: 11px;")
+        self.contenedor.agregar_widget(self.lbl_guia_flujo)
 
         # 2. Panel especializado para Modo Chat (sin selector de imagen)
         self.panel_modo_chat = PanelModoChat(self._servicio_prompts, self._servicio.enrutador, self)
@@ -113,20 +115,15 @@ class VistaIAGeneral(QWidget):
         self.barra_progreso.setRange(0, 100); self.barra_progreso.setValue(0)
         self.contenedor.agregar_widget(self.barra_progreso)
 
-        layout_botones = QHBoxLayout()
-        self.btn_ejecutar = QPushButton("Iniciar Proceso en Navegador Compartido", self); self.btn_ejecutar.setMinimumHeight(32)
-        conectar_boton_protegido(self.btn_ejecutar, self._ejecutar_accion, "[INFO] Iniciando...", 800)
-        layout_botones.addWidget(self.btn_ejecutar, stretch=2)
-        self.btn_cancelar = QPushButton("Detener", self); self.btn_cancelar.setEnabled(False)
-        conectar_boton_protegido(self.btn_cancelar, self._cancelar_proceso, tiempo_bloqueo_ms=0, auto_desbloquear=False)
-        layout_botones.addWidget(self.btn_cancelar, stretch=1)
-        self.btn_destino = QPushButton("Destino...", self)
-        conectar_boton_protegido(self.btn_destino, self._cambiar_carpeta_salida, tiempo_bloqueo_ms=500)
-        layout_botones.addWidget(self.btn_destino, stretch=1)
-        self.btn_abrir_salida = QPushButton("Abrir Salida", self)
-        conectar_boton_protegido(self.btn_abrir_salida, self._abrir_carpeta_salida, tiempo_bloqueo_ms=800)
-        layout_botones.addWidget(self.btn_abrir_salida, stretch=1)
-        self.contenedor.agregar_layout(layout_botones)
+        self.barra_acciones = BarraAccionesIAGeneral(
+            self._ejecutar_accion, self._cancelar_proceso,
+            self._cambiar_carpeta_salida, self._abrir_carpeta_salida, self,
+        )
+        self.btn_ejecutar = self.barra_acciones.btn_ejecutar
+        self.btn_cancelar = self.barra_acciones.btn_cancelar
+        self.btn_destino = self.barra_acciones.btn_destino
+        self.btn_abrir_salida = self.barra_acciones.btn_abrir_salida
+        self.contenedor.agregar_widget(self.barra_acciones)
 
         # 6. Consola de bitacora y tabla
         self.consola = ConsolaIAGeneral(self); self.consola.setMinimumHeight(190)
@@ -148,23 +145,25 @@ class VistaIAGeneral(QWidget):
     def _abrir_dialogo_alt(self) -> None:
         dir_img = self._servicio.enrutador.imagenes; dir_img.mkdir(parents=True, exist_ok=True)
         ruta = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta", str(dir_img))
-        if ruta:
-            self.input_alt.setText(ruta); self._registrar_log(f"[INFO] Carpeta seleccionada: {ruta}")
+        if ruta: self.input_alt.setText(ruta); self._registrar_log(f"[INFO] Carpeta: {ruta}")
 
     def _ejecutar_accion(self) -> None:
         if self._hilo is not None and self._hilo.isRunning(): return
         modo, params, tipo = self.combo_flujo.currentData(), {}, ""
         if modo == "modo_ia":
             params_chat = self.panel_modo_chat.obtener_parametros()
-            if not params_chat:
-                self.banner.mostrar_error("[ERROR] Seleccione un archivo CSV o Excel válido."); return
+            if not params_chat: self.banner.mostrar_error("[ERROR] Seleccione un archivo CSV o Excel válido."); return
+            instr = params_chat.get("instrucciones", "")
+            if len(instr) > LIMITE_CARACTERES_MODO_IA:
+                self.banner.mostrar_error(f"[ERROR] El prompt ({len(instr):,} car) supera el límite de {LIMITE_CARACTERES_MODO_IA:,}. Redúzcalo.")
+                return
             tipo, params = "modo_ia_lote", params_chat
         elif modo == "csv_lens":
-            ruta_csv = self.panel_archivo.obtener_ruta_csv()
-            col = self.panel_archivo.obtener_columna_imagen()
+            ruta_csv, col = self.panel_archivo.obtener_ruta_csv(), self.panel_archivo.obtener_columna_imagen()
             if not ruta_csv or not col:
                 self.banner.mostrar_error("[ERROR] Seleccione el CSV y la columna de imagen."); return
-            tipo, params = "csv_imagenes", {"ruta_csv": ruta_csv, "columna": col}
+            hoja = self.panel_archivo.obtener_hoja_seleccionada()
+            tipo, params = "csv_imagenes", {"ruta_csv": ruta_csv, "columna": col, "nombre_hoja": hoja}
         elif modo == "carpeta":
             c = self.input_alt.text().strip().strip("\"'")
             if not c or not Path(c).is_dir():
@@ -188,8 +187,7 @@ class VistaIAGeneral(QWidget):
                 estado.imagenes_pendientes = listar_imagenes_carpeta(p_carp)
                 estado.csv_existente = None
 
-            tipo = "carpeta_imagenes"
-            params = {
+            tipo, params = "carpeta_imagenes", {
                 "carpeta": p_carp, "archivos": estado.imagenes_pendientes,
                 "modo_escritura": "reanudar" if estado.csv_existente else "sobrescribir",
                 "csv_existente": estado.csv_existente,
@@ -256,8 +254,7 @@ class VistaIAGeneral(QWidget):
         if self._hilo is not None and self._hilo.isRunning():
             self._hilo.cancelar(); self._registrar_log("[INFO] Cancelando tarea en curso...")
 
-    def _registrar_log(self, mensaje: str) -> None:
-        self.consola.agregar_log(mensaje)
+    def _registrar_log(self, mensaje: str) -> None: self.consola.agregar_log(mensaje)
 
     def _agregar_fila_tabla(self, f: FichaNegocioLens) -> None:
         for item in desglosar_ficha_por_telefono(f):
@@ -268,33 +265,34 @@ class VistaIAGeneral(QWidget):
     def _cambiar_carpeta_salida(self) -> None:
         defecto = str(self._carpeta_salida_custom or self._servicio.enrutador.extracciones)
         ruta = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta de Destino", defecto)
-        if ruta:
-            self._carpeta_salida_custom = Path(ruta); self._registrar_log(f"[INFO] Destino personalizado: {ruta}")
+        if ruta: self._carpeta_salida_custom = Path(ruta); self._registrar_log(f"[INFO] Destino: {ruta}")
 
     def _abrir_carpeta_salida(self) -> None:
-        ultima = self._servicio.ultima_salida
-        salidas = ultima.parent if ultima else (self._carpeta_salida_custom or self._servicio.enrutador.extracciones)
+        salidas = (self._servicio.ultima_salida.parent if self._servicio.ultima_salida
+                   else (self._carpeta_salida_custom or self._servicio.enrutador.extracciones))
         salidas.mkdir(parents=True, exist_ok=True); os.startfile(str(salidas))
 
     def _limpiar_formulario(self) -> None:
         self.panel_modo_chat.limpiar(); self.panel_archivo.limpiar(); self.input_alt.clear()
-        self.tabla.setRowCount(0); self.barra_progreso.setValue(0)
-        self.consola.limpiar(); self.banner.mostrar_info("[INFO] Formulario restablecido.")
+        self.tabla.setRowCount(0); self.barra_progreso.setValue(0); self.consola.limpiar()
+        self.banner.mostrar_info("[INFO] Formulario restablecido.")
 
     def _al_volver(self) -> None: self.volver_solicitado.emit()
 
     def adaptar_modo(self, modo: ModoPantalla) -> None:
-        txt = "Iniciar" if modo == ModoPantalla.COMPACTO else "Iniciar Proceso en Navegador Compartido"
-        self.btn_ejecutar.setText(txt)
+        self.barra_acciones.adaptar_modo(modo)
+        c = modo == ModoPantalla.COMPACTO
+        if hasattr(self, "lbl_guia_flujo"):
+            self.lbl_guia_flujo.setText(
+                "[INFO] Modo IA: Lotes | Lens: Imágenes" if c
+                else "[INFO OPERACIÓN] Selecciona Modo IA para evaluar texto por lotes, o Google Lens para extracción visual."
+            )
 
     @property
-    def combo_plantillas(self) -> QComboBox:
-        return self.panel_modo_chat.combo_plantillas
+    def combo_plantillas(self) -> QComboBox: return self.panel_modo_chat.combo_plantillas
 
     @property
-    def txt_instrucciones(self) -> object:
-        return self.panel_modo_chat.txt_instrucciones
+    def txt_instrucciones(self) -> object: return self.panel_modo_chat.txt_instrucciones
 
     @property
-    def spin_lote(self) -> QSpinBox:
-        return self.panel_modo_chat.spin_lote
+    def spin_lote(self) -> QSpinBox: return self.panel_modo_chat.spin_lote

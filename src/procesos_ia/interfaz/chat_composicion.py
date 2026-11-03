@@ -9,6 +9,7 @@ from procesos_ia.interfaz.componentes.barra_navegacion import BarraNavegacionSub
 from procesos_ia.interfaz.componentes.banner_notificacion import BannerNotificacion
 from procesos_ia.interfaz.componentes.editor_texto_expandible import EditorTextoExpandible
 from procesos_ia.interfaz.mensajes_chat import PanelMensajes
+from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
 
 
 def construir_chat(vista, textos: dict) -> None:
@@ -49,7 +50,9 @@ def construir_chat(vista, textos: dict) -> None:
     vista.titulo.setObjectName("titulo_chat")
     fila.addWidget(vista.titulo, 1)
     vista.btn_historial = QPushButton(textos["historial"], vista)
-    vista.btn_historial.clicked.connect(vista._alternar_historial)
+    conectar_boton_protegido(
+        vista.btn_historial, vista._alternar_historial, tiempo_bloqueo_ms=400,
+    )
     barra.layout().addWidget(vista.btn_historial)
     central.addLayout(fila)
     vista.modelo = QLabel(vista)
@@ -62,7 +65,10 @@ def construir_chat(vista, textos: dict) -> None:
     vista.combo_modelos.setAccessibleName(textos["elegir_modelo"])
     modelos.addWidget(vista.combo_modelos, 1)
     vista.btn_modelos = QPushButton(textos["actualizar_modelos"], vista)
-    vista.btn_modelos.clicked.connect(vista.solicitar_actualizacion_modelos.emit)
+    conectar_boton_protegido(
+        vista.btn_modelos, vista.solicitar_actualizacion_modelos.emit,
+        "[INFO] Actualizando modelos instalados...", tiempo_bloqueo_ms=800,
+    )
     modelos.addWidget(vista.btn_modelos)
     central.addLayout(modelos)
     acciones = QHBoxLayout()
@@ -72,7 +78,7 @@ def construir_chat(vista, textos: dict) -> None:
         ("btn_borrar", "borrar", vista._pedir_borrado),
     ):
         boton = QPushButton(textos[clave], vista)
-        boton.clicked.connect(funcion)
+        conectar_boton_protegido(boton, funcion, tiempo_bloqueo_ms=500)
         setattr(vista, nombre, boton)
         acciones.addWidget(boton)
     central.addLayout(acciones)
@@ -103,9 +109,14 @@ def construir_chat(vista, textos: dict) -> None:
     edicion.addWidget(vista.resumen)
     botones = QHBoxLayout()
     vista.btn_confirmar = QPushButton(vista)
-    vista.btn_confirmar.clicked.connect(vista._confirmar_edicion)
+    conectar_boton_protegido(
+        vista.btn_confirmar, vista._confirmar_edicion,
+        "[INFO] Guardando memoria...", tiempo_bloqueo_ms=600,
+    )
     cancelar = QPushButton(textos["cancelar"], vista)
-    cancelar.clicked.connect(vista._cerrar_editor)
+    conectar_boton_protegido(
+        cancelar, vista._cerrar_editor, tiempo_bloqueo_ms=400,
+    )
     botones.addWidget(vista.btn_confirmar)
     botones.addWidget(cancelar)
     marco_editor.addLayout(botones)
@@ -121,12 +132,18 @@ def construir_chat(vista, textos: dict) -> None:
     central.addWidget(vista.entrada, 0)
     enviar = QHBoxLayout()
     vista.btn_reintentar = QPushButton(textos["reintentar"], vista)
-    vista.btn_reintentar.clicked.connect(lambda: vista._enviar(reintentar=True))
+    conectar_boton_protegido(
+        vista.btn_reintentar, lambda: vista._enviar(reintentar=True),
+        "[INFO] Reintentando envío...", tiempo_bloqueo_ms=800,
+    )
     enviar.addWidget(vista.btn_reintentar)
     enviar.addStretch()
     vista.btn_enviar = QPushButton(textos["enviar"], vista)
     vista.btn_enviar.setObjectName("btn_principal")
-    vista.btn_enviar.clicked.connect(lambda: vista._enviar())
+    conectar_boton_protegido(
+        vista.btn_enviar, lambda: vista._enviar(),
+        "[INFO] Enviando mensaje...", tiempo_bloqueo_ms=800,
+    )
     enviar.addWidget(vista.btn_enviar)
     central.addLayout(enviar)
     vista.divisor.addWidget(panel)

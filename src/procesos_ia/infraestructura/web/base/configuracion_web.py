@@ -6,6 +6,9 @@ from dataclasses import dataclass, field
 import os
 from pathlib import Path
 import shutil
+import stat
+import time
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,18 +64,52 @@ class ConfiguracionWeb:
         self.directorio_imagenes_temp.mkdir(parents=True, exist_ok=True)
 
     def limpiar_bloqueos_perfil(self) -> bool:
-        """Elimina el archivo SingletonLock del perfil de Chromium si existe."""
-        archivo_lock = self.directorio_perfil / "SingletonLock"
-        if archivo_lock.exists() or archivo_lock.is_symlink():
+        """Elimina archivos de bloqueo Singleton y puertos de depuracion del perfil."""
+        nombres_bloqueo = (
+            "SingletonLock",
+            "SingletonCookie",
+            "SingletonSocket",
+            "DevToolsActivePort",
+        )
+        eliminado = False
+        for nombre in nombres_bloqueo:
+            archivo = self.directorio_perfil / nombre
+            if archivo.exists() or archivo.is_symlink():
+                try:
+                    if archivo.is_dir():
+                        shutil.rmtree(archivo, ignore_errors=True)
+                    else:
+                        archivo.unlink(missing_ok=True)
+                    eliminado = True
+                except OSError:
+                    pass
+        return eliminado
+
+    def purgar_perfil_usuario(self, max_reintentos: int = 5) -> bool:
+        """Elimina completamente el directorio del perfil asegurando permisos de escritura."""
+        if not self.directorio_perfil.exists():
+            self.directorio_perfil.mkdir(parents=True, exist_ok=True)
+            return True
+
+        def _desbloquear_y_borrar(func: Any, path: str, _exc: Any) -> None:
             try:
-                if archivo_lock.is_dir():
-                    shutil.rmtree(archivo_lock, ignore_errors=True)
-                else:
-                    archivo_lock.unlink(missing_ok=True)
-                return True
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
             except OSError:
-                return False
-        return False
+                pass
+
+        for _ in range(max_reintentos):
+            try:
+                shutil.rmtree(self.directorio_perfil, onerror=_desbloquear_y_borrar)
+            except OSError:
+                pass
+
+            if not self.directorio_perfil.exists():
+                break
+            time.sleep(0.2)
+
+        self.directorio_perfil.mkdir(parents=True, exist_ok=True)
+        return True
 
     def limpiar_imagenes_temporales(self) -> int:
         """Elimina archivos temporales residuales en la carpeta de imágenes."""

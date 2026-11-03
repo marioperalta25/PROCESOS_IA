@@ -88,6 +88,21 @@ def normalizar_clave_comparacion(texto: str) -> str:
     return base.strip().casefold()
 
 
+def sanear_identificador_columna(texto: str, prefijo: str = "resultado") -> str:
+    """Convierte cualquier texto en un identificador seguro para columnas sin tildes ni espacios."""
+    if not texto or not texto.strip():
+        return f"{prefijo}_1"
+    limpio = normalizar_texto(texto, cambiar_enies=True, quitar_tildes=True, limpiar_espacios_extra=True)
+    limpio = limpio.lower().strip()
+    limpio = re.sub(r"[^a-z0-9_]+", "_", limpio)
+    limpio = re.sub(r"_+", "_", limpio).strip("_")
+    if not limpio:
+        return f"{prefijo}_1"
+    if limpio[0].isdigit():
+        return f"{prefijo}_{limpio}"
+    return limpio
+
+
 def formatear_columnas_delimitadas(
     valores: dict[str, Any],
     columnas: tuple[str, ...] | list[str] | None = None,

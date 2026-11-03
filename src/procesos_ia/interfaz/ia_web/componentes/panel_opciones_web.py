@@ -12,6 +12,7 @@ from procesos_ia.infraestructura.web.base.configuracion_web import (
     ConfiguracionVentanaWeb,
     ConfiguracionWeb,
 )
+from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
 
 
 class PanelOpcionesAvanzadasWeb(QWidget):
@@ -72,16 +73,28 @@ class PanelOpcionesAvanzadasWeb(QWidget):
         lay_s = QHBoxLayout(grupo_sesion)
         self.btn_abrir_navegador = QPushButton("Abrir Navegador (Login / Verificación)", self)
         self.btn_abrir_navegador.setMinimumHeight(32)
-        self.btn_abrir_navegador.clicked.connect(self.abrir_navegador_solicitado.emit); lay_s.addWidget(self.btn_abrir_navegador)
+        conectar_boton_protegido(
+            self.btn_abrir_navegador, self.abrir_navegador_solicitado.emit,
+            "[INFO] Abriendo navegador para verificación...", tiempo_bloqueo_ms=1000,
+        )
+        lay_s.addWidget(self.btn_abrir_navegador)
         self.btn_limpiar_bloqueos = QPushButton("Limpiar Bloqueos (SingletonLock)", self)
         self.btn_limpiar_bloqueos.setMinimumHeight(32)
-        self.btn_limpiar_bloqueos.clicked.connect(self.limpiar_bloqueos_solicitado.emit); lay_s.addWidget(self.btn_limpiar_bloqueos)
+        conectar_boton_protegido(
+            self.btn_limpiar_bloqueos, self.limpiar_bloqueos_solicitado.emit,
+            "[INFO] Limpiando bloqueos del perfil...", tiempo_bloqueo_ms=1000,
+        )
+        lay_s.addWidget(self.btn_limpiar_bloqueos)
         lay.addWidget(grupo_sesion)
 
         # 4. Boton guardar
         self.btn_aplicar = QPushButton("Guardar Configuración y Volver", self)
         self.btn_aplicar.setMinimumHeight(34)
-        self.btn_aplicar.clicked.connect(self.aplicar_solicitado.emit); lay.addWidget(self.btn_aplicar)
+        conectar_boton_protegido(
+            self.btn_aplicar, self.aplicar_solicitado.emit,
+            "[INFO] Guardando configuración...", tiempo_bloqueo_ms=600,
+        )
+        lay.addWidget(self.btn_aplicar)
         lay.addStretch()
 
     def sincronizar_desde_config(self, cfg: ConfiguracionWeb) -> None:

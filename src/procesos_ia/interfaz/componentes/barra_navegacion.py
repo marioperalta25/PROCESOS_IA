@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QSizePolicy,
     QWidget,
 )
 
@@ -32,8 +33,10 @@ class BarraNavegacionSubvista(QFrame):
         self._iniciar_ui(titulo, texto_limpiar)
 
     def _iniciar_ui(self, titulo: str, texto_limpiar: str) -> None:
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.setFixedHeight(42)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setContentsMargins(8, 4, 8, 4)
         layout.setSpacing(10)
 
         self.btn_volver = QPushButton("[<- Volver]", self)

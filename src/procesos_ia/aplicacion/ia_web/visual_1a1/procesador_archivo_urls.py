@@ -19,9 +19,11 @@ from procesos_ia.infraestructura.web.base.configuracion_web import Configuracion
 from procesos_ia.infraestructura.web.base.gestor_sesion_nodriver import GestorSesionNodriver
 
 
-def leer_filas_archivo_tabular(ruta_archivo: Path) -> list[dict[str, Any]]:
-    """Lee registros en formato diccionario desde archivos CSV o Excel."""
-    lector = crear_lector_flujo(ruta_archivo)
+def leer_filas_archivo_tabular(
+    ruta_archivo: Path, nombre_hoja: str | None = None
+) -> list[dict[str, Any]]:
+    """Lee registros en formato diccionario desde archivos CSV o Excel en la hoja indicada."""
+    lector = crear_lector_flujo(ruta_archivo, nombre_hoja_excel=nombre_hoja)
     lector.inicializar(ruta_archivo)
     lector.abrir_flujo(saltar_hasta_indice=0)
     filas: list[dict[str, Any]] = []
@@ -56,6 +58,7 @@ class ProcesadorArchivoUrls:
         self,
         ruta_archivo: Path,
         columna_imagen: str,
+        nombre_hoja: str | None = None,
         carpeta_salida: Path | None = None,
         callback_progreso: Callable[[int, int, str], None] | None = None,
         callback_log: Callable[[str], None] | None = None,
@@ -64,7 +67,7 @@ class ProcesadorArchivoUrls:
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Procesa registros del archivo tabular enriqueciendolos con datos de Google Lens."""
         t_inicio = asyncio.get_event_loop().time()
-        filas = leer_filas_archivo_tabular(ruta_archivo)
+        filas = leer_filas_archivo_tabular(ruta_archivo, nombre_hoja=nombre_hoja)
         total = len(filas)
         resultados: list[FichaNegocioLens] = []
         filas_enriquecidas: list[dict[str, Any]] = []
@@ -76,7 +79,8 @@ class ProcesadorArchivoUrls:
 
         with salida:
             if callback_log:
-                callback_log(f"[INFO] Procesando archivo con {total} registros en columna '{columna_imagen}': {ruta_archivo.name}")
+                hoja_txt = f" (Hoja: {nombre_hoja})" if nombre_hoja else ""
+                callback_log(f"[INFO] Procesando archivo{hoja_txt} con {total} registros en columna '{columna_imagen}': {ruta_archivo.name}")
 
             try:
                 for idx, fila in enumerate(filas, start=1):

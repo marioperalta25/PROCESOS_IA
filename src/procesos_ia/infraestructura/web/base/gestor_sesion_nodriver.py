@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+from pathlib import Path
+import subprocess
 from typing import Any
 
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
@@ -23,6 +25,43 @@ except ImportError:
     uc = None
 
 
+def terminar_arbol_procesos(pid_padre: int | None) -> int:
+    """Termina de forma forzada e inmediata un proceso y todos sus procesos hijos."""
+    if not pid_padre:
+        return 0
+    terminados = 0
+    try:
+        import psutil
+
+        padre = psutil.Process(pid_padre)
+        hijos = padre.children(recursive=True)
+        for hijo in hijos:
+            try:
+                hijo.kill()
+                terminados += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+        try:
+            padre.kill()
+            terminados += 1
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+    except Exception as error:
+        logger.debug("[INFO] Proceso padre %s ya finalizado o inaccesible: %s", pid_padre, error)
+
+    if os.name == "nt":
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(pid_padre)],
+                capture_output=True,
+                check=False,
+            )
+        except Exception:
+            pass
+
+    return terminados
+
+
 class GestorSesionNodriver:
     """Administra el arranque, navegación y cierre seguro de Chromium persistente."""
 
@@ -30,6 +69,7 @@ class GestorSesionNodriver:
         self._config = configuracion or ConfiguracionWeb()
         self._navegador: Any | None = None
         self._pestana_activa: Any | None = None
+        self._pid_navegador: int | None = None
 
     @property
     def configuracion(self) -> ConfiguracionWeb:
@@ -81,6 +121,9 @@ class GestorSesionNodriver:
                 "[ERROR] Tiempo de espera agotado (25s) al iniciar el navegador Chromium. Verifique procesos huérfanos."
             )
 
+        proc = getattr(self._navegador, "_process", None)
+        self._pid_navegador = getattr(proc, "pid", None) if proc else None
+
         # Aplicar modo flotante sin foco tras el arranque
         await asyncio.sleep(1.0)
         aplicar_modo_flotante_sin_foco(patrones_ventana, self._config.ventana)
@@ -100,7 +143,7 @@ class GestorSesionNodriver:
         else:
             await self._pestana_activa.get(url_destino)
 
-        await asyncio.sleep(2.0)
+        await asyncio.sleep(0.5)
         aplicar_modo_flotante_sin_foco(patrones_ventana, self._config.ventana)
         return self._pestana_activa
 
@@ -116,7 +159,7 @@ class GestorSesionNodriver:
         except Exception:
             pestana = await navegador.get(url_destino)
 
-        await asyncio.sleep(2.0)
+        await asyncio.sleep(0.5)
         aplicar_modo_flotante_sin_foco(patrones_ventana, self._config.ventana)
         return pestana
 
@@ -144,18 +187,11 @@ class GestorSesionNodriver:
                     "[ALERTA] Detencion de navegador con advertencia: %s", error
                 )
             finally:
-                if pid and os.name == "nt":
-                    try:
-                        import subprocess
-                        subprocess.run(
-                            ["taskkill", "/F", "/T", "/PID", str(pid)],
-                            capture_output=True,
-                            check=False,
-                        )
-                    except Exception:
-                        pass
+                pid_a_cerrar = pid or self._pid_navegador
+                terminar_arbol_procesos(pid_a_cerrar)
                 self._navegador = None
                 self._pestana_activa = None
+                self._pid_navegador = None
                 self._config.limpiar_bloqueos_perfil()
                 self._config.limpiar_imagenes_temporales()
                 logger.info("[INFO] Sesion de navegador cerrada correctamente.")
@@ -163,3 +199,10 @@ class GestorSesionNodriver:
     async def cerrar_navegador(self) -> None:
         """Alias de compatibilidad para cerrar la sesion de navegador."""
         await self.cerrar()
+
+    async def reiniciar_con_perfil_limpio(self) -> None:
+        """Cierra el navegador, purga el perfil en disco y elimina bloqueos."""
+        await self.cerrar()
+        await asyncio.sleep(0.3)
+        self._config.purgar_perfil_usuario()
+        self._config.limpiar_bloqueos_perfil()

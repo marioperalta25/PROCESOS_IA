@@ -86,11 +86,12 @@ class HiloIAGeneral(QThread):
         elif self._tipo_accion == "csv_imagenes":
             ruta_csv = Path(self._parametros.get("ruta_csv", ""))
             columna = self._parametros.get("columna", "")
+            nombre_hoja = self._parametros.get("nombre_hoja")
             c_sal = Path(self._parametros["carpeta_salida"]) if self._parametros.get("carpeta_salida") else None
             notificar_log(f"[INFO] Procesando archivo con imágenes en columna '{columna}': {ruta_csv.name}")
             fichas, salida = await self._servicio.procesar_csv_con_lens(
                 ruta_csv, columna, notificar_progreso, notificar_log, carpeta_salida=c_sal,
-                generar_auditoria_md=gen_md,
+                generar_auditoria_md=gen_md, nombre_hoja=nombre_hoja,
             )
             con_ia = sum(1 for f in fichas if f.estado_ia == "EXITOSO")
             ruta_abs = str(salida.resolve())
@@ -106,10 +107,11 @@ class HiloIAGeneral(QThread):
             instrucciones = self._parametros.get("instrucciones", "")
             columnas = self._parametros.get("columnas")
             tamano = int(self._parametros.get("tamano_lote", 5))
+            lotes_conv = int(self._parametros.get("lotes_por_conversacion", 5))
             nombre = self._parametros.get("nombre_salida", "evaluacion")
-            notificar_log(f"[INFO] Iniciando evaluación en Modo IA con lotes de {tamano}...")
+            notificar_log(f"[INFO] Iniciando evaluación en Modo IA con lotes de {tamano} ({lotes_conv} lotes/chat)...")
             resultado, ruta_salida = await self._servicio.procesar_modo_ia_lote(
-                filas, instrucciones, columnas, tamano, notificar_progreso, notificar_log, nombre,
+                filas, instrucciones, columnas, tamano, lotes_conv, notificar_progreso, notificar_log, nombre,
                 carpeta_salida=self._parametros.get("carpeta_salida"),
             )
             ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"

@@ -11,6 +11,7 @@ from procesos_ia.dominio.excepciones import ErrorProcesamiento
 from procesos_ia.dominio.normalizador import (
     formatear_columnas_delimitadas,
     normalizar_clave_comparacion,
+    sanear_identificador_columna,
 )
 
 if TYPE_CHECKING:
@@ -184,7 +185,7 @@ class ContratoEvaluacion:
 def resultados_desde_columnas(columnas: tuple[str, ...] | list[str]) -> tuple[DefinicionResultado, ...]:
     if not isinstance(columnas, (list, tuple)) or not all(isinstance(c, str) for c in columnas):
         raise ErrorProcesamiento("Los resultados anteriores deben ser una lista de nombres")
-    return tuple(DefinicionResultado(c, f"Evaluar {c}") for c in columnas)
+    return tuple(DefinicionResultado(sanear_identificador_columna(c), f"Evaluar {c}") for c in columnas)
 
 
 def resultados_compatibles(plantilla: PlantillaPrompt) -> tuple[DefinicionResultado, ...]:
@@ -196,15 +197,7 @@ def resultados_compatibles(plantilla: PlantillaPrompt) -> tuple[DefinicionResult
 
 def normalizar_clave_resultado(clave: str) -> str:
     """Convierte cadenas con espacios, tildes o guiones en identificadores validos."""
-    texto = clave.strip().casefold()
-    reemplazos = {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u", "ñ": "n"}
-    for orig, dest in reemplazos.items():
-        texto = texto.replace(orig, dest)
-    texto = re.sub(r"[^a-z0-9_]+", "_", texto)
-    texto = re.sub(r"_+", "_", texto).strip("_")
-    if texto and texto[0].isdigit():
-        texto = f"r_{texto}"
-    return texto or clave.strip()
+    return sanear_identificador_columna(clave)
 
 
 def resultados_desde_datos(datos: list) -> tuple[DefinicionResultado, ...]:

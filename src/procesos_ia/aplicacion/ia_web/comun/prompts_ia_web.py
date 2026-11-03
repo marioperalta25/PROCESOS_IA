@@ -154,6 +154,7 @@ def asegurar_plantillas_ia_web(
 
 def poblar_combo_plantillas_ia_web(combo: object, servicio_prompts: object = None) -> None:
     """Rellena un QComboBox con las plantillas de categoria ia_web."""
+    actual = getattr(combo, "currentData", lambda: None)()
     combo.clear(); combo.addItem("(Escribir prompt personalizado...)", "")
     try:
         if servicio_prompts is None:
@@ -163,6 +164,10 @@ def poblar_combo_plantillas_ia_web(combo: object, servicio_prompts: object = Non
             servicio_prompts = ServicioCatalogoPrompts(RepositorioPromptsMd(EnrutadorSalidas().plantillas))
         asegurar_plantillas_ia_web(servicio_prompts)
         for p in servicio_prompts.listar_plantillas(categoria=CATEGORIA_IA_WEB):
-            combo.addItem(p.titulo, p.contenido)
+            combo.addItem(p.titulo, p.identificador)
+        if actual:
+            idx = combo.findData(actual)
+            if idx >= 0:
+                combo.setCurrentIndex(idx)
     except Exception as error:
         logger.warning("[ALERTA] No se pudieron cargar plantillas IA Web: %s", error)

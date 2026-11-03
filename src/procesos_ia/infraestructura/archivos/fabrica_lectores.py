@@ -7,7 +7,7 @@ from pathlib import Path
 from procesos_ia.aplicacion.contratos import LectorFlujoProtocol
 from procesos_ia.dominio.excepciones import ErrorProcesamiento
 from procesos_ia.infraestructura.archivos.lector_csv import LectorCsv
-from procesos_ia.infraestructura.archivos.lector_xlsx import LectorXlsx
+from procesos_ia.infraestructura.archivos.lector_xlsx import LectorXlsx, obtener_hojas_excel
 
 
 def crear_lector_flujo(

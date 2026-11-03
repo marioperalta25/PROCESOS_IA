@@ -235,3 +235,16 @@ class LectorXlsx:
             self._libro_flujo = None
         self._iter_flujo = None
         self._total_estimado = None
+
+
+def obtener_hojas_excel(ruta_archivo: Path) -> list[str]:
+    """Obtiene los nombres de las hojas de un Excel en modo ultra-rapido sin cargar datos a RAM."""
+    if not ruta_archivo.is_file() or ruta_archivo.suffix.lower() not in {".xlsx", ".xlsm"}:
+        return []
+    try:
+        libro = openpyxl.load_workbook(filename=str(ruta_archivo), read_only=True, keep_links=False)
+        hojas = list(libro.sheetnames)
+        libro.close()
+        return hojas
+    except Exception:
+        return []

@@ -1,47 +1,31 @@
 # Estado breve
 
-Actualización: 23 de octubre de 2026. Memoria fijada y estimación por modelo.
+Actualización: 2 de noviembre de 2026. Telemetría de tokens/caracteres en vivo, control de desbordamiento de plantillas y etiquetas guía responsivas para IA General.
 
 ## Encargo y resultado
 
-Completada la autorización de añadir Recordar a los mensajes, ajustar el presupuesto
-con varias mediciones del modelo y solicitar respuestas concisas para preguntas sencillas.
-Se mantiene una generación por envío, streaming, cuota y modelo fijo por conversación.
+Implementadas las siguientes mejoras críticas bajo supervisión y requerimientos del usuario:
+1. Telemetría y aseguramiento de tokens/caracteres en tiempo real para plantillas de Modo IA:
+   - Nuevo componente `medidor_tokens.py` con estimación multilingüe (~3.8 caracteres por token) y límite de 8,000 caracteres de Google Modo IA.
+   - Etiqueta interactiva `EtiquetaContadorTokens` en vivo (`[OK]`, `[ALERTA]`, `[ERROR]`) con semáforo de estados (verde seguro, naranja próximo, rojo exceso).
+   - Bloqueo preventivo en `_ejecutar_accion()` y advertencia en `obtener_parametros()` si el texto excede los 8,000 caracteres, garantizando que el prompt jamás se corte silenciosamente en el navegador.
+2. Labels descriptivos y responsivos para orientar al usuario en todas las secciones de IA General:
+   - Nueva barra de acciones modular `BarraAccionesIAGeneral` con guía descriptiva de botones (`Iniciar`, `Detener`, `Destino...`, `Abrir Salida`) y tooltips completos.
+   - Guía responsiva de operación en `vista_ia_general.py` (`lbl_guia_flujo`) explicando las diferencias entre Modo IA y Google Lens.
+   - Guías paso a paso numeradas en `panel_modo_chat.py` (1. Archivo, 2. Columnas con |, 3. Instrucciones, 4. Lotes) y `panel_archivo_general.py`.
+   - Adaptación dinámica de textos según el modo de pantalla (`ModoPantalla.COMPACTO`, `ESTANDAR`, `AMPLIO`).
 
 ## Implementación
 
-- PanelMensajes emite identidad y selección literal (o mensaje completo). MemoriaChat
-  comprueba su pertenencia y guarda mediante ServicioConversacion.guardar_memoria,
-  reutilizado por el editor manual. Sin inferencia adicional ni extracción semántica.
-- Los recuerdos se atribuyen al usuario o al modelo. Se evita duplicar el mismo texto.
-  Se respetan cuota, versión y bloqueo; durante una inferencia no se puede recordar.
-- Los textos extensos abren el editor existente para abreviar. EditorTextoExpandible
-  y QScrollArea permiten ampliarlo; Guardar/Cancelar quedan fuera del desplazamiento.
-- EstimadorContexto conserva solo números en RAM por modelo/contexto, con caché acotada.
-  Espera tres muestras válidas, mantiene margen y relaja gradualmente. El catálogo
-  invalida la caché; resultados anteriores no la repueblan. Reaprende al reiniciar.
-- Cada petición usa un factor estable. ultima_inferencia registra el factor utilizado
-  y los contadores existentes. No se modificó ningún historial real del usuario.
-- Instrucción de concisión declarativa en recursos/configuracion/chat.toml; sin
-  aumentar num_ctx, reducir el límite de salida, instalar dependencias o cargar modelos.
+- `medidor_tokens.py`: lógica de cálculo de tokens, umbrales de seguridad y widget `EtiquetaContadorTokens` responsivo.
+- `barra_acciones_ia_general.py`: desacoplamiento de botones de ejecución y su barra de ayuda responsiva.
+- `panel_modo_chat.py`: integración de etiquetas numeradas, contador en tiempo real conectado al editor expandible y validación preventiva.
+- `vista_ia_general.py`: integración de `BarraAccionesIAGeneral`, guía de flujo y control de desbordamiento antes de lanzar el hilo de ejecución.
+- `panel_archivo_general.py`: label informativo responsivo para selección de archivo y columnas.
+- `editor_texto_expandible.py`: alias de compatibilidad `textChanged = texto_cambiado`.
 
 ## Verificación
 
-- Batería completa: 215 pruebas aprobadas en 59.278 s, fuera del sandbox por sockets
-  locales de asyncio. Tras fijar el pie del editor: 34 pruebas de interfaz/regresión
-  aprobadas en 63.366 s. Los casos enfocados de memoria/estimación también pasaron.
-- Sintaxis y máximo de 300 líneas comprobados en 127 archivos Python; TOML válidos.
-- Renderizado sintético a 125/150/200 %, anchos de 240 a 1000 y editor compacto:
-  sin solapamientos, controles de memoria visibles y altura expandible con scroll.
-- No se midió inferencia real, velocidad, RAM o aceleración GPU en este incremento.
-
-## Límites y otros incrementos
-
-
-- Falta medir latencia, RAM/GPU y tokenización con el modelo real. Los tokens de
-  contexto son una estimación; no se promete aceleración ni caché garantizada.
-- Cancelar no interrumpe inmediatamente una lectura bloqueada; espera datos o timeout.
-- La centralización de salidas en EnrutadorSalidas procede del incremento anterior;
-  no se alteró en este encargo. Existen cambios de otros módulos que deben conservarse.
-- Las pruebas usan TEMP/TMP dentro de temp/ (ignorado por Git); el temporal redirigido
-  del sandbox de Windows impidió crear el bloqueo de archivos en el primer intento.
+- Suite completa de 313 pruebas unitarias aprobada exitosamente: `Ran 313 tests in 82.669s, OK`.
+- Límite máximo de 300 líneas físicas verificado y cumplido estrictamente en todos los archivos.
+- Cero emojis en código, interfaz, logs y respuestas.

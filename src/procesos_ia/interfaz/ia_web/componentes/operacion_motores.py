@@ -30,7 +30,10 @@ def construir_operacion_motores(vista) -> None:
     vista.lbl_directo, vista.input_directo = QLabel("Carpeta:", vista), QLineEdit(vista)
     vista.input_directo.setPlaceholderText("Seleccionar ruta...")
     vista.btn_examinar_directo = QPushButton("Examinar...", vista)
-    vista.btn_examinar_directo.clicked.connect(vista._abrir_dialogo_directo)
+    conectar_boton_protegido(
+        vista.btn_examinar_directo, vista._abrir_dialogo_directo,
+        "[INFO] Seleccionando archivo o carpeta...", 500,
+    )
     lay_d.addWidget(vista.lbl_directo); lay_d.addWidget(vista.input_directo, stretch=1); lay_d.addWidget(vista.btn_examinar_directo)
     vista.grupo_directo.setVisible(False); lay.addWidget(vista.grupo_directo)
 
@@ -41,7 +44,10 @@ def construir_operacion_motores(vista) -> None:
     vista.combo_plantillas = QComboBox(vista)
     vista.combo_plantillas.currentIndexChanged.connect(vista._al_seleccionar_plantilla)
     vista.btn_plantillas_ia_web = QPushButton("Gestionar Plantillas (|)", vista)
-    vista.btn_plantillas_ia_web.clicked.connect(vista.plantillas_web_solicitadas.emit)
+    conectar_boton_protegido(
+        vista.btn_plantillas_ia_web, vista.plantillas_web_solicitadas.emit,
+        "[INFO] Abriendo plantillas IA Web...", 600,
+    )
     lay_top.addWidget(vista.combo_plantillas, stretch=1); lay_top.addWidget(vista.btn_plantillas_ia_web); lay_p.addLayout(lay_top)
 
     from procesos_ia.interfaz.componentes.editor_texto_expandible import EditorTextoExpandible
@@ -54,7 +60,10 @@ def construir_operacion_motores(vista) -> None:
     vista.spin_rotacion.setRange(1, 50); vista.spin_rotacion.setValue(2)
     vista.input_imagenes = QLineEdit(vista); vista.input_imagenes.setPlaceholderText("Opcional...")
     vista.btn_examinar_imagenes = QPushButton("Examinar...", vista)
-    vista.btn_examinar_imagenes.clicked.connect(vista._abrir_dialogo_imagenes)
+    conectar_boton_protegido(
+        vista.btn_examinar_imagenes, vista._abrir_dialogo_imagenes,
+        "[INFO] Seleccionando carpeta de imágenes...", 500,
+    )
     for w in (QLabel("Filas por lote:", vista), vista.spin_lote, QLabel("Rotar chat cada:", vista),
               vista.spin_rotacion, QLabel("Carpeta imágenes:", vista), vista.input_imagenes, vista.btn_examinar_imagenes):
         lay_opts.addWidget(w, stretch=1 if w == vista.input_imagenes else 0)
@@ -74,4 +83,3 @@ def construir_operacion_motores(vista) -> None:
     for b, s in ((vista.btn_ejecutar, 2), (vista.btn_cancelar, 1), (vista.btn_abrir_salida, 1), (vista.btn_ia_general, 1)):
         lay_btns.addWidget(b, stretch=s)
     lay.addLayout(lay_btns); vista._al_cambiar_operacion()
-

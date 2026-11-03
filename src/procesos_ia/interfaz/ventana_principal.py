@@ -144,14 +144,16 @@ class VentanaPrincipal(QMainWindow):
     def _cargar_catalogo_prompts(self) -> None:
         self.panel_configuracion.actualizar_prompts(self._servicio_prompts.listar_plantillas())
 
-    def _abrir_dialogo_prompts(self) -> None:
+    def _abrir_dialogo_prompts(self, origen: str | None = None) -> None:
+        self._origen_prompts = origen
         modelo = self.panel_configuracion.modelo_seleccionado
         if self._vista_prompts is None:
             self._vista_prompts = DialogoGestionPrompts(
                 self._servicio_prompts, modelo, self._gestor_borradores, self,
             )
-            self._vista_prompts.volver_solicitado.connect(self._volver_a_principal)
+            self._vista_prompts.volver_solicitado.connect(self._volver_de_prompts)
             self._vista_prompts.plantilla_seleccionada.connect(self._al_seleccionar_plantilla)
+            self._vista_prompts.plantilla_guardada.connect(self._al_guardar_plantilla)
             self.pila_vistas.addWidget(self._vista_prompts)
         else:
             self._vista_prompts._modelo_activo = modelo
@@ -159,33 +161,54 @@ class VentanaPrincipal(QMainWindow):
         self._vista_prompts.btn_refinar.setEnabled(not self._navegacion.ocupado())
         self._navegacion.activar(self._vista_prompts)
 
+    def _al_guardar_plantilla(self, plantilla: PlantillaPrompt) -> None:
+        self._cargar_catalogo_prompts()
+        if self._navegacion.vista_motores: self._navegacion.vista_motores._cargar_plantillas_ia_web()
+        if self._navegacion.vista_ia_general: self._navegacion.vista_ia_general.panel_modo_chat._cargar_plantillas()
+
+    def _volver_de_prompts(self) -> None:
+        origen = getattr(self, "_origen_prompts", None); self._origen_prompts = None
+        self._cargar_catalogo_prompts()
+        if origen == "ia_general" and self._navegacion.vista_ia_general:
+            self._navegacion.activar(self._navegacion.vista_ia_general)
+        elif origen == "motores" and self._navegacion.vista_motores:
+            self._navegacion.activar(self._navegacion.vista_motores)
+        else: self._volver_a_principal()
+
     def _volver_a_principal(self) -> None:
         self.pila_vistas.setCurrentWidget(self.vista_principal)
         self._cargar_catalogo_prompts()
 
     def _al_seleccionar_plantilla(self, plantilla: PlantillaPrompt) -> None:
         self._cargar_catalogo_prompts()
-        indice = self.panel_configuracion.combo_prompts.findData(plantilla.identificador)
-        self.panel_configuracion.combo_prompts.setCurrentIndex(indice)
-        self.panel_telemetria.agregar_log(f"[INFO] Plantilla '{plantilla.titulo}' seleccionada")
+        origen = getattr(self, "_origen_prompts", None)
+        if origen == "motores" and self._navegacion.vista_motores is not None:
+            vm = self._navegacion.vista_motores; vm._cargar_plantillas_ia_web()
+            idx = vm.combo_plantillas.findData(plantilla.identificador)
+            if idx >= 0: vm.combo_plantillas.setCurrentIndex(idx); vm._al_seleccionar_plantilla()
+            else: vm.txt_instrucciones.setPlainText(plantilla.contenido)
+        elif origen == "ia_general" and self._navegacion.vista_ia_general is not None:
+            chat = self._navegacion.vista_ia_general.panel_modo_chat; chat._cargar_plantillas()
+            idx = chat.combo_plantillas.findData(plantilla.identificador)
+            if idx >= 0: chat.combo_plantillas.setCurrentIndex(idx); chat._al_seleccionar_plantilla()
+            else: chat.txt_instrucciones.setPlainText(plantilla.contenido)
+        else:
+            indice = self.panel_configuracion.combo_prompts.findData(plantilla.identificador)
+            self.panel_configuracion.combo_prompts.setCurrentIndex(indice)
+            self.panel_telemetria.agregar_log(f"[INFO] Plantilla '{plantilla.titulo}' seleccionada")
 
     def _iniciar_procesamiento(self) -> None:
         if self._cierre.pendiente or not self._navegacion.permitir_inferencia():
             return
         ruta_entrada = self.panel_archivos.ruta_entrada
         if not ruta_entrada or not ruta_entrada.is_file():
-            QMessageBox.warning(self, "Archivo requerido", "[ALERTA] Debe seleccionar un archivo tabular válido.")
-            return
-
+            QMessageBox.warning(self, "Archivo requerido", "[ALERTA] Debe seleccionar un archivo tabular válido."); return
         columnas = self.panel_archivos.obtener_columnas_seleccionadas()
         if not columnas:
-            QMessageBox.warning(self, "Columnas requeridas", "[ALERTA] Debe seleccionar al menos una columna a evaluar.")
-            return
-
+            QMessageBox.warning(self, "Columnas requeridas", "[ALERTA] Debe seleccionar al menos una columna a evaluar."); return
         modelo = self.panel_configuracion.modelo_seleccionado
         if not modelo:
-            QMessageBox.warning(self, "Modelo requerido", "[ALERTA] Debe seleccionar un modelo de Ollama.")
-            return
+            QMessageBox.warning(self, "Modelo requerido", "[ALERTA] Debe seleccionar un modelo de Ollama."); return
 
         p_cfg, p_arch = self.panel_configuracion, self.panel_archivos
         configuracion = ConfiguracionTrabajo(
@@ -200,8 +223,7 @@ class VentanaPrincipal(QMainWindow):
 
         plantilla = self.panel_configuracion.plantilla_seleccionada
         if plantilla is None:
-            QMessageBox.warning(self, "Plantilla requerida", "Seleccione una plantilla con criterios y resultados.")
-            return
+            QMessageBox.warning(self, "Plantilla requerida", "Seleccione una plantilla con criterios y resultados."); return
 
         if self._vista_preparacion is not None:
             self.pila_vistas.removeWidget(self._vista_preparacion); self._vista_preparacion.deleteLater()

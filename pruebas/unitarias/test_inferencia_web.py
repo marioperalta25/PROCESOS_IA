@@ -1,4 +1,4 @@
-﻿"""Pruebas unitarias para la infraestructura de inferencia web y manipulación DOM."""
+"""Pruebas unitarias para la infraestructura de inferencia web y manipulación DOM."""
 
 from __future__ import annotations
 
@@ -14,6 +14,9 @@ from procesos_ia.dominio.modelos import ConfiguracionTrabajo, RegistroEntrada
 from procesos_ia.infraestructura.web.base.configuracion_web import (
     ConfiguracionVentanaWeb,
     ConfiguracionWeb,
+)
+from procesos_ia.infraestructura.web.base.gestor_sesion_nodriver import (
+    terminar_arbol_procesos,
 )
 from procesos_ia.infraestructura.web.base.controlador_ventana import (
     buscar_manejador_ventana,
@@ -206,6 +209,25 @@ class TestInferenciaWeb(unittest.TestCase):
         self.assertEqual(salidas[0]["habla_espanol"], "si")
         self.assertEqual(salidas[1]["identificador"], "ID_B")
         self.assertEqual(salidas[1]["habla_espanol"], "no")
+
+    def test_purgar_perfil_con_archivos_solo_lectura(self) -> None:
+        import os
+        import stat
+        with tempfile.TemporaryDirectory() as dir_temp:
+            cfg = ConfiguracionWeb(directorio_base=Path(dir_temp))
+            cfg.asegurar_directorios()
+            archivo_ro = cfg.directorio_perfil / "archivo_bloqueado.bin"
+            archivo_ro.write_text("bloqueado", encoding="utf-8")
+            os.chmod(archivo_ro, stat.S_IREAD)
+
+            exito = cfg.purgar_perfil_usuario(max_reintentos=2)
+            self.assertTrue(exito)
+            self.assertTrue(cfg.directorio_perfil.exists())
+            self.assertFalse(archivo_ro.exists())
+
+    def test_terminar_arbol_procesos_con_pid_nulo_o_inexistente(self) -> None:
+        self.assertEqual(terminar_arbol_procesos(None), 0)
+        self.assertEqual(terminar_arbol_procesos(99999999), 0)
 
 
 if __name__ == "__main__":

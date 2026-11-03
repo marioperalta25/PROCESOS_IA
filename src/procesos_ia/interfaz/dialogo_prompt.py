@@ -1,10 +1,10 @@
-﻿"""Diálogo para gestión, creación y refinamiento de prompts asistido por Ollama."""
+"""Diálogo para gestión, creación y refinamiento de prompts asistido por Ollama."""
 
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QComboBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QComboBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
     QMessageBox, QPlainTextEdit, QPushButton, QSplitter, QVBoxLayout, QWidget,
 )
 
@@ -12,8 +12,7 @@ from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
 from procesos_ia.dominio.prompts import PeticionRefinamiento, PlantillaPrompt, ResultadoRefinamiento
 from procesos_ia.dominio.evaluaciones import resultados_compatibles, resultados_desde_datos
 from procesos_ia.interfaz.borradores import GestorBorradores, volcar_datos_editor
-from procesos_ia.interfaz.componentes.barra_navegacion import BarraNavegacionSubvista
-from procesos_ia.interfaz.componentes.editor_resultados import EditorResultados
+from procesos_ia.interfaz.composicion_prompts import construir_interfaz_prompts
 from procesos_ia.interfaz.hilos_evaluacion import HiloRefinamiento
 from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
 from procesos_ia.interfaz.responsivo import ModoPantalla
@@ -24,6 +23,7 @@ class DialogoGestionPrompts(QWidget):
     """Interfaz para administrar y refinar plantillas de prompts integrada en la ventana."""
 
     plantilla_seleccionada = Signal(PlantillaPrompt)
+    plantilla_guardada = Signal(PlantillaPrompt)
     volver_solicitado = Signal()
 
     def __init__(
@@ -45,103 +45,53 @@ class DialogoGestionPrompts(QWidget):
         self._modelo_activo = modelo_activo
         self._plantilla_actual: PlantillaPrompt | None = None
         self._iniciar_ui()
+        self._cargar_modelos()
         self._cargar_lista()
 
     def _iniciar_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(8)
+        construir_interfaz_prompts(self)
 
-        self.barra_nav = BarraNavegacionSubvista("Catálogo y Refinador de Prompts", "Limpiar borrador", self)
-        self.barra_nav.volver_solicitado.connect(self._al_volver)
-        self.barra_nav.limpiar_solicitado.connect(self.limpiar_borrador)
-        layout.addWidget(self.barra_nav)
+    def _cargar_modelos(self) -> None:
+        self.combo_modelos.clear()
+        try:
+            from procesos_ia.infraestructura.ollama.cliente_http import ClienteHttpOllama
+            modelos = ClienteHttpOllama().listar_modelos(tiempo_limite=1.5, reintentos=0)
+            nombres = [m.nombre for m in modelos if m.nombre]
+            if nombres:
+                self.combo_modelos.addItems(nombres)
+                if self._modelo_activo in nombres:
+                    self.combo_modelos.setCurrentText(self._modelo_activo)
+                else:
+                    self._modelo_activo = nombres[0]
+            else:
+                self.combo_modelos.addItem(self._modelo_activo or "qwen2.5:1.5b")
+        except Exception:
+            self.combo_modelos.addItem(self._modelo_activo or "qwen2.5:1.5b")
 
-        self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
-        panel_izq = QWidget(self)
-        layout_izq = QVBoxLayout(panel_izq)
-        layout_izq.setContentsMargins(0, 0, 0, 12)
-        self.combo_filtro = QComboBox(self)
-        self.combo_filtro.addItem("Todas las categorías", "")
-        self.combo_filtro.addItem("IA Web (DeepSeek, Gemini, Modo IA)", "ia_web")
-        self.combo_filtro.currentIndexChanged.connect(self._cargar_lista)
-        layout_izq.addWidget(self.combo_filtro)
-        self.lista_prompts = QListWidget(self)
-        self.lista_prompts.currentRowChanged.connect(self._seleccionar_plantilla)
-        layout_izq.addWidget(self.lista_prompts)
-
-        layout_btns_lista = QHBoxLayout()
-        self.btn_nuevo = QPushButton("Nuevo", self)
-        conectar_boton_protegido(self.btn_nuevo, self._crear_nuevo, "[INFO] Creando nuevo borrador...", self._notificar_estado, 500)
-        self.btn_eliminar = QPushButton("Eliminar", self)
-        conectar_boton_protegido(self.btn_eliminar, self._eliminar_actual, "[INFO] Eliminando plantilla...", self._notificar_estado, 500)
-        layout_btns_lista.addWidget(self.btn_nuevo)
-        layout_btns_lista.addWidget(self.btn_eliminar)
-        layout_izq.addLayout(layout_btns_lista)
-        self.splitter.addWidget(panel_izq)
-
-        panel_der = QWidget(self)
-        layout_der = QVBoxLayout(panel_der)
-        layout_der.setContentsMargins(0, 0, 0, 12)
-        form = QFormLayout()
-        self.input_titulo, self.input_categoria = QLineEdit(self), QLineEdit("general", self)
-        self.input_descripcion = QLineEdit(self)
-        form.addRow("Título:", self.input_titulo)
-        form.addRow("Categoría:", self.input_categoria)
-        form.addRow("Descripción:", self.input_descripcion)
-        layout_der.addLayout(form)
-
-        etiqueta_criterios = QLabel(self._textos["contenido_plantilla"], self)
-        etiqueta_criterios.setWordWrap(True)
-        layout_der.addWidget(etiqueta_criterios)
-        self.texto_contenido = QPlainTextEdit(self)
-        self.texto_contenido.setPlaceholderText(self._textos["ejemplo_idea"])
-        layout_der.addWidget(self.texto_contenido, stretch=1)
-        from procesos_ia.interfaz.componentes.tirador_ajustable import TiradorRedimensionVertical
-        self.tirador_prompt = TiradorRedimensionVertical(self.texto_contenido, 100, 450, parent=self)
-        layout_der.addWidget(self.tirador_prompt)
-        self.editor_resultados = EditorResultados(self); layout_der.addWidget(self.editor_resultados, stretch=1)
-        self.estado_refinamiento = QLabel(self)
-        self.estado_refinamiento.setWordWrap(True)
-        self.estado_refinamiento.setObjectName("estado_refinamiento")
-        layout_der.addWidget(self.estado_refinamiento)
-
-        layout_acciones = QHBoxLayout()
-        self.btn_refinar = QPushButton("Refinar con IA...", self)
-        self.btn_refinar.setToolTip("Optimiza el prompt usando el modelo local")
-        conectar_boton_protegido(self.btn_refinar, self._refinar_con_ia, "[INFO] Refinando prompt con IA...", self._notificar_estado, 1000)
-        self.btn_guardar = QPushButton("Guardar", self)
-        self.btn_guardar.setObjectName("btn_principal")
-        conectar_boton_protegido(self.btn_guardar, lambda: self._guardar_actual(), "[INFO] Guardando plantilla...", self._notificar_estado, 600)
-        self.btn_usar = QPushButton("Usar en Trabajo", self)
-        conectar_boton_protegido(self.btn_usar, self._usar_plantilla, "[INFO] Aplicando plantilla al trabajo...", self._notificar_estado, 600)
-        for b in (self.btn_nuevo, self.btn_eliminar, self.btn_refinar, self.btn_guardar, self.btn_usar):
-            b.setMinimumHeight(32)
-        self.btn_delimitador = QPushButton("Insertar '|'", self)
-        self.btn_delimitador.clicked.connect(self._insertar_delimitador)
-        for w in (self.btn_refinar, self.btn_delimitador): layout_acciones.addWidget(w)
-        layout_acciones.addStretch()
-        for w in (self.btn_guardar, self.btn_usar): layout_acciones.addWidget(w)
-        layout_der.addLayout(layout_acciones)
-
-        self.splitter.addWidget(panel_der)
-        self.splitter.setStretchFactor(0, 1)
-        self.splitter.setStretchFactor(1, 3)
-        layout.addWidget(self.splitter)
+    def _al_cambiar_modelo(self, modelo: str) -> None:
+        if modelo:
+            self._modelo_activo = modelo
 
     def _cargar_lista(self, identificador: str | None = None) -> None:
         plantillas = self._servicio.listar_plantillas(categoria=self.combo_filtro.currentData() or None)
+        self.lista_prompts.blockSignals(True)
         self.lista_prompts.clear()
         for p in plantillas:
-            self.lista_prompts.addItem(f"{p.titulo} [{p.categoria}]")
+            item = QListWidgetItem(f"{p.titulo} [{p.categoria}]", self.lista_prompts)
+            item.setData(Qt.ItemDataRole.UserRole, p.identificador)
+        self.lista_prompts.blockSignals(False)
         if plantillas:
             fila = next((i for i, p in enumerate(plantillas) if p.identificador == identificador), 0)
             self.lista_prompts.setCurrentRow(fila)
+            self._seleccionar_plantilla(fila)
 
     def _seleccionar_plantilla(self, fila: int) -> None:
-        plantillas = self._servicio.listar_plantillas(categoria=self.combo_filtro.currentData() or None)
-        if 0 <= fila < len(plantillas):
-            p = plantillas[fila]
+        item = self.lista_prompts.item(fila)
+        if item is None:
+            return
+        id_sel = item.data(Qt.ItemDataRole.UserRole)
+        p = self._servicio.obtener_plantilla(str(id_sel)) if id_sel else None
+        if p is not None:
             self._plantilla_actual = p
             self.input_titulo.setText(p.titulo)
             self.input_categoria.setText(p.categoria)
@@ -176,7 +126,9 @@ class DialogoGestionPrompts(QWidget):
                 descripcion=descripcion, resultados=resultados, identificador=id_existente,
             )
             self._plantilla_actual = guardada
+            self._borradores.limpiar_prompts(); self._borradores.limpiar_preparacion()
             self._cargar_lista(guardada.identificador)
+            self.plantilla_guardada.emit(guardada)
             if mostrar_aviso:
                 QMessageBox.information(self, "Guardado", f"[OK] Plantilla '{titulo}' guardada exitosamente.")
             return guardada
@@ -187,17 +139,18 @@ class DialogoGestionPrompts(QWidget):
     def _eliminar_actual(self) -> None:
         if not self._plantilla_actual:
             return
-        if QMessageBox.question(
+        btn = QMessageBox.question(
             self, "Confirmar eliminación", f"¿Desea eliminar la plantilla '{self._plantilla_actual.titulo}'?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        ) == QMessageBox.StandardButton.Yes:
+        )
+        if btn == QMessageBox.StandardButton.Yes:
             self._servicio.eliminar_plantilla(self._plantilla_actual.identificador)
             self._crear_nuevo()
             self._cargar_lista()
 
     def _cambiar_estado_controles(self, habilitado: bool) -> None:
         for w in (self.btn_refinar, self.btn_guardar, self.btn_usar, self.btn_nuevo,
-                  self.btn_eliminar, self.combo_filtro, self.lista_prompts, self.editor_resultados):
+                  self.btn_eliminar, self.combo_filtro, self.lista_prompts, self.editor_resultados, self.combo_modelos):
             w.setEnabled(habilitado)
         self.texto_contenido.setReadOnly(not habilitado)
         self.setCursor(Qt.CursorShape.ArrowCursor if habilitado else Qt.CursorShape.WaitCursor)
@@ -205,18 +158,17 @@ class DialogoGestionPrompts(QWidget):
     def _refinar_con_ia(self) -> None:
         if self._hilo_refinamiento is not None:
             return
-        if not self._modelo_activo:
-            self.estado_refinamiento.setText(self._textos.get("modelo_requerido", "[ALERTA] Sin modelo"))
+        modelo = self.combo_modelos.currentText().strip() or self._modelo_activo
+        if not modelo or "detenido" in modelo.lower():
+            self.estado_refinamiento.setText("[ALERTA] Seleccione o descargue un modelo local en Ollama.")
             return
         idea = self.texto_contenido.toPlainText().strip()
         if not idea:
-            aviso = self._textos.get("idea_requerida", "[ALERTA] Ingrese una idea")
-            self.estado_refinamiento.setText(aviso)
+            self.estado_refinamiento.setText("[ALERTA] Ingrese una idea o criterio en las instrucciones.")
             return
-        msg = self._textos.get("refinamiento_en_proceso", "[EN PROCESO] Consultando modelo '{modelo}'...")
-        self.estado_refinamiento.setText(msg.format(modelo=self._modelo_activo))
+        self.estado_refinamiento.setText(f"[EN PROCESO] Consultando modelo '{modelo}'...")
         self._cambiar_estado_controles(False)
-        h = HiloRefinamiento(self._servicio, PeticionRefinamiento(idea_usuario=idea), self._modelo_activo, self)
+        h = HiloRefinamiento(self._servicio, PeticionRefinamiento(idea_usuario=idea), modelo, self)
         self._hilo_refinamiento = h
         h.senial_resultado.connect(self._al_refinar)
         h.senial_error.connect(self._al_error_refinamiento)
@@ -261,8 +213,7 @@ class DialogoGestionPrompts(QWidget):
             return False
         b = self._borradores.obtener_prompts()
         identificador = b.get("identificador_activo")
-        self._plantilla_actual = next((p for p in self._servicio.listar_plantillas()
-                                      if p.identificador == identificador), None)
+        self._plantilla_actual = next((p for p in self._servicio.listar_plantillas() if p.identificador == identificador), None)
         self.input_titulo.setText(b.get("titulo", ""))
         self.input_categoria.setText(b.get("categoria", "general"))
         self.input_descripcion.setText(b.get("descripcion", ""))
@@ -284,6 +235,7 @@ class DialogoGestionPrompts(QWidget):
         plantilla = self._guardar_actual(mostrar_aviso=False)
         if plantilla is not None:
             self._borradores.limpiar_prompts()
+            self._borradores.limpiar_preparacion()
             self.plantilla_seleccionada.emit(plantilla)
             self.volver_solicitado.emit()
 
@@ -291,8 +243,14 @@ class DialogoGestionPrompts(QWidget):
         if hasattr(self, "estado_refinamiento") and self.estado_refinamiento:
             self.estado_refinamiento.setText(msj)
 
-    def exec(self) -> int: return 1
-    def reject(self) -> None: self._al_volver()
-    def accept(self) -> None: self.volver_solicitado.emit()
+    def exec(self) -> int:
+        return 1
+
+    def reject(self) -> None:
+        self._al_volver()
+
+    def accept(self) -> None:
+        self.volver_solicitado.emit()
+
     def adaptar_modo(self, modo: ModoPantalla) -> None:
         self.splitter.setOrientation(Qt.Orientation.Vertical if modo == ModoPantalla.COMPACTO else Qt.Orientation.Horizontal)

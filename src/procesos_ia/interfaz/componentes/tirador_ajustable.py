@@ -72,8 +72,16 @@ class TiradorRedimensionVertical(QWidget):
             delta_y = event.globalPosition().toPoint().y() - self._pos_inicial_y
             nueva_altura = max(self.altura_min, min(self.altura_max, self._altura_inicial + delta_y))
             self.widget_objetivo.setFixedHeight(nueva_altura)
+            self.widget_objetivo.updateGeometry()
+            p = self.widget_objetivo.parentWidget()
+            while p is not None:
+                p.updateGeometry()
+                lay = p.layout()
+                if lay is not None:
+                    lay.activate()
+                p = p.parentWidget()
             self.altura_cambiada.emit(nueva_altura)
-            if self.callback_cambio:
+            if self.callback_cambio and callable(self.callback_cambio):
                 self.callback_cambio(nueva_altura)
             event.accept()
 

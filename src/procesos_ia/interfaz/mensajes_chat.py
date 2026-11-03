@@ -6,6 +6,7 @@ from PySide6.QtGui import QFontMetricsF, QTextCursor, QTextOption
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QPushButton, QScrollArea, QSizePolicy, QTextEdit, QVBoxLayout, QWidget,
 )
+from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
 
 
 class TextoMensaje(QTextEdit):
@@ -103,7 +104,10 @@ class PanelMensajes(QScrollArea):
                 boton.setAccessibleName(textos["recordar_accesible"].format(autor=autor))
                 boton.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
                 boton.setEnabled(self._recordar_habilitado)
-                boton.clicked.connect(lambda _=False, i=mensaje["id"], c=cuerpo: self._recordar(i, c))
+                conectar_boton_protegido(
+                    boton, lambda i=mensaje["id"], c=cuerpo: self._recordar(i, c),
+                    "[INFO] Recordando mensaje...", tiempo_bloqueo_ms=600,
+                )
                 cabecera.addWidget(boton, 0, Qt.AlignmentFlag.AlignTop)
                 self._botones_recordar.append(boton)
             self._partes.append(autor + "\n" + mensaje["texto"])

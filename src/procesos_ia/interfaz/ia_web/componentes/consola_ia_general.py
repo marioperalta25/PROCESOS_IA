@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
 
 
 class ConsolaIAGeneral(QGroupBox):
@@ -32,7 +33,9 @@ class ConsolaIAGeneral(QGroupBox):
         self.btn_limpiar = QPushButton("Limpiar Bitácora", self)
         self.btn_limpiar.setMinimumWidth(130)
         self.btn_limpiar.setMinimumHeight(26)
-        self.btn_limpiar.clicked.connect(self.limpiar)
+        conectar_boton_protegido(
+            self.btn_limpiar, self.limpiar, "[INFO] Limpiando bitácora de eventos...", tiempo_bloqueo_ms=400,
+        )
         layout_top.addWidget(self.btn_limpiar)
         layout.addLayout(layout_top)
 

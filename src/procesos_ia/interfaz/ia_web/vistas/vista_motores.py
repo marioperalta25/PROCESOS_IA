@@ -112,13 +112,34 @@ class VistaConfiguracionMotores(QWidget):
             f, _ = QFileDialog.getOpenFileName(self, "Seleccionar Imagen", str(base_dir), "Imágenes (*.jpg *.jpeg *.png *.webp *.bmp)")
             if f: self.input_directo.setText(f)
 
+    def _obtener_servicio_prompts(self):
+        if not hasattr(self, "_servicio_prompts") or self._servicio_prompts is None:
+            from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
+            from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd
+            self._servicio_prompts = ServicioCatalogoPrompts(RepositorioPromptsMd(self._servicio_proc._enrutador.plantillas))
+        return self._servicio_prompts
+
     def _cargar_plantillas_ia_web(self) -> None:
+        c_actual = self.combo_plantillas.currentData()
         from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import poblar_combo_plantillas_ia_web
-        poblar_combo_plantillas_ia_web(self.combo_plantillas)
+        poblar_combo_plantillas_ia_web(self.combo_plantillas, self._obtener_servicio_prompts())
+        if c_actual:
+            idx = self.combo_plantillas.findData(c_actual)
+            if idx >= 0:
+                self.combo_plantillas.setCurrentIndex(idx)
+                self._al_seleccionar_plantilla()
 
     def _al_seleccionar_plantilla(self) -> None:
         c = self.combo_plantillas.currentData()
-        if c: self.txt_instrucciones.setPlainText(str(c)); self.consola.agregar_log(f"[INFO] Plantilla cargada: {self.combo_plantillas.currentText()}")
+        if not c:
+            return
+        p = self._obtener_servicio_prompts().obtener_plantilla(str(c))
+        if p is not None:
+            self.txt_instrucciones.setPlainText(p.contenido)
+            self.consola.agregar_log(f"[INFO] Plantilla cargada: {p.titulo}")
+        else:
+            self.txt_instrucciones.setPlainText(str(c))
+            self.consola.agregar_log(f"[INFO] Plantilla cargada: {self.combo_plantillas.currentText()}")
 
     def _ejecutar_procesamiento_web(self) -> None:
         op, inst = self.combo_operacion.currentData(), self.txt_instrucciones.toPlainText().strip()

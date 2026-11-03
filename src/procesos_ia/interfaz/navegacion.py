@@ -58,18 +58,20 @@ class NavegacionVistas:
             self.vista_motores.volver_solicitado.connect(ventana._volver_a_principal)
             self.vista_motores.motor_configurado.connect(ventana._al_configurar_motor)
             self.vista_motores.ia_general_solicitado.connect(self.abrir_ia_general)
-            self.vista_motores.plantillas_web_solicitadas.connect(self.abrir_prompts_web)
+            self.vista_motores.plantillas_web_solicitadas.connect(
+                lambda: self.abrir_prompts_web("motores")
+            )
             ventana.pila_vistas.addWidget(self.vista_motores)
         else:
             self.vista_motores._motor_actual = motor
             self.vista_motores._sincronizar_desde_configuracion()
         self.activar(self.vista_motores)
 
-    def abrir_prompts_web(self) -> None:
+    def abrir_prompts_web(self, origen: str = "motores") -> None:
         ventana = self.ventana
         if ventana._cierre.pendiente:
             return
-        ventana._abrir_dialogo_prompts()
+        ventana._abrir_dialogo_prompts(origen=origen)
         if getattr(ventana, "_vista_prompts", None) is not None:
             combo = ventana._vista_prompts.combo_filtro
             idx = combo.findData("ia_web")
@@ -91,6 +93,10 @@ class NavegacionVistas:
             self.vista_ia_general.volver_solicitado.connect(
                 lambda: self.activar(self.vista_motores)
             )
+            if hasattr(self.vista_ia_general, "panel_modo_chat"):
+                self.vista_ia_general.panel_modo_chat.plantillas_solicitadas.connect(
+                    lambda: self.abrir_prompts_web("ia_general")
+                )
             ventana.pila_vistas.addWidget(self.vista_ia_general)
         self.activar(self.vista_ia_general)
 
