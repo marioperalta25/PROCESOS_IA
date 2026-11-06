@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
 )
 
 from procesos_ia.interfaz.ia_web.componentes.panel_archivo_general import PanelArchivoGeneral
+from procesos_ia.interfaz.ia_web.conversacional.panel_modo_chat_imagenes import PanelModoChatImagenes
 from procesos_ia.interfaz.protector_botones import conectar_boton_protegido
 
 
@@ -14,13 +15,28 @@ def construir_operacion_motores(vista) -> None:
 
     lay_op = QHBoxLayout(); lay_op.addWidget(QLabel("Operación Web:", vista))
     vista.combo_operacion = QComboBox(vista)
-    for t, d in (("Procesamiento por Lotes de Texto (CSV con delimitador '|')", "csv_texto"),
+    for t, d in (("Extracción Visual de Negocios (1 a 1 - Imágenes)", "extraccion_negocios_imagenes"),
+                 ("Procesamiento por Lotes de Texto (CSV con delimitador '|')", "csv_texto"),
                  ("CSV con Imágenes (1 a 1)", "csv_imagen"),
                  ("Carpeta de Imágenes Directa (1 a 1)", "carpeta_imagenes"),
                  ("Imagen Individual (Prueba puntual)", "imagen_individual")):
         vista.combo_operacion.addItem(t, d)
     vista.combo_operacion.currentIndexChanged.connect(vista._al_cambiar_operacion)
-    lay_op.addWidget(vista.combo_operacion, stretch=1); lay.addLayout(lay_op)
+    lay_op.addWidget(vista.combo_operacion, stretch=1)
+
+    vista.btn_iniciar_sesion = QPushButton("Iniciar Sesión / Abrir Navegador", vista)
+    vista.btn_iniciar_sesion.setToolTip("Abre Chromium en la carpeta aislada de motores para ingresar credenciales")
+    conectar_boton_protegido(
+        vista.btn_iniciar_sesion, vista._abrir_navegador_manual,
+        "[INFO] Abriendo navegador para inicio de sesión...", 800,
+    )
+    lay_op.addWidget(vista.btn_iniciar_sesion)
+    lay.addLayout(lay_op)
+
+    # Panel especializado 1 a 1 con casillas (negocio, telefonos, owner, address, habla_espanol)
+    vista.panel_imagenes_1a1 = PanelModoChatImagenes(vista._servicio_proc._enrutador, vista)
+    vista.panel_imagenes_1a1.log_notificado.connect(vista.consola.agregar_log)
+    lay.addWidget(vista.panel_imagenes_1a1)
 
     vista.panel_archivo = PanelArchivoGeneral(vista, enrutador=vista._servicio_proc._enrutador); lay.addWidget(vista.panel_archivo)
 
@@ -54,7 +70,8 @@ def construir_operacion_motores(vista) -> None:
     vista.txt_instrucciones = EditorTextoExpandible(placeholder="Instrucciones para DeepSeek o Gemini...", parent=vista)
     lay_p.addWidget(vista.txt_instrucciones); lay.addWidget(vista.grupo_prompt)
 
-    lay_opts = QHBoxLayout()
+    vista.widget_opts = QWidget(vista)
+    lay_opts = QHBoxLayout(vista.widget_opts); lay_opts.setContentsMargins(0, 0, 0, 0)
     vista.spin_lote, vista.spin_rotacion = QSpinBox(vista), QSpinBox(vista)
     vista.spin_lote.setRange(1, 30); vista.spin_lote.setValue(5)
     vista.spin_rotacion.setRange(1, 50); vista.spin_rotacion.setValue(2)
@@ -67,7 +84,7 @@ def construir_operacion_motores(vista) -> None:
     for w in (QLabel("Filas por lote:", vista), vista.spin_lote, QLabel("Rotar chat cada:", vista),
               vista.spin_rotacion, QLabel("Carpeta imágenes:", vista), vista.input_imagenes, vista.btn_examinar_imagenes):
         lay_opts.addWidget(w, stretch=1 if w == vista.input_imagenes else 0)
-    lay.addLayout(lay_opts)
+    lay.addWidget(vista.widget_opts)
 
     vista.barra_progreso = QProgressBar(vista); vista.barra_progreso.setRange(0, 100); vista.barra_progreso.setValue(0)
     lay.addWidget(vista.barra_progreso)

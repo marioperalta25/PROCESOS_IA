@@ -207,6 +207,7 @@ class VistaChat(QWidget):
             return
         entrada = self._datos["mensajes"][-1]["texto"] if reintentar else self.entrada.toPlainText().strip()
         if not entrada:
+            self.banner.mostrar_alerta(textos.get("entrada_vacia", "[ALERTA] Ingrese un mensaje antes de enviar."))
             return
         self._cerrar_editor()
         self._identidad_peticion = self._datos["id"]

@@ -148,3 +148,41 @@ def guardar_filas_enriquecidas_csv(
     filas_desglosadas = desglosar_filas_por_telefono(filas, columna_telefono=col_tel)
 
     return guardar_filas_csv(filas_desglosadas, ruta_salida)
+
+
+def guardar_auditoria_modo_ia_md(
+    ruta_md: Path,
+    n_lote: int,
+    total_lotes: int,
+    fila_desde: int,
+    fila_hasta: int,
+    entrada_prompt: str,
+    respuesta_ia: str,
+    duracion_seg: float = 0.0,
+    prompt_inicial: str = "",
+    html_crudo: str = "",
+) -> None:
+    """Anexa de forma opcional y protegida una entrada de inspeccion con HTML crudo para Modo IA."""
+    try:
+        ruta_md.parent.mkdir(parents=True, exist_ok=True)
+        es_nuevo = not ruta_md.exists() or ruta_md.stat().st_size == 0
+        marca = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(ruta_md, mode="a", encoding="utf-8") as f:
+            if es_nuevo:
+                f.write(f"# Reporte de Inspeccion Modo IA\n\n- Fecha: {marca}\n\n")
+                if prompt_inicial:
+                    f.write(f"## Prompt Inicial del Sistema\n\n```text\n{prompt_inicial.strip()}\n```\n\n---\n\n")
+                f.write("## Bitacora de Lotes\n\n")
+            if entrada_prompt or respuesta_ia or html_crudo:
+                bloque_html = ""
+                if html_crudo:
+                    bloque_html = f"**HTML Crudo del DOM ({len(html_crudo)} caracteres):**\n<details>\n<summary>Desplegar HTML del Turno</summary>\n\n```html\n{html_crudo.strip()}\n```\n\n</details>\n\n"
+                f.write(
+                    f"### Lote {n_lote}/{total_lotes} (Filas {fila_desde}-{fila_hasta}) - {duracion_seg:.1f}s\n\n"
+                    f"**Entrada Enviada:**\n```text\n{entrada_prompt.strip()}\n```\n\n"
+                    f"**Respuesta Capturada del DOM:**\n```text\n{respuesta_ia.strip()}\n```\n\n"
+                    f"{bloque_html}"
+                    f"---\n\n"
+                )
+    except Exception:
+        pass

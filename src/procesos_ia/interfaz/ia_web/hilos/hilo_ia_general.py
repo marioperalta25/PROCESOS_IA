@@ -113,6 +113,7 @@ class HiloIAGeneral(QThread):
             resultado, ruta_salida = await self._servicio.procesar_modo_ia_lote(
                 filas, instrucciones, columnas, tamano, lotes_conv, notificar_progreso, notificar_log, nombre,
                 carpeta_salida=self._parametros.get("carpeta_salida"),
+                generar_auditoria_md=gen_md,
             )
             ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"
             notificar_log(f"[OK] Modo IA completado con {len(resultado)} respuestas.")
@@ -120,6 +121,35 @@ class HiloIAGeneral(QThread):
             self.proceso_completado.emit(
                 f"[OK] Modo IA completo con {len(resultado)} respuestas. Guardado en: {ruta_abs}",
                 ruta_salida or resultado,
+            )
+
+        elif self._tipo_accion == "modo_ia_imagenes":
+            carpeta = Path(self._parametros.get("carpeta", ""))
+            campos = self._parametros.get("campos_activos", [])
+            extra = self._parametros.get("instrucciones_extra", "")
+            rotacion = int(self._parametros.get("rotacion_chat", 3))
+            c_sal = Path(self._parametros["carpeta_salida"]) if self._parametros.get("carpeta_salida") else None
+            archivos, modo = self._parametros.get("archivos"), self._parametros.get("modo_escritura", "sobrescribir")
+            csv_previo = self._parametros.get("csv_existente")
+            notificar_log(f"[INFO] Iniciando Modo IA Imágenes: {carpeta.name} (rotación {rotacion} imgs/chat)...")
+            resultado, ruta_salida = await self._servicio.procesar_modo_ia_imagenes(
+                carpeta=carpeta,
+                campos_activos=campos,
+                instrucciones_adicionales=extra,
+                rotacion_chat=rotacion,
+                callback_progreso=notificar_progreso,
+                callback_log=notificar_log,
+                carpeta_salida=c_sal,
+                generar_auditoria_md=gen_md,
+                archivos_especificos=archivos,
+                modo_escritura=modo,
+                csv_existente=csv_previo,
+            )
+            ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"
+            notificar_log(f"[OK] Modo IA Imágenes finalizado ({len(resultado)} registros). Guardado en: {ruta_abs}")
+            self.proceso_completado.emit(
+                f"[OK] Modo IA Imágenes finalizado ({len(resultado)} registros). Guardado en: {ruta_abs}",
+                resultado,
             )
         else:
             self.proceso_fallido.emit(f"[ERROR] Acción no reconocida: {self._tipo_accion}")

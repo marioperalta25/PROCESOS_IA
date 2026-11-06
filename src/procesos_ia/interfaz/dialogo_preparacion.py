@@ -274,6 +274,7 @@ class DialogoPrepararTrabajo(QWidget):
 
     def accept(self) -> None:
         if self._hilo is not None:
+            self.banner.mostrar_advertencia("[ALERTA] Espere a que termine la prueba de muestra antes de iniciar.")
             return
         try:
             self.configuracion_aprobada = self.obtener_configuracion()

@@ -1,4 +1,4 @@
-﻿"""Pruebas unitarias para la vista de configuración de motores y selector de IA."""
+"""Pruebas unitarias para la vista de configuración de motores y selector de IA."""
 
 from __future__ import annotations
 
@@ -75,13 +75,24 @@ class TestVistaConfiguracionMotores(unittest.TestCase):
         self.assertTrue(hasattr(vista, "btn_ejecutar"))
         self.assertTrue(hasattr(vista, "btn_cancelar"))
         self.assertTrue(hasattr(vista, "btn_abrir_salida"))
+        self.assertTrue(hasattr(vista, "btn_iniciar_sesion"))
+        self.assertTrue(hasattr(vista, "panel_imagenes_1a1"))
         self.assertTrue(hasattr(vista, "panel_archivo"))
         self.assertTrue(hasattr(vista, "consola"))
         self.assertTrue(hasattr(vista, "combo_plantillas"))
         self.assertTrue(hasattr(vista, "txt_instrucciones"))
         self.assertTrue(hasattr(vista, "spin_lote"))
 
+        # Validar panel especializado de imagenes 1 a 1 en motores
+        idx_1a1 = vista.combo_operacion.findData("extraccion_negocios_imagenes")
+        self.assertGreaterEqual(idx_1a1, 0)
+        vista.combo_operacion.setCurrentIndex(idx_1a1)
+        self.assertTrue(vista.panel_imagenes_1a1.isVisible())
+        self.assertFalse(vista.panel_archivo.isVisible())
+
         # Validar seleccion de plantilla
+        idx_txt = vista.combo_operacion.findData("csv_texto")
+        vista.combo_operacion.setCurrentIndex(idx_txt)
         self.assertGreater(vista.combo_plantillas.count(), 1)
         vista.combo_plantillas.setCurrentIndex(1)
         self.assertIn(" | ", vista.txt_instrucciones.toPlainText())

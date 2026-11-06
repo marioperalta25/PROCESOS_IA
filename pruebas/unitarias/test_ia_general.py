@@ -141,12 +141,13 @@ class TestInterfazIAGeneral(unittest.TestCase):
 
     def test_inicializacion_vista_ia_general(self) -> None:
         vista = VistaIAGeneral()
-        self.assertEqual(vista.combo_flujo.count(), 4)
+        self.assertEqual(vista.combo_flujo.count(), 5)
         self.assertTrue(hasattr(vista, "btn_ejecutar"))
         self.assertTrue(hasattr(vista, "btn_cancelar"))
         self.assertTrue(hasattr(vista, "tabla"))
         self.assertTrue(hasattr(vista, "consola"))
         self.assertTrue(hasattr(vista, "panel_archivo"))
+        self.assertTrue(hasattr(vista, "panel_chat_imagenes"))
 
     def test_ejecutar_accion_validacion_carpeta(self) -> None:
         vista = VistaIAGeneral()

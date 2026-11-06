@@ -10,6 +10,7 @@ from typing import Any
 
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia import ProcesadorModoIA
+from procesos_ia.aplicacion.ia_web.conversacional.procesador_imagenes_chat import ProcesadorImagenesChat
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_archivo_urls import ProcesadorArchivoUrls
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_carpeta_imagenes import ProcesadorCarpetaImagenes
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_url_individual import ProcesadorUrlIndividual
@@ -53,6 +54,9 @@ class ServicioIAGeneral:
             self._gestor, self._enrutador, self._config, self.procesar_imagen_lens
         )
         self._procesador_modo_ia = ProcesadorModoIA(
+            self._gestor, self._enrutador, self._config
+        )
+        self._procesador_imagenes_chat = ProcesadorImagenesChat(
             self._gestor, self._enrutador, self._config
         )
 
@@ -237,6 +241,7 @@ class ServicioIAGeneral:
         callback_log: Callable[[str], None] | None = None,
         nombre_salida: str = "evaluacion",
         carpeta_salida: Path | None = None,
+        generar_auditoria_md: bool = True,
     ) -> tuple[list[dict[str, Any]], Path | None]:
         """Procesa registros en Modo IA mediante el subservicio conversacional especializado."""
         self._cancelado = False
@@ -251,6 +256,40 @@ class ServicioIAGeneral:
             nombre_salida=nombre_salida,
             carpeta_salida=carpeta_salida,
             verificador_cancelacion=lambda: self._cancelado,
+            generar_auditoria_md=generar_auditoria_md,
+        )
+        self.ultima_salida = resultado[1]
+        return resultado
+
+    async def procesar_modo_ia_imagenes(
+        self,
+        carpeta: Path,
+        campos_activos: list[str] | dict[str, bool],
+        instrucciones_adicionales: str = "",
+        rotacion_chat: int = 3,
+        callback_progreso: Callable[[int, int, str], None] | None = None,
+        callback_log: Callable[[str], None] | None = None,
+        carpeta_salida: Path | None = None,
+        generar_auditoria_md: bool = True,
+        archivos_especificos: list[Path] | None = None,
+        modo_escritura: str = "sobrescribir",
+        csv_existente: Path | None = None,
+    ) -> tuple[list[dict[str, Any]], Path | None]:
+        """Procesa una carpeta de imagenes 1 a 1 en Modo IA con rotacion de chat."""
+        self._cancelado = False
+        resultado = await self._procesador_imagenes_chat.ejecutar(
+            carpeta=carpeta,
+            campos_activos=campos_activos,
+            instrucciones_adicionales=instrucciones_adicionales,
+            rotacion_chat=rotacion_chat,
+            callback_progreso=callback_progreso,
+            callback_log=callback_log,
+            carpeta_salida=carpeta_salida,
+            verificador_cancelacion=lambda: self._cancelado,
+            generar_auditoria_md=generar_auditoria_md,
+            archivos_especificos=archivos_especificos,
+            modo_escritura=modo_escritura,
+            csv_existente=csv_existente,
         )
         self.ultima_salida = resultado[1]
         return resultado

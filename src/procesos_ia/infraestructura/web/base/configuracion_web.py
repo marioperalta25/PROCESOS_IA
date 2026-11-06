@@ -11,6 +11,10 @@ import time
 from typing import Any
 
 
+PERFIL_IA_GENERAL = "perfil_ia_general"
+PERFIL_MOTORES_WEB = "perfil_motores_web"
+
+
 @dataclass(frozen=True, slots=True)
 class ConfiguracionVentanaWeb:
     """Parámetros geométricos para ventana flotante sin robo de foco."""
@@ -46,11 +50,12 @@ class ConfiguracionWeb:
     carpeta_imagenes: Path | None = None
     modo_procesamiento: str = "lote"
     generar_auditoria_md: bool = True
+    nombre_perfil: str = "perfil_usuario"
 
     @property
     def directorio_perfil(self) -> Path:
         """Ruta al perfil persistente de usuario para Chrome/Chromium."""
-        return self.directorio_base / "perfil_usuario"
+        return self.directorio_base / self.nombre_perfil
 
     @property
     def directorio_imagenes_temp(self) -> Path:

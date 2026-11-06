@@ -124,6 +124,8 @@ class ProcesadorCarpetaImagenes:
                             guardar_auditoria_extraccion_md(ruta_csv.with_suffix(".md"), ficha)
                         except Exception:
                             pass
+                    if hasattr(self._enrutador, "manifiesto_imagenes"):
+                        self._enrutador.manifiesto_imagenes.registrar(carpeta.name, img.name)
                     resultados.extend(fichas_duplicadas)
 
                     nombre_res = ficha.negocio or ficha.propietario or "Ficha"

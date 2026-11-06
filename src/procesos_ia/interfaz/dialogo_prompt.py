@@ -157,6 +157,7 @@ class DialogoGestionPrompts(QWidget):
 
     def _refinar_con_ia(self) -> None:
         if self._hilo_refinamiento is not None:
+            self.estado_refinamiento.setText("[ALERTA] Ya hay un refinamiento en curso. Espere a que termine.")
             return
         modelo = self.combo_modelos.currentText().strip() or self._modelo_activo
         if not modelo or "detenido" in modelo.lower():

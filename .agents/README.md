@@ -10,3 +10,4 @@ Directorio centralizado con las instrucciones, reglas y contexto del proyecto PR
 - [Decisiones del proyecto](proyecto/decisiones.md): Acuerdos y propuestas documentadas.
 - [Referencias de portabilidad](referencias/portabilidad.md): Guía de carga en distintas herramientas.
 - [Chat local propuesto](proyecto/chat-local.md): Lógica, memoria acotada y planos; sin implementación.
+- [Resiliencia IA Web](proyecto/resiliencia-ia-web.md): Guía de tolerancia a fallos, cortes de red/luz y sanitización de respuestas.

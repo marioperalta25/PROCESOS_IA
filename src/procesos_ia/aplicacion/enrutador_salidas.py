@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 
+from procesos_ia.aplicacion.manifiesto_imagenes import ManifiestoImagenes
 from procesos_ia.aplicacion.rutas_salida import (
     resolver_ruta_disponible,
     resolver_subcarpeta_salida,
@@ -51,6 +52,7 @@ class EnrutadorSalidas:
             else obtener_directorio_raiz_predeterminado()
         )
         self._configuracion_salidas = cargar_configuracion_salidas()
+        self._manifiesto_imagenes: ManifiestoImagenes | None = None
 
     @property
     def raiz(self) -> Path:
@@ -97,9 +99,19 @@ class EnrutadorSalidas:
         """Subcarpeta central para archivos temporales y capturas."""
         return self._raiz / "temporales"
 
+    @property
+    def manifiesto_imagenes(self) -> ManifiestoImagenes:
+        """Manifiesto persistente integrado para historial de imágenes procesadas."""
+        if self._manifiesto_imagenes is None:
+            self._manifiesto_imagenes = ManifiestoImagenes(
+                self._raiz / ".manifiesto_imagenes.txt"
+            )
+        return self._manifiesto_imagenes
+
     def establecer_directorio_raiz(self, nueva_raiz: Path) -> None:
         """Actualiza el directorio raíz y garantiza la estructura de subcarpetas."""
         self._raiz = Path(nueva_raiz)
+        self._manifiesto_imagenes = None
         self.asegurar_directorios()
 
     def gestor_procesos(self, raiz_destino: Path | None = None) -> GestorSalidasProceso:

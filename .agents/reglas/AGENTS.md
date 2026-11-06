@@ -89,6 +89,11 @@ su ámbito sin ampliar permisos. Una pregunta explicativa no autoriza cambios.
     mágico o etiqueta de interfaz debe incrustarse directamente en la lógica.
     Todo parámetro operativo debe ser configurable, inyectado o derivado de
     archivos declarativos, variables de entorno o preferencias del usuario.
+24. Cautela y análisis de impacto en código existente: antes de modificar cualquier
+    código para mejora o corrección, analizar qué hace, qué procesos lo ocupan en todo
+    el proyecto, quién lo llama y para qué lo llama, y cómo afectará el cambio y sus
+    consecuencias. Informar explícitamente al usuario las líneas que se cambiarían, los
+    procesos involucrados y el impacto sobre otras llamadas antes de proceder.
 
 ## Fuentes del proyecto
 

@@ -111,22 +111,24 @@ def verificar_estado_carpeta_imagenes(
     prefijo: str = "extraccion_lens",
     columna_fuente: str = "fuente_imagen",
     extensiones: set[str] | None = None,
+    nombres_manifiesto: set[str] | None = None,
 ) -> EstadoLoteImagenes:
-    """Evalua si la carpeta ya tiene un CSV previo y clasifica imagenes pendientes."""
+    """Evalua si la carpeta ya tiene un CSV previo o manifiesto y clasifica pendientes."""
     imagenes_disco = listar_imagenes_carpeta(carpeta, extensiones)
     total_imgs = len(imagenes_disco)
 
     csv_previo = buscar_csv_previo_carpeta(directorio_salidas, carpeta.name, prefijo)
-    if not csv_previo:
-        return EstadoLoteImagenes(
-            carpeta=carpeta,
-            csv_existente=None,
-            total_imagenes=total_imgs,
-            imagenes_pendientes=imagenes_disco,
-            imagenes_procesadas_count=0,
+    nombres_ya_procesados: set[str] = set()
+
+    if csv_previo:
+        nombres_ya_procesados.update(
+            obtener_nombres_procesados_csv(csv_previo, columna_fuente)
+        )
+    if nombres_manifiesto:
+        nombres_ya_procesados.update(
+            {str(nom).strip().lower() for nom in nombres_manifiesto if nom}
         )
 
-    nombres_ya_procesados = obtener_nombres_procesados_csv(csv_previo, columna_fuente)
     pendientes: list[Path] = [
         p for p in imagenes_disco if p.name.lower() not in nombres_ya_procesados
     ]
