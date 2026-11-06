@@ -2,7 +2,7 @@
 
 from PySide6.QtWidgets import (
     QComboBox, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-    QProgressBar, QPushButton, QSpinBox, QVBoxLayout,
+    QProgressBar, QPushButton, QSpinBox, QVBoxLayout, QWidget,
 )
 
 from procesos_ia.interfaz.ia_web.componentes.panel_archivo_general import PanelArchivoGeneral

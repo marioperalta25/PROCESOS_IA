@@ -87,8 +87,8 @@ class TestVistaConfiguracionMotores(unittest.TestCase):
         idx_1a1 = vista.combo_operacion.findData("extraccion_negocios_imagenes")
         self.assertGreaterEqual(idx_1a1, 0)
         vista.combo_operacion.setCurrentIndex(idx_1a1)
-        self.assertTrue(vista.panel_imagenes_1a1.isVisible())
-        self.assertFalse(vista.panel_archivo.isVisible())
+        self.assertFalse(vista.panel_imagenes_1a1.isHidden())
+        self.assertTrue(vista.panel_archivo.isHidden())
 
         # Validar seleccion de plantilla
         idx_txt = vista.combo_operacion.findData("csv_texto")

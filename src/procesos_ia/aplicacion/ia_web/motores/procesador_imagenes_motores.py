@@ -189,3 +189,4 @@ class ProcesadorImagenesMotores:
             if estado == "completados" and hubo_error:
                 estado = "fallidos"
             return todos_resultados, salida.finalizar(estado)
+
