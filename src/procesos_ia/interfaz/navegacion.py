@@ -1,4 +1,4 @@
-﻿"""Activación de vistas integradas y composición diferida del chat."""
+"""Activación de vistas integradas y composición diferida del chat."""
 
 from pathlib import Path
 from functools import partial
@@ -22,13 +22,38 @@ class NavegacionVistas:
         self.chat = None
         self.vista_motores = None
         self.vista_ia_general = None
+        self.vista_deepseek = None
+        self.vista_gemini = None
+        self._historial_vistas: list = []
         self.parametros = cargar_parametros_chat()
         self._preparador = PreparadorChatOllama(ventana._cliente_ollama, self.parametros)
 
     def activar(self, vista) -> None:
+        if vista is None:
+            self.volver()
+            return
+        actual = self.ventana.pila_vistas.currentWidget()
+        if actual is not None and actual != vista:
+            if not self._historial_vistas or self._historial_vistas[-1] != actual:
+                self._historial_vistas.append(actual)
+        if self.ventana.pila_vistas.indexOf(vista) < 0:
+            self.ventana.pila_vistas.addWidget(vista)
         if hasattr(vista, "adaptar_modo"):
             vista.adaptar_modo(determinar_modo_pantalla(self.ventana.width()))
         self.ventana.pila_vistas.setCurrentWidget(vista)
+
+    def volver(self) -> None:
+        while self._historial_vistas:
+            destino = self._historial_vistas.pop()
+            if destino is not None and self.ventana.pila_vistas.indexOf(destino) >= 0:
+                if hasattr(destino, "adaptar_modo"):
+                    destino.adaptar_modo(determinar_modo_pantalla(self.ventana.width()))
+                self.ventana.pila_vistas.setCurrentWidget(destino)
+                return
+        self.ventana._volver_a_principal()
+
+    def limpiar_historial(self) -> None:
+        self._historial_vistas.clear()
 
     def ocupado(self) -> bool:
         tipos = (HiloChat, HiloCoordinadorTrabajo, HiloLiberarMemoria, HiloMuestra, HiloRefinamiento)
@@ -41,7 +66,7 @@ class NavegacionVistas:
                       ventana.panel_configuracion, ventana.panel_telemetria,
                       ventana.panel_controles, ventana._vista_prompts,
                       ventana._vista_preparacion, self.chat, self.vista_motores,
-                      self.vista_ia_general):
+                      self.vista_ia_general, self.vista_deepseek, self.vista_gemini):
             if vista is not None:
                 vista.adaptar_modo(modo)
 
@@ -55,7 +80,7 @@ class NavegacionVistas:
             self.vista_motores = VistaConfiguracionMotores(
                 motor, ventana._config_web, ventana, enrutador=ventana._enrutador,
             )
-            self.vista_motores.volver_solicitado.connect(ventana._volver_a_principal)
+            self.vista_motores.volver_solicitado.connect(self.volver)
             self.vista_motores.motor_configurado.connect(ventana._al_configurar_motor)
             self.vista_motores.ia_general_solicitado.connect(self.abrir_ia_general)
             self.vista_motores.plantillas_web_solicitadas.connect(
@@ -66,6 +91,48 @@ class NavegacionVistas:
             self.vista_motores._motor_actual = motor
             self.vista_motores._sincronizar_desde_configuracion()
         self.activar(self.vista_motores)
+
+    def abrir_deepseek(self) -> None:
+        ventana = self.ventana
+        if ventana._cierre.pendiente:
+            return
+        if self.vista_deepseek is None:
+            from procesos_ia.interfaz.ia_web.vistas.vista_deepseek import VistaDeepSeek
+            self.vista_deepseek = VistaDeepSeek(
+                configuracion_web=ventana._config_web,
+                servicio_prompts=getattr(ventana, "_servicio_prompts", None),
+                enrutador=ventana._enrutador,
+                parent=ventana,
+            )
+            self.vista_deepseek.volver_solicitado.connect(self.volver)
+            self.vista_deepseek.gemini_solicitado.connect(self.abrir_gemini)
+            self.vista_deepseek.ia_general_solicitado.connect(self.abrir_ia_general)
+            self.vista_deepseek.plantillas_solicitadas.connect(
+                lambda: self.abrir_prompts_web("deepseek")
+            )
+            ventana.pila_vistas.addWidget(self.vista_deepseek)
+        self.activar(self.vista_deepseek)
+
+    def abrir_gemini(self) -> None:
+        ventana = self.ventana
+        if ventana._cierre.pendiente:
+            return
+        if self.vista_gemini is None:
+            from procesos_ia.interfaz.ia_web.vistas.vista_gemini import VistaGemini
+            self.vista_gemini = VistaGemini(
+                configuracion_web=ventana._config_web,
+                servicio_prompts=getattr(ventana, "_servicio_prompts", None),
+                enrutador=ventana._enrutador,
+                parent=ventana,
+            )
+            self.vista_gemini.volver_solicitado.connect(self.volver)
+            self.vista_gemini.deepseek_solicitado.connect(self.abrir_deepseek)
+            self.vista_gemini.ia_general_solicitado.connect(self.abrir_ia_general)
+            self.vista_gemini.plantillas_solicitadas.connect(
+                lambda: self.abrir_prompts_web("gemini")
+            )
+            ventana.pila_vistas.addWidget(self.vista_gemini)
+        self.activar(self.vista_gemini)
 
     def abrir_prompts_web(self, origen: str = "motores") -> None:
         ventana = self.ventana
@@ -90,9 +157,7 @@ class NavegacionVistas:
                 parent=ventana,
                 enrutador=ventana._enrutador,
             )
-            self.vista_ia_general.volver_solicitado.connect(
-                lambda: self.activar(self.vista_motores)
-            )
+            self.vista_ia_general.volver_solicitado.connect(self.volver)
             if hasattr(self.vista_ia_general, "panel_modo_chat"):
                 self.vista_ia_general.panel_modo_chat.plantillas_solicitadas.connect(
                     lambda: self.abrir_prompts_web("ia_general")
@@ -117,7 +182,7 @@ class NavegacionVistas:
             servicio = ServicioConversacion(repositorio, generar, self.parametros, self._preparador.preparar)
             self.chat = VistaChat(servicio, self.parametros, self._opciones, self.ocupado, ventana,
                                   catalogo=self._catalogo)
-            self.chat.volver_solicitado.connect(ventana._volver_a_principal)
+            self.chat.volver_solicitado.connect(self.volver)
             self.chat.solicitar_actualizacion_modelos.connect(
                 lambda: ventana._actualizar_modelos_segundo_plano(auto_iniciar=True))
             ventana.pila_vistas.addWidget(self.chat)

@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 from typing import Any
 
+from procesos_ia.aplicacion.comun.gestor_checkpoint_imagenes import GestorCheckpointImagenes
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
     listar_imagenes_carpeta,
@@ -78,6 +79,7 @@ class ProcesadorImagenesChat:
         self._gestor = gestor_sesion
         self._enrutador = enrutador
         self._config = configuracion
+        self._gestor_cp = GestorCheckpointImagenes(enrutador)
 
     async def ejecutar(
         self,
@@ -170,13 +172,24 @@ class ProcesadorImagenesChat:
                         callback_log(f"[INFO] ({idx}/{total_archivos}) Enviando imagen: {ruta_img.name}...")
 
                     turnos_antes = await marcar_turnos_previos_modo_ia(pestana)
-                    enviado = await inyectar_imagen_y_prompt_modo_ia(
-                        pestana, prompt_base, ruta_imagen=ruta_img
-                    )
+                    enviado = False
+                    for intento in range(1, 3):
+                        enviado = await inyectar_imagen_y_prompt_modo_ia(
+                            pestana, prompt_base, ruta_imagen=ruta_img
+                        )
+                        if enviado:
+                            break
+                        if intento < 2:
+                            if callback_log:
+                                callback_log(
+                                    f"[ALERTA] Intento {intento}/2 falló al inyectar imagen '{ruta_img.name}'. Reintentando en 2.5s..."
+                                )
+                            await asyncio.sleep(2.5)
+
                     if not enviado:
                         hubo_error = True
                         if callback_log:
-                            callback_log(f"[ERROR] No se pudo enviar imagen '{ruta_img.name}'.")
+                            callback_log(f"[ERROR] No se pudo enviar imagen '{ruta_img.name}'. Renovando conversación...")
                         fila_err = {
                             "id_registro": id_registro,
                             "archivo_imagen": ruta_img.name,
@@ -184,6 +197,8 @@ class ProcesadorImagenesChat:
                         }
                         todos_resultados.append(fila_err)
                         salvaguardar_progreso_csv(todos_resultados, salida.ruta)
+                        pestana = None
+                        imgs_en_chat = 0
                         continue
 
                     t_inicio = asyncio.get_event_loop().time()
@@ -192,8 +207,10 @@ class ProcesadorImagenesChat:
                         self._config.tiempo_espera_respuesta_segundos,
                         turnos_previos=turnos_antes,
                         filas_esperadas=1,
+                        verificador_cancelacion=verificador_cancelacion,
                     )
                     t_dur = asyncio.get_event_loop().time() - t_inicio
+                    if verificador_cancelacion and verificador_cancelacion(): break
 
                     html_crudo = ""
                     if ruta_md:
@@ -211,6 +228,11 @@ class ProcesadorImagenesChat:
                         "estado_ia": "EXITOSO" if isinstance(datos_parsed, dict) else "ERROR_PARSE",
                     }
                     if isinstance(datos_parsed, dict):
+                        if "nombre_negocio" in datos_parsed and "negocio" not in datos_parsed:
+                            datos_parsed["negocio"] = datos_parsed["nombre_negocio"]
+                        elif "negocio" in datos_parsed and "nombre_negocio" not in datos_parsed:
+                            datos_parsed["nombre_negocio"] = datos_parsed["negocio"]
+
                         for col in columnas_esperadas:
                             if col not in ("id_registro", "archivo_imagen", "estado_ia"):
                                 val_col = datos_parsed.get(col, "ND")
@@ -222,6 +244,12 @@ class ProcesadorImagenesChat:
 
                     # Desglose de filas si hay múltiples teléfonos detectados
                     filas_expandidas = desglosar_fila_por_telefonos(fila_base)
+                    nom_actual = ruta_img.name.lower()
+                    todos_resultados = [
+                        f for f in todos_resultados
+                        if str(f.get("archivo_imagen") or f.get("fuente_imagen") or "").strip().lower() != nom_actual
+                        or str(f.get("estado_ia", "")).upper() == "EXITOSO"
+                    ]
                     todos_resultados.extend(filas_expandidas)
                     salvaguardar_progreso_csv(todos_resultados, salida.ruta)
                     if hasattr(self._enrutador, "manifiesto_imagenes"):
@@ -230,7 +258,7 @@ class ProcesadorImagenesChat:
                         )
 
                     imgs_en_chat += 1
-                    resumen_neg = str(fila_base.get("negocio", "Sin datos"))
+                    resumen_neg = str(fila_base.get("negocio") or fila_base.get("nombre_negocio") or "Sin datos")
                     if callback_log:
                         callback_log(
                             f"[OK] Imagen {idx}/{total_archivos} respondida en {t_dur:.1f}s: {resumen_neg}"
@@ -243,18 +271,22 @@ class ProcesadorImagenesChat:
                     recolectar_basura_ciclo(idx, intervalo=10)
                     await asyncio.sleep(0.4)
 
+            except Exception as err:
+                if not (verificador_cancelacion and verificador_cancelacion()): raise
+                if callback_log: callback_log(f"[INFO] Tarea interrumpida por cancelacion: {err}")
+            finally:
+                try:
+                    await asyncio.wait_for(self._gestor.cerrar_navegador(), timeout=1.2)
+                except Exception:
+                    pass
                 if todos_resultados:
                     guardar_filas_enriquecidas_csv(todos_resultados, salida.ruta)
-                    if callback_log:
-                        callback_log(f"[OK] Proceso completado. Guardado en: {salida.ruta.resolve()}")
-                if ruta_md and callback_log:
-                    callback_log(f"[OK] Auditoría Markdown guardada en: {ruta_md.resolve()}")
-
-            finally:
-                await self._gestor.cerrar_navegador()
-
-            estado = "cancelados" if verificador_cancelacion and verificador_cancelacion() else "completados"
-            if estado == "completados" and hubo_error:
-                estado = "fallidos"
-            return todos_resultados, salida.finalizar(estado)
+                    self._gestor_cp.actualizar_checkpoint(carpeta, "modo_ia", todos_resultados, salida.ruta)
+                estado = "cancelados" if (verificador_cancelacion and verificador_cancelacion()) else "completados"
+                if estado == "completados" and hubo_error:
+                    estado = "fallidos"
+                ruta_final = salida.finalizar(estado)
+                if todos_resultados:
+                    self._gestor_cp.actualizar_checkpoint(carpeta, "modo_ia", todos_resultados, ruta_final)
+            return todos_resultados, ruta_final
 

@@ -12,6 +12,8 @@ from procesos_ia.interfaz.ia_web.hilos.hilo_navegador import HiloLanzarNavegador
 from procesos_ia.interfaz.ia_web.hilos.hilo_procesamiento_web import (
     HiloProcesamientoWeb,
 )
+from procesos_ia.interfaz.ia_web.vistas.vista_deepseek import VistaDeepSeek
+from procesos_ia.interfaz.ia_web.vistas.vista_gemini import VistaGemini
 from procesos_ia.interfaz.ia_web.vistas.vista_ia_general import VistaIAGeneral
 from procesos_ia.interfaz.ia_web.vistas.vista_motores import (
     VistaConfiguracionMotores,
@@ -25,5 +27,7 @@ __all__ = [
     "PanelArchivoGeneral",
     "PanelOpcionesAvanzadasWeb",
     "VistaConfiguracionMotores",
+    "VistaDeepSeek",
+    "VistaGemini",
     "VistaIAGeneral",
 ]

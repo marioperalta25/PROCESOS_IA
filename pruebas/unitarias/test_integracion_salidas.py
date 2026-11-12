@@ -102,6 +102,25 @@ class PruebaIntegracionSalidas(unittest.IsolatedAsyncioTestCase):
         fallidos = self.raiz / "extracciones" / "gemini" / "fallidos"
         self.assertEqual(len(list(fallidos.iterdir())), 1)
 
+    async def test_cancelacion_de_motor_clasifica_en_cancelados_con_filas_parciales(self) -> None:
+        servicio = ServicioProcesamientoWeb(self.gestor, self.configuracion, self.enrutador)
+        entrada = self.raiz / "clientes.csv"
+        entrada.write_text("nombre\nAna\nLuis\nCarlos\n", encoding="utf-8")
+        modulo = "procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web."
+
+        async def simular_espera_y_cancelar(*args, **kwargs):
+            servicio.cancelar()
+            return '[{"calificacion": "A"}]'
+
+        with patch(modulo + "enviar_prompt_gemini", new=AsyncMock(return_value=True)), \
+             patch(modulo + "esperar_respuesta_gemini", new=AsyncMock(side_effect=simular_espera_y_cancelar)):
+            res, ruta = await servicio.procesar_csv("gemini", entrada, ["nombre"], "Evaluar", tamano_lote=1)
+
+        self.assertIn("cancelados", ruta.parts)
+        self.assertTrue(ruta.is_file())
+        cancelados = self.raiz / "extracciones" / "gemini" / "cancelados"
+        self.assertEqual(len(list(cancelados.iterdir())), 1)
+
 
 class PruebaSalidaLocalEInterfaz(unittest.TestCase):
     @classmethod

@@ -186,3 +186,33 @@ def guardar_auditoria_modo_ia_md(
                 )
     except Exception:
         pass
+
+
+def guardar_auditoria_imagen_motores_md(
+    ruta_md: Path,
+    idx: int,
+    total: int,
+    nombre_archivo: str,
+    fila_datos: dict[str, Any],
+    duracion_seg: float = 0.0,
+    motor: str = "ia_web",
+) -> None:
+    """Anexa un registro en formato Markdown para auditoría de extracción visual en motores."""
+    try:
+        ruta_md.parent.mkdir(parents=True, exist_ok=True)
+        es_nuevo = not ruta_md.exists() or ruta_md.stat().st_size == 0
+        marca = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(ruta_md, mode="a", encoding="utf-8") as f:
+            if es_nuevo:
+                f.write(f"# Reporte de Auditoría - {motor.upper()} Imágenes 1 a 1\n\n- Fecha: {marca}\n\n---\n\n")
+            f.write(
+                f"### Imagen {idx}/{total}: `{nombre_archivo}` ({duracion_seg:.1f}s)\n\n"
+                f"- **Estado IA**: `{fila_datos.get('estado_ia', 'ND')}`\n"
+                f"- **Negocio**: {fila_datos.get('negocio', 'ND')}\n"
+                f"- **Propietario**: {fila_datos.get('owner', 'ND')}\n"
+                f"- **Teléfono(s)**: {fila_datos.get('telefonos', 'ND')}\n"
+                f"- **Dirección**: {fila_datos.get('address', 'ND')}\n"
+                f"- **Habla Español**: {fila_datos.get('habla_espanol', 'ND')}\n\n---\n\n"
+            )
+    except Exception:
+        pass

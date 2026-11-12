@@ -71,6 +71,15 @@ class HiloListarModelos(QThread):
             except ErrorConexionRechazada:
                 if not self._auto_iniciar or not self._cliente.es_ejecutable_disponible():
                     raise
+            except ErrorProcesamiento as err_proc:
+                if (
+                    self._auto_iniciar
+                    and self._cliente.es_ejecutable_disponible()
+                    and "timed out" in str(err_proc).lower()
+                ):
+                    pass
+                else:
+                    raise
 
             # 2. Si esta detenido pero instalado, encender servidor local
             self.senial_mensaje.emit("[INFO] Servicio Ollama detenido. Levantando servidor local...")

@@ -47,11 +47,11 @@ class PanelModoChat(QWidget):
         layout_principal.setSpacing(6)
 
         # 1. Gestion de Archivo Tabular y Columnas
-        grupo_archivo = QGroupBox("Gestión de Archivo Tabular y Columnas", self)
+        grupo_archivo = QGroupBox("Gestión de Archivo Tabular y Columnas (Modo IA)", self)
         layout_g = QVBoxLayout(grupo_archivo)
         layout_g.setContentsMargins(8, 8, 8, 8); layout_g.setSpacing(4)
 
-        self.lbl_guia_archivo = QLabel("[INFO] 1. Archivo: Seleccione el archivo CSV o Excel a clasificar.", self)
+        self.lbl_guia_archivo = QLabel("[INFO] 1. Archivo: Seleccione el archivo CSV o Excel a evaluar con Modo IA.", self)
         self.lbl_guia_archivo.setStyleSheet("color: #58615B; font-size: 11px;")
         layout_g.addWidget(self.lbl_guia_archivo)
 

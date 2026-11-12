@@ -454,3 +454,811 @@ Por favor confirma unicamente que has comprendido las instrucciones para comenza
 [FILA 10]: negocio: Alma s Cleaning Services | owner: Dunia Sangil
 [FILA 11]: negocio: Angelica s Cleaning Services | owner: Tyquan Gibbs
 [FILA 12]: negocio: Ascension Restoration-RNVTN | owner: Dustin Sweitzer" role="button" aria-controls="qI7rap3wM-fewN4Pjcy-yA4_igw8kn_11" aria-expanded="false" aria-disabled="false" jsaction="click:&amp;ykBPtc_gk|ZUljYd;keydown:&amp;ykBPtc_gk|aXD3Gb" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQx-0SeggIAggBCBQQHQ" data-hveid="CAIIAQgUEB0" tabindex="0"><div jsuid="ykBPtc_gp" class="YHsVn" data-sfc-cp="" jsaction="mouseenter:&amp;ykBPtc_gp|ZUljYd;mouseleave:&amp;ykBPtc_gp|aXD3Gb;focusin:&amp;ykBPtc_gp|Mrjwi;focusout:&amp;ykBPtc_gp|CXhG2e;" jscontroller="nqTR2b#MCVA2" data-sfc-root="c" data-wiz-uids="ykBPtc_gq,ykBPtc_gr,ykBPtc_gs" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQkK0UeggIAggBCBQQHg" data-complete="true"><div class="wVj4w"><svg class="EQxvpc e5EsHb wffbD" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true" jsaction="" jscontroller="a9tHOc#UhAFSb" data-sfc-root="c" jsuid="ykBPtc_gt" data-complete="true"><path d="M480-160q-33,0-56.5-23.5T400-240t23.5-56.5T480-320t56.5,23.5T560-240t-23.5,56.5T480-160Zm0-240q-33,0-56.5-23.5T400-480t23.5-56.5T480-560t56.5,23.5T560-480t-23.5,56.5T480-400Zm0-240q-33,0-56.5-23.5T400-720t23.5-56.5T480-800t56.5,23.5T560-720t-23.5,56.5T480-640Z"></path><!--TgQPHd|||[]--></svg></div><div jsuid="ykBPtc_gq" data-xid="" class="tHaXU eksFZe" tabindex="-1" aria-hidden="true" jsaction="mouseenter:&amp;ykBPtc_gp|wndyDd;mouseleave:&amp;ykBPtc_gp|yrMC6" data-wiz-attrbind="class=ykBPtc_gp/URFwmf" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQlK0UeggIAggBCBQQHw"><div jsuid="ykBPtc_gr" class="LGKDTe BQmez" aria-hidden="true" data-wiz-attrbind="class=ykBPtc_gp/mEaOX"><div jsuid="ykBPtc_gs" class="Xg7lfd"></div><div class="xYn6Gf"><div>Más</div></div></div></div><!--TgQPHdykBPtc_gi/BXv9hf;ykBPtc_gi/sZHyre|||[[3,1,null,null,1],{&quot;u&quot;:0},{&quot;s&quot;:false,&quot;i&quot;:&quot;ykBPtc_gi/sZHyre&quot;},{&quot;s&quot;:false,&quot;i&quot;:&quot;ykBPtc_gi/BXv9hf&quot;},true,{&quot;u&quot;:0},{&quot;u&quot;:0},{&quot;u&quot;:0},false]--></div></div><div class="PpHF4 uKznC" id="qI7rap3wM-fewN4Pjcy-yA4_igw8kn_11" jsuid="ykBPtc_gn" jsname="GOskcf" tabindex="-1" jsaction="focusin:&amp;ykBPtc_gk|Mrjwi;keydown:&amp;ykBPtc_gk|CXhG2e" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQy-0SeggIAggBCBQQIA"><div jsuid="ykBPtc_go" class="nSM9Ge" role="list"><div class="" jsuid="ykBPtc_gu" id="snui-atr-qI7rap3wM-fewN4Pjcy-yA4_igw8kn_12" jsaction="" jscontroller="W8lZxc#mkmCMd" data-sfc-root="c" data-complete="true" data-sfc-inited="2"><div jsuid="ykBPtc_gv" class="g2BWvb" role="listitem" data-sfc-cp="" jsaction="rcuQ6b:&amp;ykBPtc_gv|npT2md" jscontroller="OZcXHe#lxx4pd" data-sfc-root="c" data-complete="true" data-sfc-inited="2"><div class="LJ2Gr" data-sfc-cp="" jsaction="rcuQ6b:&amp;ykBPtc_gw|npT2md" jscontroller="bp6ZCb#jJLX2e" data-sfc-root="c" jsuid="ykBPtc_gw" data-wiz-uids="ykBPtc_gx" data-complete="true" data-sfc-inited="2"><button jsuid="ykBPtc_gx" data-value="atr" class="Gy0ZYd" tabindex="-1" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQ980PeggIAggBCBQQIQ"><div class="GZsCob"><span class="UFxVWc"><svg class="EQxvpc y8jBt m4l7Cf" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true" jsaction="" jscontroller="MJWYld#IFACWe" data-sfc-root="c" jsuid="ykBPtc_gy" data-complete="true"><path d="M508.5-291.5Q520-303 520-320V-480q0-17-11.5-28.5T480-520t-28.5,11.5T440-480v160q0,17 11.5,28.5T480-280t28.5-11.5Zm0-320Q520-623 520-640t-11.5-28.5T480-680t-28.5,11.5T440-640t11.5,28.5T480-600t28.5-11.5ZM480-80q-83,0-156-31.5T197-197T111.5-324T80-480t31.5-156T197-763t127-85.5T480-880t156,31.5T763-763t85.5,127T880-480T848.5-324T763-197T636-111.5T480-80Zm0-80q134,0 227-93t93-227T707-707T480-800T253-707T160-480t93,227t227,93Z"></path><!--TgQPHd|||[]--></svg></span><span class="kavou">Acerca de esta respuesta</span></div></button><!--TgQPHd|||[[&quot;Acerca de esta respuesta&quot;,&quot;atr&quot;,[null,null,null,null,null,null,null,null,null,null,null,null,[255735,null,0]],1],&quot;\u0026ykBPtc_gv:Rgg6zf&quot;,&quot;\u0026ykBPtc_gu:ZSaBld&quot;,{&quot;u&quot;:0}]--></div><!--TgQPHd|||[]--></div><!--TgQPHd|||[[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,null,null,null,null,&quot;CgASLwojCgIIcQodCF1iGQoMY291bnRyeV9uYW1lEglOaWNhcmFndWESBAoCCGUaAggAGgAiAhABSAFYAGgA&quot;],null,null,null,null,null,null,null,null,null,[null,1,null,null,null,null,null,null,3,[null,null,null,&quot;sge_&quot;,null,1,null,null,null,null,null,5297367,&quot;AIM&quot;,[null,null,[null,2],null,null,null,null,[[&quot;feedback_entrypoint&quot;,&quot;sge_msaf_action&quot;]],null,null,null,null,null,null,null,null,null,null,null,null,&quot;MAGI_FEATURE&quot;,[&quot;&quot;,&quot;BLUR&quot;,0,0]],null,null,null,null,null,114,null,null,null,1,null,null,null,1,1,null,1]]],true]--></div></div></div><!--TgQPHdykBPtc_gi/qrlxb;ykBPtc_gi/MFHg2;ykBPtc_gi/se71pc;ykBPtc_gi/gFKMyd;ykBPtc_bg/Qok6p|||[[[null,null,null,null,null,null,null,null,null,null,null,null,[308935,null,0]],null,&quot;Más opciones de respuesta para la consulta: [FILA 1]: negocio: SK Painting \u0026 Wallcovering | owner: Shawnta Clayton\n[FILA 2]: negocio: A-1 American Plumbing | Heating and HVAC | owner: Paul Lawrence\n[FILA 3]: negocio: RC&#39;S Lawn Service | owner: Kenneth Craig\n[FILA 4]: negocio: Ez Pizzi Service and Repair | owner: Damien Capizzi\n[FILA 5]: negocio: Mike&#39;s Tri-County Locksmiths | owner: Margaret Sherlin\n[FILA 6]: negocio: Kenzie s Landscaping | owner: Kenzie Smith\n[FILA 7]: negocio: Vitoria Cristian | owner: Sarahi Varga\n[FILA 8]: negocio: O.C. Locksmith - Phil \u0026 Dave | owner: Eric Moore\n[FILA 9]: negocio: Finley s Tree \u0026 Landcare | owner: Abraham Torres\n[FILA 10]: negocio: Alma s Cleaning Services | owner: Dunia Sangil\n[FILA 11]: negocio: Angelica s Cleaning Services | owner: Tyquan Gibbs\n[FILA 12]: negocio: Ascension Restoration-RNVTN | owner: Dustin Sweitzer&quot;,null,[null,null,null,null,null,null,null,null,null,null,null,null,[308939,null,0]]],{&quot;s&quot;:&quot;top-left&quot;,&quot;i&quot;:&quot;ykBPtc_gi/MFHg2&quot;},{&quot;u&quot;:0},{&quot;s&quot;:&quot;uKznC&quot;,&quot;i&quot;:&quot;ykBPtc_gi/qrlxb&quot;},false,{&quot;s&quot;:false,&quot;i&quot;:&quot;ykBPtc_gi/se71pc&quot;},{&quot;u&quot;:0},&quot;\u0026ykBPtc_gi:vSwXaf&quot;,&quot;\u0026ykBPtc_gi:A9tW8d&quot;,{&quot;s&quot;:true,&quot;i&quot;:&quot;ykBPtc_bg/Qok6p&quot;},&quot;\u0026ykBPtc_gi:PSl28c&quot;,{&quot;u&quot;:0},{&quot;s&quot;:{&quot;u&quot;:0},&quot;i&quot;:&quot;ykBPtc_gi/gFKMyd&quot;},true,false,{&quot;u&quot;:0},{&quot;u&quot;:0}]--></div><!--qkimaf ykBPtc_gi/HugV6--><!--cqw1tb ykBPtc_gi/HugV6--><!--qkimaf ykBPtc_gi/WyzG9e--><!--cqw1tb ykBPtc_gi/WyzG9e--><!--TgQPHd|ykBPtc_gi/qrlxb;ykBPtc_gi/MFHg2;ykBPtc_gi/se71pc;ykBPtc_gi/gFKMyd;ykBPtc_gi/BXv9hf;ykBPtc_gi/sZHyre||[true,{&quot;s&quot;:true,&quot;i&quot;:&quot;ykBPtc_bg/Qok6p&quot;},{&quot;s&quot;:&quot;m47rar6vGMCrwbkPv5i76QI&quot;,&quot;i&quot;:&quot;ykBPtc_bg/ns9scf&quot;},1,{&quot;s&quot;:null,&quot;i&quot;:&quot;ykBPtc_bg/DbG24d&quot;}]--></div><!--TgQPHd|||[{&quot;s&quot;:&quot;m47rar6vGMCrwbkPv5i76QI&quot;,&quot;i&quot;:&quot;ykBPtc_bg/ns9scf&quot;},{&quot;s&quot;:true,&quot;i&quot;:&quot;ykBPtc_bg/Qok6p&quot;},{&quot;s&quot;:null,&quot;i&quot;:&quot;ykBPtc_bg/DbG24d&quot;}]--></div><div class="FYF80"></div></div><!--qkimaf ykBPtc_bg/WyzG9e--><div class="HvurC"><!--qkimaf ykBPtc_bg/HugV6--><div class="jZq6C" style="display: none;"><div role="region" aria-label="Comentarios" tabindex="-1" jsmodel="Iyfm0" jsaction="blQGUc:.CLIENT;rz9sFb:.CLIENT" class="CxFouc xHpbWd" style="display: none;" data-ved="0CAAQoIYQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="0" id="fbproxy12"><div class="gdzCUc" data-ved="0CAEQ-48QahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="1"><h1 class="UE1JZb"></h1><div class="hV2hkc"><div role="button" class="ZH7y0b" aria-label="Renuncia de responsabilidad para la encuesta de comentarios" tabindex="0" data-ved="0CAIQnJoRahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="2"><svg aria-hidden="true" class="aoEoZc" fill="currentColor" height="22px" viewBox="0 -960 960 960" width="22px"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"></path></svg></div><div role="button" class="ZH7y0b" aria-expanded="false" aria-label="Encuesta de comentarios sobre qué salió mal" tabindex="0" aria-hidden="false" data-ved="0CAMQnZoRahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="3"><svg aria-hidden="true" class="r5pthc" fill="currentColor" height="22px" viewBox="0 -960 960 960" width="22px"><path d="M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z"></path></svg></div><div role="button" aria-label="Cerrar la encuesta de comentarios" class="ZH7y0b FChyof" tabindex="-1" aria-hidden="true" data-ved="0CAQQm5oRahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="4"><svg aria-hidden="true" class="VVy4le" fill="currentColor" height="22px" viewBox="0 -960 960 960" width="22px"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"></path></svg></div></div></div><div class="xREU6" data-ved="0CAUQ_I8QahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="5"><div class="nYUwKc"><div class="EXUp" style="display: none;"><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAYQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="6"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Ahorró tiempo</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAcQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="7"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Borrar</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAgQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="8"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Útil</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAkQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="9"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Integral</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAoQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="10"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Otro</span></div></button></div></div><div class="EXUp" style="display: none;"><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAsQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="11"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Incorrecto</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CAwQ3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="12"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Inapropiado</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CA0Q3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="13"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">No funciona</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CA4Q3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="14"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Poco útil</span></div></button></div><div class="PpqwWd"><button type="button" class="LVpNJc" aria-pressed="false" data-ved="0CA8Q3tUQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="15"><div class="I03I8e"><svg aria-hidden="true" class="RA5WB" fill="currentColor" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"></path></svg><span class="JDa3vd">Otro</span></div></button></div></div><textarea class="e3RQ5d" role="textbox" maxlength="1500" aria-label="Comparte algunos detalles…" placeholder="Comparte algunos detalles…" style=""></textarea><div class="Q2Hrgb">Se incluirá una copia de este chat.</div><div class="WrowQ" style="display: none;"><div class="YUewc"><span>Se incluirá una copia de este chat y del contenido que compartiste.</span></div><div class="ergAUb"></div></div><div class="xnHNHc" style="display: none;"><div class="GerDJd"><div class="LhvE7c">Se incluirá una copia de este chat y del contenido que compartiste.</div><div role="button" class="Q9boO" tabindex="0" aria-expanded="false" aria-label="Mostrar detalles del contenido compartido"><svg aria-hidden="true" class="Y9n7Fd" fill="currentColor" height="18px" viewBox="0 -960 960 960" width="18px"><path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"></path></svg></div></div><div class="CXPIl" style="display: none;"><div class="ergAUb"></div></div></div><div class="" data-ved="0CBAQo4gQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" data-hveid="16"><button class="SAvKK qmJOdc Lgh8N ivnHYc" tabindex="-1" data-ved="0CBEQmZcQahgKEwiQ-PeMje-XAxUAAAAAHQAAAAAQhAE" disabled="true" aria-disabled="true">Enviar</button></div></div></div></div><div class="Eonz0" style="display: none;"><div class="mVQBZe">Gracias por hacérnoslo saber</div></div><div class="XpWxo" style="display: none;"><div class="VT1SYd"><div class="QRnEfb">Google puede usar los datos de la cuenta y del sistema para comprender tus comentarios y mejorar nuestros servicios, de conformidad con nuestra <a href="https://policies.google.com/privacy" target="_blank" class="c0nryc"><span>Política de Privacidad</span></a> y las <a href="https://policies.google.com/terms" target="_blank" class="c0nryc"><span>Condiciones del Servicio</span></a>. En caso de problemas legales, <a href="https://support.google.com/legal/answer/3110420" target="_blank" class="c0nryc"><span>envía una solicitud de eliminación por motivos legales</span></a>.</div></div></div></div><!--cqw1tb ykBPtc_bg/HugV6--></div><!--cqw1tb ykBPtc_bg/WyzG9e--></div><div data-zzy="1"></div><!--TgQPHd|ykBPtc_bg/ns9scf;ykBPtc_bg/DbG24d;ykBPtc_bg/Qok6p||[[1,0,1,null,0,0,1,&quot;m47rar6vGMCrwbkPv5i76QI&quot;,null,null,0,0,0,0,0,1,&quot;[FILA 1]: negocio: SK Painting \u0026 Wallcovering | owner: Shawnta Clayton\n[FILA 2]: negocio: A-1 American Plumbing | Heating and HVAC | owner: Paul Lawrence\n[FILA 3]: negocio: RC&#39;S Lawn Service | owner: Kenneth Craig\n[FILA 4]: negocio: Ez Pizzi Service and Repair | owner: Damien Capizzi\n[FILA 5]: negocio: Mike&#39;s Tri-County Locksmiths | owner: Margaret Sherlin\n[FILA 6]: negocio: Kenzie s Landscaping | owner: Kenzie Smith\n[FILA 7]: negocio: Vitoria Cristian | owner: Sarahi Varga\n[FILA 8]: negocio: O.C. Locksmith - Phil \u0026 Dave | owner: Eric Moore\n[FILA 9]: negocio: Finley s Tree \u0026 Landcare | owner: Abraham Torres\n[FILA 10]: negocio: Alma s Cleaning Services | owner: Dunia Sangil\n[FILA 11]: negocio: Angelica s Cleaning Services | owner: Tyquan Gibbs\n[FILA 12]: negocio: Ascension Restoration-RNVTN | owner: Dustin Sweitzer&quot;,1,0,null,0,0,0,[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[null,null,null,null,null,null,null,null,null,null,null,null,&quot;CgASLwojCgIIcQodCF1iGQoMY291bnRyeV9uYW1lEglOaWNhcmFndWESBAoCCGUaAggAGgAiAhABSAFYAGgA&quot;],null,null,null,null,null,null,null,null,null,[null,1,null,null,null,null,null,null,3,[null,null,null,&quot;sge_&quot;,null,1,null,null,null,null,null,5297367,&quot;AIM&quot;,[null,null,[null,2],null,null,null,null,[[&quot;feedback_entrypoint&quot;,&quot;sge_msaf_action&quot;]],null,null,null,null,null,null,null,null,null,null,null,null,&quot;MAGI_FEATURE&quot;,[&quot;&quot;,&quot;BLUR&quot;,0,0]],null,null,null,null,null,114,null,null,null,1,null,null,null,1,1,null,1]]],1,null,[null,&quot;[11,\&quot;Af0tPj0MC8s_q9QnXvcTyz85e4hqqRX4vwoZR4aFFPi_\&quot;]&quot;,0],0,0,null,null,null,&quot;[FILA 1]: negocio: SK Painting \u0026 Wallcovering | owner: Shawnta Clayton\n[FILA 2]: negocio: A-1 American Plumbing | Heating and HVAC | owner: Paul Lawrence\n[FILA 3]: negocio: RC&#39;S Lawn Service | owner: Kenneth Craig\n[FILA 4]: negocio: Ez Pizzi Service and Repair | owner: Damien Capizzi\n[FILA 5]: negocio: Mike&#39;s Tri-County Locksmiths | owner: Margaret Sherlin\n[FILA 6]: negocio: Kenzie s Landscaping | owner: Kenzie Smith\n[FILA 7]: negocio: Vitoria Cristian | owner: Sarahi Varga\n[FILA 8]: negocio: O.C. Locksmith - Phil \u0026 Dave | owner: Eric Moore\n[FILA 9]: negocio: Finley s Tree \u0026 Landcare | owner: Abraham Torres\n[FILA 10]: negocio: Alma s Cleaning Services | owner: Dunia Sangil\n[FILA 11]: negocio: Angelica s Cleaning Services | owner: Tyquan Gibbs\n[FILA 12]: negocio: Ascension Restoration-RNVTN | owner: Dustin Sweitzer&quot;]]--></div></div><div class="alk4p q4PqPb"><div class="IWPZAd"></div><div class="vlFi2e"></div><div class="oNvZFf"></div></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_30" data-complete="true"><div style="display: contents" data-container-id="69"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_32" data-complete="true"><div style="display: contents" data-container-id="70"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_35" data-complete="true"><div style="display: contents" data-container-id="71"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_39" data-complete="true"><div style="display: contents" data-container-id="72"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_3g" data-complete="true"><div style="display: contents" data-container-id="73"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_3h" data-complete="true"><div style="display: contents" data-container-id="74"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><div class="SGF5Lb" data-sfc-cp="" jsaction="" jscontroller="mk5ZW#TASLyc" data-sfc-root="c" jsuid="ykBPtc_3l" data-complete="true"><div style="display: contents" data-container-id="75"></div><div style="display: none;"></div><!--TgQPHd|||[]--></div><!--TgQPHd|||[]--></div><div class="" jsaction="" jscontroller="zp3Dsd#fP0RJ" data-sfc-root="c" jsuid="ykBPtc_3o" data-complete="true"><div jsuid="ykBPtc_3p" data-container-id="rhs-col" data-ignore-copy="" data-inline-header="true" class="ofHStc qmNpEc" jsaction="aimRenderComplete:&amp;ykBPtc_3p|ZUljYd;rcuQ6b:&amp;ykBPtc_3p|npT2md" jscontroller="Oh6VO#OPWA4e" data-sfc-root="c" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQ3aYQeggIAggBCAcQAw" data-sfc-inited="2" data-empty="true"><div class="oRipZb" style=""><div style="display: contents" data-container-id="78"><div data-xid="a2jnbe" class="hjPQm J8zDPb" jsaction="aimRenderStarted:&amp;ykBPtc_7a|ZUljYd;rcuQ6b:&amp;ykBPtc_7a|npT2md" jscontroller="FoXyx#QePhYb" data-sfc-root="c" jsuid="ykBPtc_7a" data-wiz-uids="ykBPtc_7n" data-complete="true" data-processed="true" data-sfc-inited="2"><div class="srOP7c" jsuid="ykBPtc_7n" role="button" jsaction="click:&amp;ykBPtc_7a|h5M12e" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQ5PwSeggIAggBCBAQAA"><h1 class="zeIqo">Compartido</h1><div class="iZvXTd">0 archivos</div><div class="HxSmGd"><div class="xwTeDd"><!--qkimaf ykBPtc_7a/HugV6--><!--cqw1tb ykBPtc_7a/HugV6--></div><div class="lg2JEe" role="img" aria-label="Expandir"><svg class="EQxvpc JozKWc wffbD" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true" jsaction="" jscontroller="YqR2tf#WHhl3c" data-sfc-root="c" jsuid="ykBPtc_82" data-complete="true"><path d="M480-344L240-584l56-56L480-456L664-640l56,56L480-344Z"></path><!--TgQPHd|||[]--></svg></div></div></div><!--qkimaf ykBPtc_7a/WyzG9e--><!--cqw1tb ykBPtc_7a/WyzG9e--><!--TgQPHd|||[[]]--></div><div class="IQTBxd XsQ9Ee notranslate" data-animation-skip="true" jsuid="ykBPtc_8d" dir="ltr" data-xid="aim-aside-initial-corroboration-container" jsaction="aimThreadsViewStateChange:&amp;ykBPtc_8d|ZUljYd;rcuQ6b:&amp;ykBPtc_8d|npT2md" jscontroller="fMe7zf#v8S2Wb" data-sfc-root="c" data-wiz-uids="ykBPtc_8r,ykBPtc_8s,ykBPtc_8t,ykBPtc_8u,ykBPtc_8v" data-complete="true" data-processed="true" data-sfc-inited="2"><div jsuid="ykBPtc_8v" class="eFSEae XsQ9Ee" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQnc4VeggIAggBCBIQAA"><div class="lE72Gc XsQ9Ee"></div><ul jsuid="ykBPtc_8r" class="hJYS7c" jsaction="animationend:&amp;ykBPtc_8d|aXD3Gb;animationcancel:&amp;ykBPtc_8d|Mrjwi"></ul><div class="lDiRL ztgvQc"><div class="HPRIw pHy5Ad"><div class="bPlg5e" aria-hidden="true"></div><div jsuid="ykBPtc_8s" role="button" tabindex="0" class="N4Jf1d" aria-expanded="false" aria-label="Mostrar todos los resultados relacionados" jsaction="click:&amp;ykBPtc_8d|CXhG2e;mouseenter:&amp;ykBPtc_8d|wndyDd;focus:&amp;ykBPtc_8d|yrMC6"><span jsuid="ykBPtc_8t" class="ntMZ4c" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQt6QPeggIAggBCBIQAQ">Mostrar todo</span><span jsuid="ykBPtc_8u" class="ntMZ4c" hidden="true" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQv8sUeggIAggBCBIQAg">Mostrar menos</span></div></div></div></div><!--TgQPHd|||[[0,0,null,null,3]]--></div></div></div><!--TgQPHd|||[[0,0]]--></div><!--TgQPHd|||[]--></div><div jsuid="ykBPtc_24" data-xid="aQR2uf" jsaction="aimRestoredThreadVisible:&amp;ykBPtc_20|ZUljYd;requestToggleBottomSheet:&amp;ykBPtc_20|aXD3Gb"></div><div class="jR6h WaKIwf Q1xFeb" data-skip-highlighting="" jsuid="ykBPtc_3t" style="display: none;" tabindex="-1" role="dialog" aria-label="Vínculos relacionados" data-animation-skip="true" jsaction="mouseenter:&amp;ykBPtc_3t|ZUljYd;mouseleave:&amp;ykBPtc_3t|aXD3Gb;transitionend:&amp;ykBPtc_3t|Mrjwi;rcuQ6b:&amp;ykBPtc_3t|npT2md" jscontroller="bcx3gf#GlmJPe" data-sfc-root="c" data-wiz-uids="ykBPtc_3v" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQhO4VeggIAggBCAcQBA" data-hveid="CAIIAQgHEAQ" data-complete="true" data-sfc-inited="2"><div class="pOA0Z bfu9Ge"><!--qkimaf ykBPtc_3t/HugV6--><!--cqw1tb ykBPtc_3t/HugV6--><div class="hjPeRe" jsuid="ykBPtc_3v"><!--qkimaf ykBPtc_3t/WyzG9e--><!--cqw1tb ykBPtc_3t/WyzG9e--></div></div><!--TgQPHd|||[{&quot;u&quot;:0}]--></div><div jsuid="ykBPtc_3w" jsname="vbNNGf" class="VQHkre Xs6Nfe" style="display: none;" jsaction="mouseenter:&amp;ykBPtc_3w|ZUljYd;mouseleave:&amp;ykBPtc_3w|aXD3Gb;rcuQ6b:&amp;ykBPtc_3w|npT2md" jscontroller="hypKBb#c0e67c" data-sfc-root="c" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQ_vwSeggIAggBCAcQBQ" data-hveid="CAIIAQgHEAU" data-complete="true" data-sfc-inited="2"><!--qkimaf ykBPtc_3w/HugV6--><!--cqw1tb ykBPtc_3w/HugV6--><!--TgQPHd|||[]--></div><div jsaction="rcuQ6b:&amp;ykBPtc_3x|npT2md" jscontroller="CAwPlc#Hx4Oqd" data-sfc-root="c" jsuid="ykBPtc_3x" data-wiz-uids="ykBPtc_3y,ykBPtc_3z" data-complete="true" data-sfc-inited="2"><div jsuid="ykBPtc_3y" class="qacuz Haco6c RVppL" role="alert" aria-live="assertive" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQ-LISeggIAggBCAcQBg"><div class="YsAfEc"><span class="lObrHb RVppL"><svg class="EQxvpc m4l7Cf" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true" jsaction="" jscontroller="vnyExf#xm5jF" data-sfc-root="c" jsuid="ykBPtc_41" data-complete="true"><path d="M382-240L154-468l57-57L382-354L749-721l57,57L382-240Z"></path><!--TgQPHd|||[]--></svg></span><span tabindex="-1" class="zg2IJb"></span></div><button jsuid="ykBPtc_3z" type="button" class="jqVAid RVppL" jsaction="click:&amp;ykBPtc_3x|ZUljYd" data-ved="2ahUKEwid5L-Mje-XAxVnL9AFHQ2mD-kQm_ASeggIAggBCAcQBw" data-hveid="CAIIAQgHEAc"></button><button class="oZOOsc RVppL" aria-label="Cerrar" jsaction="click:&amp;ykBPtc_3x|Mrjwi"><svg class="EQxvpc A9rHGd" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" aria-hidden="true" jsaction="" jscontroller="zOvrRc#mVUp1c" data-sfc-root="c" jsuid="ykBPtc_46" data-complete="true"><path d="M256-200l-56-56L424-480L200-704l56-56L480-536L704-760l56,56L536-480L760-256l-56,56L480-424L256-200Z"></path><!--TgQPHd|||[]--></svg></button></div><!--TgQPHdykBPtc_20/YOIIaf;ykBPtc_20/VWapad|||[{&quot;s&quot;:false,&quot;i&quot;:&quot;ykBPtc_20/YOIIaf&quot;},{&quot;s&quot;:null,&quot;i&quot;:&quot;ykBPtc_20/VWapad&quot;},156,{&quot;s&quot;:null,&quot;i&quot;:&quot;ykBPtc_20/C5DOxd&quot;},[&quot;AimExportActionToastLink&quot;,309275],&quot;\u0026ykBPtc_20:bREfu&quot;,false]--></div><!--TgQPHd|ykBPtc_20/YOIIaf;ykBPtc_20/LL5gb;ykBPtc_20/We76zc;ykBPtc_20/C5DOxd;ykBPtc_20/VWapad||[[null,0,null,0,null,0,[&quot;[FILA 1]: negocio: SK Painting \u0026 Wallcovering | owner: Shawnta Clayton\n[FILA 2]: negocio: A-1 American Plumbing | Heating and HVAC | owner: Paul Lawrence\n[FILA 3]: negocio: RC&#39;S Lawn Service | owner: Kenneth Craig\n[FILA 4]: negocio: Ez Pizzi Service and Repair | owner: Damien Capizzi\n[FILA 5]: negocio: Mike&#39;s Tri-County Locksmiths | owner: Margaret Sherlin\n[FILA 6]: negocio: Kenzie s Landscaping | owner: Kenzie Smith\n[FILA 7]: negocio: Vitoria Cristian | owner: Sarahi Varga\n[FILA 8]: negocio: O.C. Locksmith - Phil \u0026 Dave | owner: Eric Moore\n[FILA 9]: negocio: Finley s Tree \u0026 Landcare | owner: Abraham Torres\n[FILA 10]: negocio: Alma s Cleaning Services | owner: Dunia Sangil\n[FILA 11]: negocio: Angelica s Cleaning Services | owner: Tyquan Gibbs\n[FILA 12]: negocio: Ascension Restoration-RNVTN | owner: Dustin Sweitzer&quot;],0,0,[&quot;[FILA 1]: negocio: SK Painting \u0026 Wallcovering | owner: Shawnta Clayton\n[FILA 2]: negocio: A-1 American Plumbing | Heating and HVAC | owner: Paul Lawrence\n[FILA 3]: negocio: RC&#39;S Lawn Service | owner: Kenneth Craig\n[FILA 4]: negocio: Ez Pizzi Service and Repair | owner: Damien Capizzi\n[FILA 5]: negocio: Mike&#39;s Tri-County Locksmiths | owner: Margaret Sherlin\n[FILA 6]: negocio: Kenzie s Landscaping | owner: Kenzie Smith\n[FILA 7]: negocio: Vitoria Cristian | owner: Sarahi Varga\n[FILA 8]: negocio: O.C. Locksmith - Phil \u0026 Dave | owner: Eric Moore\n[FILA 9]: negocio: Finley s Tree \u0026 Landcare | owner: Abraham Torres\n[FILA 10]: negocio: Alma s Cleaning Services | owner: Dunia Sangil\n[FILA 11]: negocio: Angelica s Cleaning Services | owner: Tyquan Gibbs\n[FILA 12]: negocio: Ascension Restoration-RNVTN | owner: Dustin Sweitzer&quot;],0]]--></div><!--TgQPHd|||[]--></div><!--TgQPHd|||[]--></div><div class="sNRHic" jsaction="" jscontroller="Gtg4Ge#UWxVJd" data-sfc-root="c" jsuid="ykBPtc_h8" data-complete="true"><!--TgQPHd|||[]--></div></div></div></div><script nonce="">window.fetchAsyncContentContainerReady && window.fetchAsyncContentContainerReady();</script><!--qkimaf kF12dc_1/lC1IR--><!--cqw1tb kF12dc_1/lC1IR--></div><!--TgQPHdkF12dc_0/Fng78d;kF12dc_1/NcUkwf;kF12dc_0/Ws7C6;kF12dc_0/sXnf9|||[{&quot;s&quot;:true,&quot;i&quot;:&quot;kF12dc_0/Ws7C6&quot;},{&quot;s&quot;:&quot;&quot;,&quot;i&quot;:&quot;kF12dc_0/Fng78d&quot;},{&quot;s&quot;:{&quot;u&quot;:0},&quot;i&quot;:&quot;kF12dc_0/sXnf9&quot;},{&quot;s&quot;:&quot;Uphzyf&quot;,&quot;i&quot;:&quot;kF12dc_1/NcUkwf&quot;}]--></div>
+
+---
+
+# Anexo: Analisis y Diseno - Reprocesos y Reanudacion Basada en Metadatos de Estado
+
+Fecha: 10 de Noviembre de 2026
+Contexto: PROCESOS_IA - Reanudacion granular y controlada para procesos tabulares (IA General, DeepSeek, Gemini, Lens) y Carpetas de Imagenes.
+
+## 1. Problema de la Evaluacion Ciega
+Actualmente, si se evalua el progreso unicamente por la cantidad de filas escritas o si el nombre del archivo de imagen existe en el CSV previo:
+- Filas o imagenes fallidas quedan desatendidas: Si de 200 filas escritas (o 200 fotos), 15 fallaron (por alucinacion del LLM, timeout, desconexion o error HTTP), saltar a la 201 ignora esas 15 y las da por completadas sin reintento.
+- Sin trazabilidad del motivo de fallo: El sistema no distingue entre un registro exitoso, un error de red, una omision del modelo o uno pendiente.
+- Riesgo ante cancelacion abrupta: El corte a mitad de lote deja datos en un estado inconsistente.
+
+## 2. Modelo Universal de Metadatos de Estado (CSVs e Imagenes)
+### 2.1 Columnas Estandarizadas de Metadatos
+Cada registro (fila de CSV o imagen en carpeta) incorpora:
+- _estado_ia: EXITOSO, FALLIDO, OMITIDO, PENDIENTE
+- _motivo_estado: Detalle conciso del estado (ej. [OK] Evaluado, [ERROR] Timeout de respuesta).
+- _fecha_procesamiento: Marca temporal ISO de cuando se proceso la fila o imagen.
+
+### 2.2 Deteccion Inteligente de Estado
+Al cargar un archivo CSV o seleccionar una carpeta de imagenes:
+1. Verificacion de Metadatos Previos:
+   - Si NO existen columnas de metadatos: Archivo nuevo -> Corre desde cero con estado PENDIENTE.
+   - Si SI existen (o se localiza respaldo en cancelados/ o en_proceso/):
+     - El sistema audita y clasifica: Total N, Exitosos E, Fallidos/Omitidos F, Pendientes P.
+2. Presentacion de Decision al Usuario mediante Dialogo Nativo Flotante.
+
+## 3. Interfaz de Usuario y Proteccion de Botones (Dialogo Flotante Nativo)
+### 3.1 Ventana Flotante Modal Nativa (QDialog estilizado)
+- Encabezado con Diagnostico Claro:
+  [INFO] Se detecto avance previo para este archivo / carpeta:
+  Total registros: N | Exitosos: E | Fallidos / Omitidos: F | Pendientes: P
+- Botones de Accion Clara:
+  1. [Reprocesar Pendientes y Fallidos] (Recomendado cuando F > 0)
+  2. [Solo Procesar Pendientes] (Aparece si P > 0)
+  3. [Reiniciar Todo desde Cero]
+  4. [Cancelar]
+
+### 3.2 Proteccion Antirebote (ProtectorBotones)
+- Todos los botones del dialogo se conectan a traves de ProtectorBotones.vincular(...):
+  - Bloqueo inmediato tras el primer clic (tiempo_bloqueo_ms = 600).
+  - Previene doble ejecucion accidental o spam de clics en el arranque de hilos.
+  - Notificacion visual en consola/log de la accion seleccionada por el usuario.
+
+## 4. Arquitectura Modular
+- gestor_metadatos_estado.py: Nucleo puro de analisis y clasificacion O(1).
+- dialogo_reanudacion_estado.py: Dialogo modal nativo estilizado con ProtectorBotones.
+- Consumidores: procesador_modo_ia.py, servicio_procesamiento_web.py, procesador_carpeta_imagenes.py.
+
+---
+
+# Seccion Detallada: Especificacion Tecnica de Metadatos, Algoritmo y Puntos de Impacto
+
+## 2.1 Detalle de Estados de Metadatos
+- `_estado_ia`:
+  - `EXITOSO`: El LLM respondio y los datos fueron validados y mapeados correctamente.
+  - `FALLIDO`: Hubo error de conexion, timeout, error HTTP o excepcion no recuperable.
+  - `OMITIDO`: El LLM envio respuesta pero ignoro o devolvio vacio este registro del lote.
+  - `PENDIENTE`: Registro aun no enviado al modelo o cancelado antes de su turno.
+- `_motivo_estado`: Detalle conciso del estado (ej. [OK] Evaluado, [ERROR] Timeout de respuesta, [ALERTA] No devuelto por LLM).
+- `_fecha_procesamiento`: Marca temporal ISO de cuando se proceso la fila.
+
+## 2.2 Algoritmo de Deteccion y Decision
+Al cargar un archivo:
+1. **Analisis del Archivo de Entrada o Respaldo**:
+   - Se verifica si el archivo ya contiene las columnas de metadatos (`_estado_ia`).
+   - Si **NO existen**: Es un archivo nuevo. Se inicializa el proceso completo desde la fila 0 (o lote 1) agregando las columnas con estado `PENDIENTE`.
+   - Si **SI existen** (o si se localiza un respaldo en `cancelados/` o `en_proceso/`):
+     - Se clasifica el universo de filas:
+       - Total de filas: `N`
+       - Exitosas: `E`
+       - Fallidas / Omitidas: `F`
+       - Pendientes: `P`
+2. **Presentacion al Usuario**:
+   Se muestra un dialogo claro con el diagnostico real del archivo:
+   - "Se encontraron N filas: E exitosas, F fallidas/omitidas y P pendientes."
+   - Opciones:
+     - **[Reprocesar Pendientes y Fallidas]**: Conserva las `E` exitosas y vuelve a enviar solo las filas `FALLIDO`, `OMITIDO` y `PENDIENTE`.
+     - **[Solo Procesar Pendientes]**: Conserva las existentes y solo procesa las `P` que nunca se tocaron.
+     - **[Reiniciar Todo desde Cero]**: Limpia los metadatos y procesa todas las filas como si fuera nuevo.
+     - **[Cancelar]**: No realiza ninguna accion.
+
+---
+
+## 3. Puntos de Impacto y Casos Borde Identificados
+
+### 3.1 Riesgo de Desfase por Modificaciones Externas
+- **Escenario**: El usuario cancela, abre el CSV, reordena filas o elimina columnas originales y luego pulsa reanudar.
+- **Mitigacion**: Conservar un identificador de registro original (`_id_fila_origen` o hash de la fila) para mapear exactamente el estado contra el registro correspondiente, independientemente de que se reordenen filas en el archivo.
+
+### 3.2 Preservacion de la Auditoria (`.md`)
+- Al reprocesar solo filas fallidas o pendientes, la auditoria `.md` anexa una seccion clara indicando:
+  `## Reanudacion / Reproceso - Fecha: YYYY-MM-DD HH:MM:SS`
+  Detallando unicamente los nuevos lotes enviados para no corromper la bitacora previa.
+
+### 3.3 Aislamiento Modular
+- El modulo de gestion de metadatos residira en `src/procesos_ia/aplicacion/ia_web/comun/` como un gestor independiente.
+- Podra ser utilizado directamente por:
+  - `ProcesadorModoIA` (IA General).
+  - `ServicioProcesamientoWeb` (DeepSeek y Gemini).
+  - `ProcesadorArchivoUrls` (Lens CSV).
+  - `ProcesadorCarpetaImagenes` (Lens e Imagenes).
+
+---
+
+# Seccion Arquitectura Jerarquica: Patron Padre-Hijo para Reanudacion Universal
+
+Fecha: 10 de Noviembre de 2026
+Alcance: Modelo troncal centralizado y especializaciones para IA General, DeepSeek, Gemini, Lens y Local.
+
+## 1. Patron Arquitectonico: Padre Central y Especializaciones Hijas
+
+`
+                        [ NUCLEO PADRE CENTRAL ]
+             src/procesos_ia/aplicacion/comun/
+             ├── modelos_reanudacion.py      (EstadoRegistro, EstadisticasReanudacion, AccionReanudacion)
+             └── gestor_reanudacion_base.py  (Logica troncal: auditoria, lectura O(1), clasificacion N, E, F, P)
+
+                                     │
+      ┌──────────────────────────────┼──────────────────────────────┐
+      ▼                              ▼                              ▼
+[ HIJO: Tabular Web ]      [ HIJO: Imagenes Web ]         [ HIJO: Local ]
+gestor_reanudacion_        gestor_reanudacion_            gestor_reanudacion_
+tabular_web.py             imagenes_web.py                local.py
+- Modos Lotes / Chat       - Imagenes 1 a 1               - Procesamiento con Ollama
+- IA General / DeepSeek    - Gemini / DeepSeek / Lens     - Respeta huella y checkpoint
+`
+
+Y en la Interfaz de Usuario (UI):
+`
+                        [ DIALOGO PADRE CENTRAL ]
+             src/procesos_ia/interfaz/comun/
+             └── dialogo_reanudacion_base.py (QDialog modal nativo, ProtectorBotones, paleta moderna)
+`
+
+## 2. Componentes a Implementar
+
+1. **src/procesos_ia/dominio/reanudacion.py** (Contratos y Modelos):
+   - Enums: `EstadoIA` (EXITOSO, FALLIDO, OMITIDO, PENDIENTE).
+   - Acciones de usuario: `AccionReanudacion` (REPROCESAR_PENDIENTES_Y_FALLIDOS, SOLO_PENDIENTES, REINICIAR_TODO, CANCELAR).
+   - Dataclass: `RegistroEstado` y `ResumenReanudacion`.
+
+2. **src/procesos_ia/aplicacion/comun/gestor_reanudacion_base.py** (Padre Troncal):
+   - Lectura eficiente linea a linea / streaming (1)$ sin cargar archivos masivos a RAM.
+   - Auditoria y diagnostico de estados: calcula N (totales), E (exitosos), F (fallidos/omitidos), P (pendientes).
+   - Filtrado de elementos segun la accion seleccionada por el usuario.
+
+3. **Hijos Especializados**:
+   - `gestor_reanudacion_tabular.py`: Mapeo de filas en CSV para IA General, DeepSeek y Gemini.
+   - `gestor_reanudacion_imagenes.py`: Mapeo de archivos visuales en carpetas para Lens, Gemini y DeepSeek.
+   - `gestor_reanudacion_local.py`: Integracion con Ollama y compatibilidad con checkpoints locales.
+
+4. **src/procesos_ia/interfaz/comun/dialogo_reanudacion.py** (UI Nativa Modal):
+   - `QDialog` flotante centrado sobre la ventana principal.
+   - Diagnostico visual claro con conteo de filas/fotos: E exitosas, F fallidas a recuperar, P pendientes.
+   - Botones con proteccion antirebote (`ProtectorBotones` con 600 ms de bloqueo).
+
+---
+
+# Bitacora de Implementacion Realizada
+
+Fecha: 10 de Noviembre de 2026 - 15:15
+Estado: Fase 1 Completada con Exito
+
+## 1. Modulos Creados y Verificados (Arquitectura Padre-Hijo)
+1. **Contratos de Dominio Centralizados**:
+   - Archivo: `src/procesos_ia/dominio/reanudacion.py` (80 lineas).
+   - Define: `EstadoIA` (EXITOSO, FALLIDO, OMITIDO, PENDIENTE), `AccionReanudacion`, `RegistroEstado` y `ResumenReanudacion`.
+2. **Nucleo Padre Troncal**:
+   - Archivo: `src/procesos_ia/aplicacion/comun/gestor_reanudacion_base.py` (126 lineas).
+   - Metodos: Lectura generadora O(1) de memoria, normalizacion de estados y motivos, clasificacion estadistica (N, E, F, P) y filtrado de elementos por accion.
+3. **Hijo Especializado en Tabulares (CSVs)**:
+   - Archivo: `src/procesos_ia/aplicacion/ia_web/comun/gestor_reanudacion_tabular.py` (118 lineas).
+   - Metodos: Localizacion automatica de respaldos previos en cancelados/ o en_proceso/, preparacion de filas para reenvio recuperando fallidas y pendientes sin duplicar ni perder las exitosas.
+4. **Hijo Especializado en Carpetas de Imagenes**:
+   - Archivo: `src/procesos_ia/aplicacion/ia_web/comun/gestor_reanudacion_imagenes.py` (90 lineas).
+   - Metodos: Auditoria de carpetas de fotos contra CSV incremental y discriminacion de errores de timeout/envio.
+5. **Dialogo Nativo Flotante Modal con Proteccion Antirebote**:
+   - Archivo: `src/procesos_ia/interfaz/comun/dialogo_reanudacion.py` (167 lineas).
+   - Componentes: QDialog modal, panel de metricas visuales (Total, Exitosos, Fallidos/Omitidos, Pendientes), boton recomendado inteligente, botones protegidos con ProtectorBotones (cooldown de 600 ms).
+6. **Bateria de Pruebas Automatizadas**:
+   - Archivo: `pruebas/unitarias/test_reanudacion_jerarquica.py` (103 lineas).
+   - Cobertura: Verificacion de clasificacion, filtrado por accion y preparacion de lote tabular. 3 tests aprobados (OK).
+   - Suite de regresion previa: 35 tests aprobados (OK) en test_ia_general, test_integracion_salidas y test_vistas_deepseek_gemini.
+
+## 2. Proximo Paso: Fase 2
+- Conectar el Hijo Tabular en **IA General** (`procesador_modo_ia.py` y `vista_ia_general.py`) para presentar el dialogo nativo antes del arranque y enviar unicamente las filas que correspondan segun la decision del usuario.
+
+---
+
+# Seccion Analisis de Impacto: Conexion del Gestor Tabular en IA General
+
+Fecha: 10 de Noviembre de 2026 - 15:16
+Objetivo: Conectar GestorReanudacionTabular y DialogoReanudacionEstado en Modo IA Lotes de IA General.
+
+## 1. Que hace la implementacion actual
+- En `vista_ia_general.py` (lineas 173-181): Al seleccionar `modo_ia`, lee todas las filas del archivo y las envia sin verificar si ya existia una corrida previa o un archivo cancelado con filas evaluadas o fallidas.
+- En `procesador_modo_ia.py`: Comienza siempre desde la fila 0 (`i = 0`). Asigna `evaluacion_ia` pero no agrega las columnas de estado estructurado (`_estado_ia`, `_motivo_estado`, `_fecha_procesamiento`).
+
+## 2. Cambios a Realizar y Modulos Afectados
+1. `procesador_modo_ia.py`:
+   - Al mapear respuestas del lote, si una fila recibio evaluacion valida, asigna:
+     `_estado_ia = "EXITOSO"` y `_motivo_estado = "[OK] Evaluado"`.
+   - Si no recibio evaluacion valida (omitida por el LLM), asigna:
+     `_estado_ia = "OMITIDO"` y `_motivo_estado = "[ALERTA] Omitido por LLM"`.
+   - Soportar el parametro opcional `salida_retomada: SalidaProceso | None = None`. Si se recibe, reutiliza la carpeta existente sin recrear desde cero.
+2. `vista_ia_general.py`:
+   - En `_ejecutar_accion()`, para el flujo `modo_ia`:
+     - Instanciar `GestorReanudacionTabular(self._servicio.enrutador)`.
+     - Evaluar la ruta del archivo: `regs, resumen = gestor.evaluar_origen(ruta_archivo)`.
+     - Si `resumen.requiere_decision`:
+       - Abrir `DialogoReanudacionEstado(resumen, parent=self)`.
+       - Si el usuario selecciona Cancelar -> Abortar limpiamente.
+       - Si selecciona Continuar (recuperar fallidos o solo pendientes) -> Filtrar y preparar filas con `gestor.preparar_filas_para_envio(...)` y retomar la salida.
+       - Si selecciona Reiniciar todo -> Procesar completo desde cero.
+
+## 3. Garantias
+- Se mantiene el limite estricto <= 300 lineas en todos los archivos.
+- Cero emojis en logs y textos de la UI.
+- No afecta las pruebas unitarias existentes.
+
+---
+
+# Cierre de Integracion: Reanudacion Inteligente en IA General
+
+Fecha: 10 de Noviembre de 2026 - 15:28
+Estado: Integracion Completa y Verificada al 100%
+
+## Logros Obtenidos:
+1. **Deteccion y Dialogo Modal Nativo en IA General**:
+   - Al cargar un archivo CSV o seleccionar Modo IA en `vista_ia_general.py`, el sistema audita si existen registros procesados previamente o carpetas inconclusas en `cancelados/` o `en_proceso/`.
+   - Si detecta avance, abre el dialogo modal nativo estilizado mostrando el desglose real: Total, Exitosos, Fallidos/Omitidos y Pendientes.
+   - Si el usuario decide continuar recuperando fallidos o solo pendientes, `gestor_reanudacion_tabular.py` filtra el dataset preparando exactamente las filas a reenviar y retoma la carpeta de salida sin recrear desde cero.
+2. **Enriquecimiento de Fila Fila con Metadatos**:
+   - Cada fila procesada en `procesador_modo_ia.py` incorpora:
+     - `_estado_ia` (EXITOSO si respondio el LLM, OMITIDO si fue ignorado por el LLM).
+     - `_motivo_estado` ([OK] Evaluado / [ALERTA] No devuelto por LLM en este lote).
+     - `_fecha_procesamiento` (marca de tiempo ISO).
+3. **Control de Reglas y Calidad**:
+   - 100% de los archivos modificados cumplen estrictamente la regla de <= 300 lineas fisicas.
+   - Cero emojis en codigo, mensajes, logs y dialogos.
+   - Suite de 45 pruebas unitarias integradas ejecutadas y aprobadas exitosamente (0 fallos, 0 errores).
+
+---
+
+# Analisis de Impacto: Reanudacion Inteligente en DeepSeek y Motores Web
+
+Fecha: 10 de Noviembre de 2026 - 15:42
+Objetivo: Conectar GestorReanudacionTabular, GestorReanudacionImagenes y DialogoReanudacionEstado en DeepSeek Web y Gemini Web.
+
+## 1. Que hace la implementacion actual
+- En `vista_deepseek.py` (y analogamente `vista_gemini.py`):
+  - En flujo CSV tabular: Al pulsar Iniciar Procesamiento, no consulta estados previos; siempre arranca desde el lote 0.
+  - En flujo de imagenes: Usa `verificar_estado_carpeta_imagenes` pero descarta fotos en timeout/error y solo tiene un cuadro basico QMessageBox.
+- En `servicio_procesamiento_web.py`:
+  - `_procesar_flujo_texto_lotes` no asigna columnas de metadatos (`_estado_ia`, `_motivo_estado`, `_fecha_procesamiento`).
+  - `_procesar_flujo_imagenes` no asigna columnas de metadatos estandarizadas.
+- En `procesador_imagenes_motores.py`:
+  - Guarda en CSV pero las imagenes con fallo quedan marcadas como `ERROR_PARSE` o `ERROR_ENVIO` sin permitir al usuario reintentarlas granularmente sin borrar todo.
+
+## 2. Cambios a Realizar y Modulos Involucrados
+1. `servicio_procesamiento_web.py`:
+   - Soportar el parametro opcional `salida_existente: SalidaProceso | None = None` en `procesar_csv()` y `_procesar_flujo_texto_lotes()`.
+   - Enriquecer cada fila procesada con:
+     - `_estado_ia` (EXITOSO si hubo extraccion/respuesta, FALLIDO si hubo fallo de envio o timeout, OMITIDO si vino vacio).
+     - `_motivo_estado` ([OK] Evaluado / [ERROR] Fallo de envio / [ALERTA] Respuesta no estructurada).
+     - `_fecha_procesamiento` (marca temporal ISO).
+2. `vista_deepseek.py` (y `vista_gemini.py` / `vista_motores.py`):
+   - Al pulsar Iniciar en flujo CSV:
+     - Consultar `GestorReanudacionTabular`.
+     - Si `resumen.requiere_decision`: Abrir `DialogoReanudacionEstado`.
+     - Si selecciona continuar: Filtrar filas con `preparar_filas_para_envio()` y pasar `salida_existente` al hilo.
+   - Al pulsar Iniciar en flujo de imagenes:
+     - Consultar `GestorReanudacionImagenes`.
+     - Si `resumen.requiere_decision`: Abrir `DialogoReanudacionEstado(..., es_carpeta_imagenes=True)`.
+     - Si selecciona continuar: Filtrar imagenes pendientes y fallidas con `filtrar_imagenes()`.
+
+## 3. Garantias
+- Regla estricta <= 300 lineas por archivo.
+- Cero emojis.
+- Compatibilidad absoluta con la suite de pruebas existente.
+
+
+---
+
+# Analisis de Impacto: Reanudacion Inteligente en Google Lens y Procesamiento Local
+
+Fecha: 10 de Noviembre de 2026 - 15:50
+Objetivo: Conectar GestorReanudacionTabular, GestorReanudacionImagenes y DialogoReanudacionEstado en Google Lens (URLs y Carpetas) y unificar la experiencia en el Procesamiento Local.
+
+## 1. Que hace la implementacion actual
+- Google Lens Tabular (`procesador_archivo_urls.py`):
+  - Lee el archivo completo y procesa todas las filas sin posibilidad de retomar lotes interrumpidos o con fallos de timeout.
+  - No escribe las columnas de metadatos `_estado_ia`, `_motivo_estado` y `_fecha_procesamiento`.
+- Google Lens Carpetas (`procesador_carpeta_imagenes.py` y `vista_ia_general.py`):
+  - Muestra un dialogo basico QMessageBox que solo permite reiniciar todo o cancelar, ignorando el estado de timeouts previos.
+- Procesamiento Local (`reanudacion_local.py`, `continuacion_local.py`):
+  - Emplea un dialogo tradicional QMessageBox simple sin mostrar desglose detallado de estados ni proteccion de rebotes.
+
+## 2. Cambios a Realizar y Modulos Involucrados
+1. `procesador_archivo_urls.py`:
+   - Incorporar columnas de metadatos `_estado_ia`, `_motivo_estado`, `_fecha_procesamiento`.
+   - Soportar `salida_existente` para adjuntar resultados granulares.
+2. `vista_ia_general.py`:
+   - En flujo `csv_lens`: Evaluar respaldo previo con `GestorReanudacionTabular` y presentar `solicitar_decision_reanudacion()`.
+   - En flujo `carpeta`: Evaluar imagenes con `GestorReanudacionImagenes` y presentar `solicitar_decision_reanudacion(..., es_carpeta_imagenes=True)`.
+3. `continuacion_local.py` y `reanudacion_local.py`:
+   - Conectar con `GestorReanudacionBase` y presentar `solicitar_decision_reanudacion()` preservando compatibilidad con checkpoints WAL existentes.
+
+## 3. Garantias
+- Regla estricta <= 300 lineas por archivo.
+- Cero emojis.
+- Suite de pruebas unitarias sincronizada y aprobada.
+
+
+---
+
+# Cierre y Verificacion Integral de Reanudacion y Reprocesamiento Inteligente
+
+Fecha: 10 de Noviembre de 2026 - 15:55
+
+## 1. Alcance Completado
+- **Capa de Dominio**:
+  - `reanudacion.py`: Modelado de `EstadoIA`, `AccionReanudacion`, `RegistroEstado` y `ResumenReanudacion`.
+- **Capa Base Jerarquica (Padre Troncal)**:
+  - `gestor_reanudacion_base.py`: Deteccion y clasificacion O(1) de estados (N total, E exitosos, F fallidos, P pendientes).
+- **Especializaciones Modulares (Hijos)**:
+  - `gestor_reanudacion_tabular.py`: Tratamiento granular de filas tabulares (CSVs y Excel) para reenvio selectivo.
+  - `gestor_reanudacion_imagenes.py`: Tratamiento granular de carpetas de fotos con distincion de fallos/timeouts previos.
+- **Motores Conectados**:
+  - **IA General**: Modo IA Lotes CSV y Modo IA 1a1.
+  - **DeepSeek Web**: Flujos CSV y Carpeta de imagenes.
+  - **Gemini Web**: Flujos CSV y Carpeta de imagenes.
+  - **Google Lens**: Archivo tabular de URLs y Carpeta local de imagenes.
+  - **IA Local (Ollama)**: Dialogo unificado integrado con proteccion de rebotes.
+- **Interfaz de Usuario**:
+  - `dialogo_reanudacion.py`: Modal nativo QDialog con tarjetas de metricas, botones contextuales claros y blindados con `ProtectorBotones` (cooldown 600 ms).
+- **Pruebas y Verificacion**:
+  - Suite completa: 732 pruebas unitarias ejecutadas y aprobadas en 125.6s (0 fallos, 0 errores).
+  - Regla permanente de <= 300 lineas: 100% de los archivos de codigo cumplen estrictamente.
+  - Cero emojis en codigo, strings, logs y respuestas.
+
+
+---
+
+# Analisis de Impacto: Perfeccionamiento de Inyeccion de Imagenes y Selectores DOM en DeepSeek y Gemini
+
+Fecha: 10 de Noviembre de 2026 - 17:05
+Referencia: Codigo probado y verificado en `TSUKUYOMI_local_28/nucleo/MARIO/procesos_deepseek` y `procesos_gemini`.
+
+## 1. Que hace la implementacion actual y fallas detectadas
+- **DeepSeek Web (`manipulador_dom_deepseek.py`)**:
+  - Actualmente intenta pegar la imagen pero si la imagen falla o no se adjunta, envia el prompt a ciegas.
+  - La verificacion del estado de adjunto (`res_attach`) no comprueba activamente si se adjunto exitosamente (`ATTACHED_VIA_FILE_INPUT` o `ATTACHED_VIA_PASTE_EVENT`).
+  - El selector del boton de envio no cubre todos los estados y variantes observadas (`_52c986b`, `bd74640a`, `.ds-button--primary:not(.ds-button--disabled)`).
+  - La espera de respuesta no incluye el rescate de texto plano si DeepSeek responde sin formato JSON.
+- **Gemini Web (`manipulador_dom_gemini.py`)**:
+  - En Gemini la inyeccion de texto falla porque intenta inyectar el texto en el mismo paso o reemplaza el HTML interno pisando el thumbnail de la imagen que se acaba de pegar mediante pasteEvent.
+  - El editor de Gemini (`div[contenteditable="true"]`, `rich-textarea div[role="textbox"]`, `.qs-textarea`) requiere primero pegar la imagen, esperar 600ms, luego inyectar el texto en `innerText` y disparar `InputEvent`.
+  - Debe ejecutarse `aceptar_dialogos_gemini` obligatoriamente tras adjuntar la foto (dialogo modal de aviso/privacidad).
+  - Debe desplazarse al fondo con `scrollIntoView` para forzar la reactividad de Angular y el renderizado del boton de envio `arrow_upward` (`button[aria-label*="Enviar"]`, `button[aria-label*="Send"]`, `button .mat-icon[fonticon="arrow_upward"]`).
+  - La extraccion de respuesta debe evaluar bloques `code[data-test-id="code-content"]`, `code-block code`, `code.code-container` y como respaldo `model-response`, comparando con la respuesta previa para evitar leer respuestas viejas.
+
+## 2. Modificaciones a Realizar y Modulos Afectados
+1. `src/procesos_ia/infraestructura/web/motores/manipulador_dom_deepseek.py`:
+   - Separar el pegado de imagen y verificar que retorne `ATTACHED_VIA_FILE_INPUT` o `ATTACHED_VIA_PASTE_EVENT`.
+   - Si se paso imagen y el pegado fallo, NO enviar el prompt y retornar `False` inmediatamente para que no trabaje a ciegas.
+   - Refinar el ciclo de envio con reintentos hasta confirmar que el textarea se vacio.
+   - Refinar la espera de respuesta con rescate heuristico de texto plano (`extraer_datos_de_texto_plano`).
+2. `src/procesos_ia/infraestructura/web/motores/manipulador_dom_gemini.py`:
+   - En `enviar_prompt_gemini`: Pegar primero la imagen mediante `ClipboardEvent`, pausar 600ms, inyectar el prompt en `editor.innerText` disparando `InputEvent`.
+   - Si se paso imagen y falla el pegado, retornar `False`.
+   - Integrar `aceptar_dialogos_gemini` para cerrar dialogos modales de advertencia.
+   - Usar la deteccion robusta del boton de envio (`mat-icon[fonticon="arrow_upward"]`, `aria-label*="Enviar"`, `send-button`, y respaldo Enter).
+   - En `esperar_respuesta_gemini`: Soportar `prev_response_count` o deteccion de estabilizacion sobre bloques de codigo (`code[data-test-id="code-content"]`) y `model-response`.
+
+## 3. Garantias
+- Mantener estricto limite <= 300 lineas en ambos archivos.
+- Cero emojis en logs y codigo.
+- Preservar compatibilidad con `procesador_imagenes_motores.py`, `servicio_procesamiento_web.py` y la suite de pruebas unitarias.
+
+
+---
+
+# Resolucion Definitiva: Falla Critica de Cierre Inmediato y Error en Extraccion de Imagenes (Gemini y DeepSeek)
+
+Fecha: 11 de Noviembre de 2026 - 10:40
+Referencia: `TSUKUYOMI_local_28/nucleo/MARIO/procesos_gemini` y `procesos_deepseek`.
+
+## 1. Diagnostico del Error Reportado
+En pruebas reales, tanto en Gemini como en DeepSeek, el proceso emitio un fallo inmediato en el mismo segundo:
+`[17:09:43] [ERROR] No se pudo enviar imagen 'Captura de pantalla...'` (4/4 fallidas de golpe)
+`[17:11:15] [ERROR] No se pudo enviar imagen 'Captura de pantalla...'` (4/4 fallidas de golpe)
+
+### Causas Raiz Detectadas:
+1. **Desfase de Carga de las SPAs (Single Page Applications)**:
+   Al navegar a `gemini.google.com/app` o `chat.deepseek.com`, la aplicacion web tarda de 2.5 a 5 segundos en renderizar el editor interactivo. Al ingresar directamente al bucle de imagenes sin espera activa, `document.querySelector` devolvia `null`, marcando `NO_EDITOR` instantaneamente en cada foto.
+2. **Falta de Sincronizacion Atomica en Inyeccion**:
+   Gemini requiere que el evento de pegado con `DataTransfer` y la asignacion de texto en `innerText` con `InputEvent` esten coordinados y con una pausa de seguridad de 2.5s para renderizar el thumbnail de la imagen adjunta antes de activar el boton `arrow_upward`.
+3. **Ausencia de Reintentos por Imagen**:
+   Cualquier desfase de milisegundos provocaba el descarte inmediato de la foto como `ERROR_ENVIO` sin reintentar.
+
+## 2. Acciones Implementadas
+1. **`src/procesos_ia/infraestructura/web/motores/manipulador_dom_gemini.py`**:
+   - Se agrego `esperar_editor_gemini(pestana, timeout=25.0)` con sondeo continuo de `div[contenteditable="true"]`, `rich-textarea div[role="textbox"]` y `.qs-textarea`.
+   - Se refactorizo `enviar_prompt_gemini` adoptando la secuencia probada de TSUKUYOMI: inyeccion sincronizada de `DataTransfer` y `ClipboardEvent`, espera interna de 600ms, insercion del prompt, espera de 2.5s para thumbnail, aceptacion automatica de dialogos modales y clic en boton de envio con respaldo Enter.
+2. **`src/procesos_ia/infraestructura/web/motores/manipulador_dom_deepseek.py`**:
+   - Se agrego `esperar_editor_deepseek(pestana, timeout=25.0)` con sondeo de `textarea` y `input[type="file"]`.
+   - Se aseguro la espera previa obligatoria y el ciclo de verificacion de textarea vacio.
+3. **`src/procesos_ia/aplicacion/ia_web/motores/procesador_imagenes_motores.py`**:
+   - Incorporacion de espera activa del editor antes del bucle de envio (`esperar_editor_gemini` / `esperar_editor_deepseek`).
+   - Bucle de reintentos automaticos por imagen (hasta 2 intentos con 2.5s de reposo) antes de clasificar como `ERROR_ENVIO`.
+   - Espera activa del editor tras rotacion de conversacion.
+4. **`pruebas/unitarias/test_procesador_imagenes_motores.py`**:
+   - Mockeo asincrono de `esperar_editor_gemini` para ejecucion limpia en 0.5s sin retrasos.
+
+## 3. Estado de Validacion
+- Pruebas unitarias de aislamiento y motores ejecutadas exitosamente (`Ran 3 tests in 0.589s - OK`).
+- Cumplimiento estricto de la regla permanente sin emojis (`[OK]`, `[ERROR]`, `[INFO]`, `[ALERTA]`).
+
+
+---
+
+# Resolucion Definitiva: Retorno Asincrono de Nodriver (await_promise) y Bloqueo de Modal de Sesion en Chrome
+
+Fecha: 11 de Noviembre de 2026 - 10:52
+Causa Raiz Verificada: `nodriver.Tab.evaluate` tiene por defecto `await_promise=False`.
+
+## 1. Explicacion de la Acumulacion de Fotos y Retorno 'None'
+- Al ejecutar funciones autoejecutables async de JavaScript `(async () => { ... })()` sin el flag `await_promise=True`:
+  - Chromium CDP devuelve de forma sincrona e inmediata la promesa pendiente en estado no resuelto, la cual Nodriver evalua como `None`.
+  - Python asume inmediatamente que la operacion fallo y salta en cascada a las siguientes fotos.
+  - Sin embargo, en el hilo del navegador Chromium la promesa sigue corriendo en segundo plano y pega la imagen.
+  - Al procesar 4 fotos en menos de un segundo, las 4 promesas de pegado concluyeron acumulando todas las imagenes juntas en el borrador del chat sin llegar a inyectar el prompt ni activar el boton de envio.
+
+## 2. Acciones Implementadas
+1. **`await_promise=True` Explicito**:
+   - En `manipulador_dom_gemini.py`: `await pestana.evaluate(js_inyectar_conjunto, await_promise=True)` espera activamente la resolucion y recibe `"OK"`.
+   - En `manipulador_dom_deepseek.py`: `await pestana.evaluate(js_adjuntar_imagen, await_promise=True)` espera la resolucion y recibe `"ATTACHED_VIA_FILE_INPUT"`.
+2. **Selectores Ampliados en DeepSeek**:
+   - Incorporacion de `textarea#chat-input` y `textarea[placeholder*="Mensaje"]`.
+3. **Aislamiento Estricto tras Fallo de Envio**:
+   - En `procesador_imagenes_motores.py`, si una imagen experimenta contingencia de envio, se invoca `self._rotar_chat(pestana, motor)` inmediatamente para limpiar el borrador del DOM y evitar que el turno siguiente herede fotos acumuladas.
+4. **Supresion de Burbujas de Sesion en Chromium**:
+   - En `gestor_sesion_nodriver.py`, inclusion de `--disable-session-crashed-bubble`, `--hide-crash-restore-bubble` y `--disable-features=InfiniteSessionRestore`.
+5. **Correccion de Atributo en EnrutadorSalidas**:
+   - Agregada la propiedad `@property def modo_ia(self) -> Path` en `enrutador_salidas.py` para solventar el `AttributeError` al abrir carpetas en la interfaz.
+
+## 3. Estado de Pruebas
+- Suite de pruebas unitarias verificada: `Ran 3 tests in 0.617s - OK`.
+- Verificacion de cero emojis completada exitosamente.
+
+
+---
+
+# Resolucion Definitiva: Captura y Extraccion de Respuestas en DeepSeek y Gemini (JSON.stringify y Deteccion de Fin de Generacion)
+
+Fecha: 11 de Noviembre de 2026 - 11:25
+Referencia: `TSUKUYOMI_local_28/nucleo/MARIO/procesos_gemini/manipulador_dom.py` y `procesos_deepseek/manipulador_dom_deepseek.py`.
+
+## 1. Causa Raiz del Mensaje 'Sin datos'
+- Aunque tanto Gemini como DeepSeek ya recibian la imagen e imprimian la respuesta en pantalla, Python no la capturaba antes de que expirara el tiempo limite y retornaba `Sin datos`:
+  - **Serializacion de Objetos en Nodriver**: Al retornar diccionarios complejos de JavaScript sin `JSON.stringify`, Nodriver devolvia `None` o una referencia no primitiva en CDP.
+  - **Deteccion de Fin de Generacion**:
+    - En DeepSeek, la deteccion de los botones de accion del asistente (`hasActionButtons`) y la aparicion de un JSON parseable con datos comerciales reales debe disparar el retorno inmediato, evitando esperar 45-50s de timeout.
+    - En Gemini, la busqueda sobre `code[data-test-id="code-content"]`, `code-block code`, `pre code` y `model-response` debe viajar serializada como string con `JSON.stringify((() => { ... })())`.
+  - **Notificaciones del Sistema**: El popup de Chrome para solicitar notificaciones en Gemini fue eliminado pasando `--disable-notifications` en los argumentos del navegador.
+  - **Mapeo Bidireccional `negocio` / `nombre_negocio`**: Se agrego equivalencia mutua en `procesador_imagenes_motores.py` para asegurar que el resumen en consola y la columna CSV nunca queden vacios si el modelo usa una variante del nombre.
+
+## 2. Acciones Implementadas
+1. **`manipulador_dom_gemini.py`**:
+   - `esperar_respuesta_gemini` refactorizado con `JSON.stringify` envolvente. Deteccion de bloques de codigo de respuesta directa y retorno inmediato tras estabilizacion.
+2. **`manipulador_dom_deepseek.py`**:
+   - `esperar_respuesta_deepseek` refactorizado con `JSON.stringify`. Retorno inmediato en cuanto se detecta `{` y `}` con JSON valido y aparicion de botones de accion del asistente.
+3. **`configuracion_web.py`**:
+   - `tiempo_espera_respuesta_segundos` ajustado a 90 segundos para tolerar latencias de modelos multimodales complejos.
+4. **`gestor_sesion_nodriver.py`**:
+   - Inclusion de `--disable-notifications` para silenciar prompts de permisos en Chromium.
+5. **`procesador_imagenes_motores.py`**:
+   - Sincronizacion de campos `negocio` y `nombre_negocio` en el diccionario extraido y en el resumen de progreso.
+
+## 3. Estado de Pruebas
+- Pruebas unitarias ejecutadas: `Ran 3 tests in 0.569s - OK`.
+- Verificacion de cero emojis completada exitosamente.
+
+
+---
+
+# Implementacion: Sistema General de Checkpoints para Carpetas de Imagenes y Correccion de Extraccion DOM
+
+Fecha: 11 de Noviembre de 2026 - 12:03
+Modulos Involucrados:
+- `src/procesos_ia/aplicacion/comun/gestor_checkpoint_imagenes.py` (Nuevo)
+- `src/procesos_ia/interfaz/comun/dialogo_checkpoint_imagenes.py` (Nuevo)
+- `src/procesos_ia/infraestructura/web/motores/manipulador_dom_deepseek.py`
+- `src/procesos_ia/aplicacion/ia_web/motores/procesador_imagenes_motores.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_gemini.py` y `vista_deepseek.py`
+- `pruebas/unitarias/test_gestor_checkpoint_imagenes.py` (Nuevo)
+
+## 1. Arquitectura de Checkpoint Liviano O(1)
+Se elimino la dependencia de escaneo y apertura masiva de archivos CSVs previos.
+En su lugar, cada carpeta procesada mantiene un checkpoint persistente en `<raiz_salidas>/.checkpoints_imagenes/<modulo>_<carpeta>_<hash>.json`:
+- Al seleccionar una carpeta:
+  - Si es nueva: Se procesa de forma directa y crea su checkpoint.
+  - Si ya existe checkpoint:
+    - Clasifica instantaneamente las fotos en disco en tres grupos:
+      - `exitosas`: Fotos completadas satisfactoriamente.
+      - `fallidas`: Fotos con error de envio, parse o timeout en el proceso anterior.
+      - `nuevas`: Fotos agregadas a la carpeta con posterioridad.
+- Rastreo del CSV de Salida Anterior:
+  - Si el archivo anterior existe en disco: El usuario puede elegir **[Anexar al Archivo Anterior (Modo Append)]** para conservar intacto lo previo y solo agregar los registros pendientes, o **[Procesar en Nuevo Archivo CSV]**.
+  - Si el archivo anterior fue movido o eliminado (Fallback): El sistema informa al usuario y ofrece continuar las pendientes y fallidas en un nuevo CSV o reiniciar desde cero.
+
+## 2. Correccion en Extraccion DOM de DeepSeek
+- En `manipulador_dom_deepseek.py`, la extraccion de respuesta selecciona prioritariamente el elemento `<pre>` (`latestAssistant.querySelector('.md-code-block pre, pre, code')`).
+- Esto aísla el JSON del encabezado `<span class="d813de27">json</span>` y de los botones del banner (`Copiar`, `Descargar`), impidiendo que `"json"` sea tomado como nombre de empresa.
+- En `extraer_datos_de_texto_plano`, se agrego una lista de palabras reservadas tecnicas descartadas (`json`, `code`, `copiar`, `descargar`, etc.).
+
+## 3. Estado de Pruebas y Cumplimiento
+- Nueva suite unitaria: `test_gestor_checkpoint_imagenes.py` ejecutada con 5/5 pruebas aprobadas (`Ran 5 tests in 0.094s - OK`).
+- Suite de motores: `test_procesador_imagenes_motores.py` ejecutada con 3/3 pruebas aprobadas (`Ran 3 tests in 0.622s - OK`).
+- Verificacion de cero emojis completada con exito en todos los archivos.
+
+
+---
+
+# Integracion: Extension del Sistema General de Checkpoints O(1) a IA General (Modo IA y Lens)
+
+Fecha: 11 de Noviembre de 2026 - 12:15
+Modulos Involucrados:
+- `src/procesos_ia/aplicacion/ia_web/conversacional/procesador_imagenes_chat.py`
+- `src/procesos_ia/aplicacion/ia_web/visual_1a1/procesador_carpeta_imagenes.py`
+- `src/procesos_ia/interfaz/ia_web/conversacional/panel_modo_chat_imagenes.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_ia_general.py`
+- `src/procesos_ia/aplicacion/comun/gestor_checkpoint_imagenes.py`
+
+## 1. Diagnostico del Flujo Previo en IA General
+- `vista_ia_general.py` utilizaba `GestorReanudacionImagenes`, el cual realizaba un escaneo recursivo por `rglob` en disco (`buscar_csv_previo_carpeta`) y comparaba el identificador `id_registro` (con formato `Captura_1_t1`) contra el nombre de archivo en disco `img.name` (`Captura.png`), resultando siempre en falso negativo y reprocesando carpetas completas desde cero.
+- `procesador_imagenes_chat.py` no persistia el estado de imagenes en un archivo atómico de checkpoint, dejando huerfanas las fotos fallidas y exitosas para corridas posteriores.
+
+## 2. Cambios Implementados
+1. **`vista_ia_general.py`**:
+   - Sustitucion completa de `GestorReanudacionImagenes` por `GestorCheckpointImagenes` y `solicitar_decision_checkpoint_imagenes`.
+   - Soporte para flujos `modo_ia_imagenes` (chat de Google) y `carpeta` (Google Lens), garantizando opciones de decision (Append en CSV anterior, nuevo CSV o reinicio desde cero con deteccion de archivos faltantes).
+2. **`procesador_imagenes_chat.py`**:
+   - Integracion de `GestorCheckpointImagenes` en el constructor y llamadas atómicas a `actualizar_checkpoint(...)` tras cada guardado CSV y al finalizar la corrida.
+   - Reintento automatico (2 intentos con espera de 2.5s) en `inyectar_imagen_y_prompt_modo_ia` y renovacion automatica de pestaña ante fallo de inyeccion.
+   - Sincronizacion bidireccional entre claves de negocio (`nombre_negocio` y `negocio`).
+3. **`panel_modo_chat_imagenes.py`**:
+   - `cargar_carpeta` adaptada para consultar `GestorCheckpointImagenes.evaluar_carpeta` de forma O(1), mostrando con precision el desglose de fotos procesadas y pendientes sin sobrecargar I/O.
+4. **`procesador_carpeta_imagenes.py`**:
+   - Actualizacion atomica de checkpoint persistente para el flujo de carpetas en Google Lens.
+5. **`gestor_checkpoint_imagenes.py`**:
+   - Importacion diferida de `listar_imagenes_carpeta` para evitar dependencias circulares de inicializacion entre modulos base y derivados.
+
+## 3. Verificacion y Pruebas
+- Pruebas unitarias de procesamiento de imagenes: `Ran 34 tests in 0.949s - OK`.
+- Verificacion estricta de cero emojis aprobada en todos los modulos modificados.
+
+
+---
+
+# Ajuste de Compatibilidad: Retorno de Evaluaciones Tabulares en DOM de Gemini y DeepSeek
+
+Fecha: 11 de Noviembre de 2026 - 12:22
+Modulos Involucrados:
+- `src/procesos_ia/infraestructura/web/motores/manipulador_dom_gemini.py`
+- `src/procesos_ia/infraestructura/web/motores/manipulador_dom_deepseek.py`
+- `pruebas/unitarias/test_inferencia_web.py`
+
+## 1. Motivo del Ajuste
+- La optimizacion de deteccion DOM previa asumia que los bloques JSON contenian exclusivamente llaves orientadas a extraccion de fichas de negocio (`negocio` / `nombre_negocio`), ocasionando que los flujos de inferencia tabular en lote (cuyo resultado es una lista o un objeto con `identificador` / `habla_espanol`) no se retornaran de inmediato y agotaran el tiempo de espera.
+- Asimismo, se contemplo que los mocks de prueba y Nodriver pueden entregar diccionarios directos o cadenas serializadas mediante `JSON.stringify`.
+
+## 2. Solucion
+- En `manipulador_dom_gemini.py` y `manipulador_dom_deepseek.py`, se soporta tanto el desempaquetado de cadenas JSON como de diccionarios pre-parseados.
+- Se amplió la validacion de respuesta para reconocer listas de resultados tabulares y llaves de clasificacion (`identificador`, `habla_espanol`, `resultado`, etc.), retornando el texto de forma inmediata.
+
+## 3. Estado de Pruebas
+- Suite de inferencia web: `test_inferencia_web.py` ejecutada con 10/10 pruebas aprobadas (`Ran 10 tests in 3.732s - OK`).
+- Suite de imagenes y checkpoints: `Ran 8 tests in 2.225s - OK`.
+- Verificacion de cero emojis completada con exito.
+
+
+---
+
+# Implementacion: Memoria Compartida Universal de Checkpoints y Desbloqueo Concurrente de Interfaz
+
+Fecha: 11 de Noviembre de 2026 - 14:40
+Modulos Involucrados:
+- `src/procesos_ia/aplicacion/salidas_proceso.py`
+- `src/procesos_ia/aplicacion/comun/gestor_checkpoint_imagenes.py`
+- `src/procesos_ia/interfaz/comun/dialogo_checkpoint_imagenes.py`
+- `src/procesos_ia/interfaz/ia_web/hilos/hilo_procesamiento_web.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_deepseek.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_gemini.py`
+- `src/procesos_ia/interfaz/ia_web/conversacional/panel_modo_chat_imagenes.py`
+- `pruebas/unitarias/test_gestor_checkpoint_imagenes.py`
+
+## 1. Desbloqueo y Estabilidad de Interfaz en DeepSeek y Gemini
+- En `vista_deepseek.py` y `vista_gemini.py`, se corrigio la guarda de `_hilo_proc.isRunning()` dentro de `_ejecutar_procesamiento` para invocar inmediatamente `liberar_boton_protegido(self.btn_ejecutar, habilitar=True)` y evitar bloqueos permanentes de enfriamiento al alternar carpetas o reintentar.
+- En `hilo_procesamiento_web.py`, el cierre del navegador en el bloque `finally` se encapsulo con `asyncio.wait_for(..., timeout=3.0)` y fallback inmediato a `forzar_cierre_inmediato()`, impidiendo que demoras de desconexion en Nodriver/Chromium mantengan el hilo vivo de forma indefinida.
+
+## 2. Memoria Universal Compartida por Carpeta entre Todos los Motores
+- `GestorCheckpointImagenes` migro su identificador de checkpoint a nivel universal de carpeta: `carpeta_{nom_seguro}_{hash_ruta}.json`.
+- Si una carpeta es procesada en Gemini, el estado de imagenes (exitosas, fallidas, nuevas), el motor previo y la ruta del CSV generado son inmediatamente visibles para DeepSeek, IA General y Lens.
+- Se implemento escritura atomica y segura mediante archivo temporal y reemplazo atomico (`os.replace`) con reintentos para soportar ejecuciones concurrentes de perfiles independientes (IA General en paralelo con DeepSeek/Gemini) sin colisiones de I/O.
+
+## 3. Continuacion Cruzada de Archivos en el Mismo CSV (Append Multimotor)
+- En `salidas_proceso.py`, el metodo `retomar` fue ampliado para reconocer y adoptar archivos CSV creados por cualquier otro modulo registrado en el enrutador.
+- Si el usuario decide continuar con otro motor anexando al archivo anterior, la salida se enruta directamente a ese CSV existente (modo append).
+- Si el archivo anterior no existe fisicamente en disco (fue movido o borrado), el dialogo alerta al usuario y ofrece como fallback continuar las pendientes en un nuevo CSV o reiniciar desde cero.
+
+## 4. Estado de Pruebas
+- `test_gestor_checkpoint_imagenes.py`: 6/6 pruebas aprobadas (`Ran 6 tests in 4.302s - OK`).
+- Suite de imagenes: 35/35 pruebas aprobadas (`Ran 35 tests in 2.079s - OK`).
+- Suite de integracion de salidas: 8/8 pruebas aprobadas (`Ran 8 tests in 8.976s - OK`).
+- Verificacion estricta de cero emojis completada con exito.
+
+
+---
+
+# Auditoria Completa de Flujos y Depuracion de Reanudacion Cruzada
+
+Fecha: 11 de Noviembre de 2026 - 15:10
+Modulos Involucrados:
+- `src/procesos_ia/aplicacion/comun/gestor_checkpoint_imagenes.py`
+- `src/procesos_ia/aplicacion/ia_web/motores/procesador_imagenes_motores.py`
+- `src/procesos_ia/aplicacion/ia_web/conversacional/procesador_imagenes_chat.py`
+- `src/procesos_ia/aplicacion/salidas_proceso.py`
+
+## 1. Puntos Auditados y Corregidos
+1. **Reemplazo de registros fallidos en CSV reanudado**:
+   - Al continuar una corrida previa sobre un archivo CSV existente, si una imagen antes figuraba con `ERROR_ENVIO` o `ERROR_PARSE` y ahora se procesa con exito, el procesador (`ProcesadorImagenesMotores` y `ProcesadorImagenesChat`) reemplaza el registro fallido previo por la nueva fila exitosa estructurada, evitando filas duplicadas en conflicto en el archivo final.
+2. **Reinicio integral de checkpoints**:
+   - `reiniciar_checkpoint` se aseguro para limpiar tanto el archivo universal `carpeta_<hash>.json` como cualquier remanente legacy (`<motor>_<hash>.json`).
+3. **Auditoria integral de flujos de salida**:
+   - Se verificaron los flujos de Gemini (imagenes y tabular), DeepSeek (imagenes y tabular), IA General (Modo IA imagenes, Modo IA tabular, Lens carpeta, Lens tabular y Lens URL). Todos los contratos de entrada/salida y llamadas asincronas conservan integridad total.
+
+## 2. Estado de Pruebas
+- Pruebas unitarias de imagenes: `Ran 35 tests in 1.618s - OK`.
+- Pruebas de integracion y motor web: `Ran 18 tests in 11.266s - OK`.
+- Verificacion de cero emojis completada con exito.
+
+
+---
+
+# Auditoria y Optimizacion de Cancelacion Inmediata y Clasificacion en Cancelados
+
+Fecha: 11 de Noviembre de 2026 - 16:10
+Modulos Involucrados:
+- `src/procesos_ia/infraestructura/web/motores/manipulador_dom_gemini.py`
+- `src/procesos_ia/infraestructura/web/motores/manipulador_dom_deepseek.py`
+- `src/procesos_ia/infraestructura/web/conversacional/manipulador_dom_modo_ia.py`
+- `src/procesos_ia/aplicacion/salidas_proceso.py`
+- `src/procesos_ia/aplicacion/ia_web/motores/servicio_procesamiento_web.py`
+- `src/procesos_ia/interfaz/ia_web/hilos/hilo_procesamiento_web.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_gemini.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_deepseek.py`
+- `pruebas/unitarias/test_integracion_salidas.py`
+
+## 1. Diagnostico del Problema
+- Al pulsar "Detener" durante una corrida en Gemini o DeepSeek, el hilo secundario se quedaba bloqueado en la espera de respuesta del DOM (`esperar_respuesta_gemini` / `esperar_respuesta_deepseek`) porque el bucle de espera no recibia senial de cancelacion y esperaba hasta 90 segundos.
+- Al forzarse el cierre del proceso Chromium via `taskkill`, el socket WebSocket de Nodriver quedaba roto, lo que en Windows podia provocar bloqueos o excepciones que impedian la persistencia a disco del CSV.
+- Las filas procesadas de lotes previos se acumulaban unicamente en memoria y se guardaban al final de todo el archivo. Si se cancelaba, `SalidaProceso.__exit__` clasificaba la salida en `fallidos` en lugar de `cancelados`.
+
+## 2. Solucion Implementada
+1. **Deteccion Reactiva en Espera DOM**:
+   - `esperar_respuesta_gemini`, `esperar_respuesta_deepseek` y `esperar_respuesta_modo_ia` incorporan el parametro opcional `verificador_cancelacion`.
+   - Las consultas DOM estan blindadas contra fallos de socket y el reposo entre ciclos se evalua en micropasos de 0.1s, retornando en menos de 100 milisegundos si se detecta cancelacion.
+2. **Persistencia Progresiva Inmediata**:
+   - `_procesar_flujo_texto_lotes` y `_procesar_flujo_imagenes` escriben a disco (`guardar_filas_csv`) de manera progresiva tras completar cada lote o imagen, garantizando que el avance nunca se pierda.
+3. **Clasificacion Inmediata en Carpeta `cancelados`**:
+   - Al cancelarse, la salida se clasifica directamente como `cancelados` y se entrega a la interfaz.
+   - En `SalidaProceso.__exit__`, las excepciones de tipo cancelacion se enrutan de forma segura a `cancelados`.
+4. **Liberacion Instantanea de la Interfaz**:
+   - `HiloProcesamientoWeb` omite el timeout residual de 3 segundos de cierre cuando la cancelacion ya fue solicitada.
+   - `vista_gemini.py` y `vista_deepseek.py` habilitan `btn_ejecutar` de inmediato y notifican al usuario con `[INFO] Corrida cancelada. Guardado en: cancelados/<archivo>`.
+
+## 3. Estado de Pruebas
+- Pruebas de integracion (`test_integracion_salidas.py`): 9/9 pruebas aprobadas (`Ran 9 tests in 5.990s - OK`), incluyendo la prueba automatizada de cancelacion con clasificacion en `cancelados`.
+- Suite de imagenes: 35/35 pruebas aprobadas (`Ran 35 tests in 2.976s - OK`).
+- Verificacion de cumplimiento de limite de 300 lineas por archivo completada.
+- Verificacion estricta de cero emojis completada con exito.
+
+
+---
+
+# Blindaje Total de Cancelacion Reactiva y Proteccion Universal de Botones en Todas las Vistas
+
+Fecha: 12 de Noviembre de 2026 - 11:30
+Modulos Involucrados:
+- `src/procesos_ia/infraestructura/web/base/gestor_sesion_nodriver.py`
+- `src/procesos_ia/aplicacion/ia_web/conversacional/procesador_modo_ia.py`
+- `src/procesos_ia/aplicacion/ia_web/conversacional/procesador_imagenes_chat.py`
+- `src/procesos_ia/aplicacion/ia_web/motores/procesador_imagenes_motores.py`
+- `src/procesos_ia/aplicacion/ia_web/visual_1a1/servicio_ia_general.py`
+- `src/procesos_ia/aplicacion/ia_web/motores/servicio_procesamiento_web.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_ia_general.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_gemini.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_deepseek.py`
+- `src/procesos_ia/interfaz/ia_web/hilos/hilo_ia_general.py`
+- `src/procesos_ia/aplicacion/salidas_proceso.py`
+
+## 1. Causa Raiz del Cuelgue en "Cancelando..." (IA General y Motores Web)
+1. **Socket CDP Muerto en Nodriver**:
+   - Al invocar `forzar_cierre_inmediato()` con `taskkill /T /F`, el proceso de Chromium moria, dejando el socket TCP de Nodriver en estado roto.
+   - En el bloque `finally` de los procesadores, `gestor.cerrar_navegador()` llamaba a `pestana.close()` y `conn.disconnect()` sin timeout. Al no llegar respuesta del proceso muerto, Nodriver se colgaba indefinidamente esperando un Future de asyncio, impidiendo que el hilo de procesamiento terminara y bloqueando la UI en `Cancelando...`.
+2. **Falta de Deteccion Reactiva en Procesador Modo IA**:
+   - `esperar_respuesta_modo_ia` no recibia `verificador_cancelacion`, esperando hasta 45 segundos por lote si el usuario cancelaba durante la consulta.
+3. **Ubicacion de `salida.finalizar()` Fuera del `finally`**:
+   - Si ocurria cualquier error de comunicacion o cancelacion forzada, `salida.finalizar()` no se ejecutaba, impidiendo que el archivo temporal en `en_proceso` fuera trasladado a la carpeta `cancelados` con los lotes procesados hasta el corte.
+4. **Bucle de Enfriamiento en Botones de UI**:
+   - Al pulsar "Detener", `btn_cancelar` quedaba en `Cancelando...` y `btn_ejecutar` deshabilitado esperando que el hilo emitiera seniales. Si el hilo se colgaba en el socket o demoraba, la UI quedaba completamente congelada.
+
+## 2. Soluciones Implementadas y Verificadas
+1. **Blindaje de Nodriver contra Sockets Rotos (`gestor_sesion_nodriver.py`)**:
+   - `cerrar()`: `pestana.close()` y `conn.disconnect()` estan envueltos en `asyncio.wait_for(..., timeout=0.8)`. Si el proceso ya murio, el timeout rescata la ejecucion de inmediato en 800 ms.
+   - `forzar_cierre_inmediato()`: Termina el arbol de procesos Chromium, limpia inmediatamente todas las referencias internas (`_navegador = None`, `_pestana_activa = None`, `_pid_navegador = None`) y remueve los bloqueos de perfil (`limpiar_bloqueos_perfil()`).
+2. **Cancelacion y Persistencia Inmediata en Modo IA (`procesador_modo_ia.py` y `procesador_imagenes_chat.py`)**:
+   - Inyeccion de `verificador_cancelacion` en todas las llamadas a `esperar_respuesta_modo_ia` (tiempo de respuesta < 100 ms).
+   - Comprobacion continua de cancelacion en el bucle principal `while`.
+   - Persistencia progresiva en disco (`salvaguardar_progreso_csv`) tras cada lote individual respondido.
+   - Traslado de `salida.finalizar(estado)` dentro del bloque `finally` con salvaguarda de timeout de 1.2s en cierre de navegador. Al cancelar, el CSV queda inmediatamente cerrado y clasificado en la carpeta `cancelados`.
+3. **Temporizadores de Respaldo y Desbloqueo Universal en Vistas (`vista_ia_general.py`, `vista_gemini.py`, `vista_deepseek.py`)**:
+   - En todas las vistas, al pulsar "Detener":
+     - `btn_cancelar` pasa inmediatamente a `Cancelando...`.
+     - `liberar_boton_protegido(btn_ejecutar, habilitar=True)` se invoca de inmediato.
+     - Se programa un `QTimer.singleShot(1500, self._restablecer_botones_cancelacion)` como guarda de respaldo incondicional, garantizando que el boton "Detener" vuelva a su estado normal y los controles queden 100% operativos incluso si el sistema operativo tarda en liberar puertos o procesos.
+4. **Armonizacion de Retoma de Salidas (`salidas_proceso.py`)**:
+   - Conservacion de la retoma de archivos entre modulos (Gemini <-> DeepSeek <-> IA General) mediante el escaneo de ramas registradas, respetando el aislamiento de archivos ajenos fuera de la jerarquia.
+
+## 3. Estado de Pruebas y Cumplimiento
+- Suite de salidas e integracion: `Ran 12 tests - OK`, `Ran 9 tests - OK`.
+- Suite de vistas e interfaz: `test_vistas_deepseek_gemini` (6 tests OK), `test_ia_general` (21 tests OK), `test_vista_motores` (6 tests OK).
+- Suite de procesamiento de imagenes: `Ran 35 tests - OK`.
+- Cumplimiento estricto de limite de 300 lineas fisicas en el 100% de los archivos modificados.
+- Verificacion permanente de ausencia total de emojis aprobada.
+
+
+---
+
+# Implementacion: Modulo Centralizado de Diagnostico, Metricas Reales y Logs Garantizados en Vivo
+
+Fecha: 12 de Noviembre de 2026 - 11:40
+Modulos Involucrados:
+- `src/procesos_ia/aplicacion/ia_web/comun/diagnostico_lotes.py` (Nuevo)
+- `src/procesos_ia/aplicacion/ia_web/conversacional/procesador_modo_ia.py`
+- `src/procesos_ia/aplicacion/ia_web/motores/servicio_procesamiento_web.py`
+- `pruebas/unitarias/test_diagnostico_lotes.py` (Nuevo)
+
+## 1. Justificacion y Arquitectura
+- Para erradicar la falta de visibilidad del usuario durante las corridas sin saturar los procesadores de inferencia web, se creo un modulo de diagnostico independiente (`diagnostico_lotes.py`).
+- Este modulo desacopla los calculos matematicos de calidad del lote y la emision de logs garantizados en consola, eliminando logs simulados o calculos duplicados.
+
+## 2. Capacidades Incorporadas
+1. **Calculo Matematico de Calidad por Lote (`evaluar_calidad_lote`)**:
+   - Computa en tiempo real cuantas filas fueron evaluadas (`evaluadas`) y cuantas omitio el modelo (`omitidas`).
+   - Alerta inmediatamente al usuario: `[ALERTA] Lote {n_lote} evaluó {evaluadas}/{esperadas} filas (IA omitió {omitidas}).`
+2. **Alertas de Reintentos y Respuestas Vacias**:
+   - `[ALERTA] Lote {n_lote} devolvió 0 filas evaluadas. Reintentando lote ({intento}/{max_intentos})...`
+3. **Deteccion Integral de Limites de Cuota (`detectar_limite_cuota`)**:
+   - Expresion regular completa multilingue que identifica cuota saturada y notifica el reinicio de perfil en navegador con conteo de reintentos.
+4. **Visibilidad Paso a Paso en Modo IA, Gemini y DeepSeek**:
+   - Aviso de calibracion de prompt inicial con conteo exacto de caracteres.
+   - Detalle de rango de filas y delimitador `|` al enviar cada lote.
+   - Tiempo de respuesta exacto en segundos por lote.
+   - Confirmacion final con rutas absolutas del archivo CSV y del archivo Markdown de auditoria.
+
+## 3. Estado de Pruebas y Cumplimiento
+- Nueva suite unitaria: `test_diagnostico_lotes.py` con 5/5 pruebas aprobadas (`Ran 5 tests in 0.005s - OK`).
+- Suite de Modo IA y conversaciones: 4/4 pruebas aprobadas (`Ran 4 tests - OK`).
+- Suite de IA General: 21/21 pruebas aprobadas (`Ran 21 tests - OK`).
+- Suite de motores y vistas: 12/12 pruebas aprobadas (`Ran 12 tests - OK`).
+- Cero emojis verificados en todo el codigo y bitacoras.
+
+
+---
+
+# Correccion de Auto-Arranque de Ollama ante Timeouts en Loopback de Windows
+
+Fecha: 12 de Noviembre de 2026 - 11:58
+Modulos Involucrados:
+- `src/procesos_ia/interfaz/hilos.py`
+- `src/procesos_ia/infraestructura/ollama/servicio_local.py`
+
+## 1. Diagnostico del Problema
+- En sistemas Windows, cuando el servicio de Ollama esta apagado, las peticiones HTTP por socket a `127.0.0.1:11434` no siempre devuelven de inmediato `ECONNREFUSED` (10061), sino que agotan el tiempo de sondeo rápido produciendo `<urlopen error timed out>`.
+- Como `transporte.py` reservaba `ErrorConexionRechazada` solo para el codigo de error `10061`, el timeout lanzaba `ErrorProcesamiento`.
+- En `HiloListarModelos`, la excepcion `ErrorProcesamiento` no era interceptada como señal de servidor apagado, lo que impedia activar el paso 2 de auto-arranque (`[INFO] Servicio Ollama detenido. Levantando servidor local...`), mostrando alertas repetitivas de timeout en la interfaz.
+
+## 2. Solucion Implementada
+1. **`hilos.py` (`HiloListarModelos`)**:
+   - Se amplio la guarda del paso 1 para capturar `ErrorProcesamiento` cuando el mensaje de error indica `timed out`, `auto_iniciar` esta activo y el ejecutable local de Ollama esta disponible en disco.
+   - En ese caso, la aplicacion procede inmediatamente a levantar el servicio local (`ollama serve`) de forma transparente para el usuario.
+2. **`servicio_local.py` (`ServicioLocalOllama.iniciar`)**:
+   - Durante la ventana inicial de sondeo mientras el proceso de Ollama esta arrancando, se tolera el `timed out` temporal del socket, permitiendo que el bucle complete los 2 segundos de inicializacion del servidor.
+
+## 3. Estado de Pruebas y Verificacion en Vivo
+- Prueba en vivo ejecutada directamente sobre el sistema Windows del usuario:
+  - Deteccion de servicio apagado: `[INFO] Servicio Ollama detenido. Levantando servidor local...`.
+  - Arranque automatico supervisado: `[OK] Servidor Ollama iniciado exitosamente. Consultando modelos...`.
+  - Modelos recuperados en vivo: `qwen3:4b-instruct`, `qwen2.5:3b`, `qwen2.5-coder:7b`.
+- 39 pruebas unitarias ejecutadas y aprobadas al 100% (`Ran 39 tests - OK`).
+- Limite de lineas cumplido estrictamente: `hilos.py` (258 lineas) y `servicio_local.py` (133 lineas).
+- Cero emojis verificados en todo el codigo y bitacoras.

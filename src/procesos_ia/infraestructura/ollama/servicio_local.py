@@ -77,6 +77,9 @@ class ServicioLocalOllama:
                 return True
             except ErrorConexionRechazada:
                 pass
+            except ErrorProcesamiento as err_ini:
+                if "timed out" not in str(err_ini).lower():
+                    raise
             if cancelacion is not None and cancelacion.is_set():
                 return False
             if time.monotonic() >= fin:
@@ -116,6 +119,15 @@ class ServicioLocalOllama:
                         cancelacion.wait(espera)
                     else:
                         time.sleep(espera)
+                except ErrorProcesamiento as err_sond:
+                    if "timed out" in str(err_sond).lower():
+                        espera = min(self._parametros["intervalo_sondeo_segundos"], restante)
+                        if cancelacion is not None:
+                            cancelacion.wait(espera)
+                        else:
+                            time.sleep(espera)
+                    else:
+                        raise
             raise ErrorProcesamiento("Ollama aun no responde; no se confirma el arranque")
         finally:
             self._bloqueo.release()

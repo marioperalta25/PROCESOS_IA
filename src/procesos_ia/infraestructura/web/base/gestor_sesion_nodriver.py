@@ -103,6 +103,10 @@ class GestorSesionNodriver:
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
+            "--disable-session-crashed-bubble",
+            "--hide-crash-restore-bubble",
+            "--disable-features=InfiniteSessionRestore",
+            "--disable-notifications",
         ]
 
         logger.info("[INFO] Iniciando sesion de navegador Nodriver...")
@@ -126,7 +130,9 @@ class GestorSesionNodriver:
 
         # Aplicar modo flotante sin foco tras el arranque
         await asyncio.sleep(1.0)
-        aplicar_modo_flotante_sin_foco(patrones_ventana, self._config.ventana)
+        aplicar_modo_flotante_sin_foco(
+            patrones_ventana, self._config.ventana, pid_esperado=self._pid_navegador
+        )
 
         return self._navegador
 
@@ -144,7 +150,9 @@ class GestorSesionNodriver:
             await self._pestana_activa.get(url_destino)
 
         await asyncio.sleep(0.5)
-        aplicar_modo_flotante_sin_foco(patrones_ventana, self._config.ventana)
+        aplicar_modo_flotante_sin_foco(
+            patrones_ventana, self._config.ventana, pid_esperado=self._pid_navegador
+        )
         return self._pestana_activa
 
     async def abrir_nueva_pestana(
@@ -160,28 +168,33 @@ class GestorSesionNodriver:
             pestana = await navegador.get(url_destino)
 
         await asyncio.sleep(0.5)
-        aplicar_modo_flotante_sin_foco(patrones_ventana, self._config.ventana)
+        aplicar_modo_flotante_sin_foco(
+            patrones_ventana, self._config.ventana, pid_esperado=self._pid_navegador
+        )
         return pestana
 
     async def cerrar(self) -> None:
-        """Cierra el navegador de forma controlada y libera recursos."""
+        """Cierra el navegador de forma controlada y libera recursos con timeout estricto."""
         if self._navegador is not None:
             proc = getattr(self._navegador, "_process", None)
             pid = getattr(proc, "pid", None) if proc else None
             try:
                 if self._pestana_activa is not None:
                     try:
-                        await self._pestana_activa.close()
+                        await asyncio.wait_for(self._pestana_activa.close(), timeout=0.8)
                     except Exception:
                         pass
                 conn = getattr(self._navegador, "connection", None)
                 if conn is not None and hasattr(conn, "disconnect"):
                     try:
-                        await conn.disconnect()
+                        await asyncio.wait_for(conn.disconnect(), timeout=0.8)
                     except Exception:
                         pass
-                await asyncio.sleep(0.1)
-                self._navegador.stop()
+                await asyncio.sleep(0.05)
+                try:
+                    self._navegador.stop()
+                except Exception:
+                    pass
             except Exception as error:
                 logger.warning(
                     "[ALERTA] Detencion de navegador con advertencia: %s", error
@@ -195,6 +208,18 @@ class GestorSesionNodriver:
                 self._config.limpiar_bloqueos_perfil()
                 self._config.limpiar_imagenes_temporales()
                 logger.info("[INFO] Sesion de navegador cerrada correctamente.")
+
+    def forzar_cierre_inmediato(self) -> None:
+        """Termina los procesos inmediatamente y limpia referencias para evitar llamadas CDP pendientes."""
+        pid = self._pid_navegador
+        if self._navegador is not None:
+            proc = getattr(self._navegador, "_process", None)
+            pid = getattr(proc, "pid", None) if proc else pid
+        self._navegador = None
+        self._pestana_activa = None
+        self._pid_navegador = None
+        terminar_arbol_procesos(pid)
+        self._config.limpiar_bloqueos_perfil()
 
     async def cerrar_navegador(self) -> None:
         """Alias de compatibilidad para cerrar la sesion de navegador."""

@@ -32,19 +32,34 @@ class PanelArchivoGeneral(QGroupBox):
     archivo_cargado = Signal(Path, list)
     log_notificado = Signal(str)
 
-    def __init__(self, parent: QWidget | None = None, enrutador: EnrutadorSalidas | None = None) -> None:
-        super().__init__("Gestión de Archivo Tabular y Columnas", parent)
+    def __init__(
+        self, parent: QWidget | None = None, enrutador: EnrutadorSalidas | None = None,
+        nombre_modulo: str = "IA Web",
+    ) -> None:
+        super().__init__(f"Gestión de Archivo Tabular y Columnas ({nombre_modulo})", parent)
         self._enrutador = enrutador or EnrutadorSalidas()
+        self._nombre_modulo = nombre_modulo
         self._ruta_csv: Path | None = None
         self._columnas: list[str] = []
         self._iniciar_ui()
+
+    def establecer_modulo(self, nombre_modulo: str) -> None:
+        """Personaliza etiquetas y encabezados segun el motor o modulo en uso."""
+        self._nombre_modulo = nombre_modulo
+        self.setTitle(f"Gestión de Archivo Tabular y Columnas ({nombre_modulo})")
+        if hasattr(self, "lbl_guia_archivo"):
+            self.lbl_guia_archivo.setText(f"[INFO] 1. Archivo: Seleccione el archivo CSV o Excel a evaluar en {nombre_modulo}.")
+        if hasattr(self, "lbl_columnas"):
+            self.lbl_columnas.setText(f"Columnas a evaluar en {nombre_modulo} (con delimitador '|'):")
+        if hasattr(self, "btn_examinar"):
+            self.btn_examinar.setToolTip(f"Buscar archivo .csv o Excel para {nombre_modulo} en el disco local.")
 
     def _iniciar_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(6)
 
-        self.lbl_guia_archivo = QLabel("[INFO] 1. Archivo: Seleccione un archivo CSV o Excel para extracción con Google Lens.", self)
+        self.lbl_guia_archivo = QLabel(f"[INFO] 1. Archivo: Seleccione un archivo CSV o Excel a evaluar en {self._nombre_modulo}.", self)
         self.lbl_guia_archivo.setStyleSheet("color: #58615B; font-size: 11px;")
         layout.addWidget(self.lbl_guia_archivo)
 
@@ -114,6 +129,7 @@ class PanelArchivoGeneral(QGroupBox):
         self.combo_columna_img.addItem("(Ninguna)", "")
         layout_img.addWidget(self.combo_columna_img, stretch=1)
         layout.addWidget(self.fila_columna_img)
+        self.fila_columna_img.setVisible(False)
 
     def configurar_modo_imagen(self, habilitado: bool) -> None:
         """Muestra u oculta el selector de columna de imagen según la operación."""

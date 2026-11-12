@@ -42,6 +42,8 @@ class ProcesadorCarpetaImagenes:
         self._enrutador = enrutador
         self._config = configuracion
         self._ejecutor_lens = ejecutor_lens
+        from procesos_ia.aplicacion.comun.gestor_checkpoint_imagenes import GestorCheckpointImagenes
+        self._gestor_cp = GestorCheckpointImagenes(enrutador)
 
     async def ejecutar(
         self,
@@ -137,6 +139,9 @@ class ProcesadorCarpetaImagenes:
 
                 t_total = asyncio.get_event_loop().time() - t_inicio
                 con_ia = sum(1 for f in resultados if f.estado_ia == "EXITOSO")
+                if resultados:
+                    filas_dicts = [f.a_diccionario() for f in resultados]
+                    self._gestor_cp.actualizar_checkpoint(carpeta, "imagenes", filas_dicts, ruta_csv)
                 if callback_log:
                     callback_log(f"[OK] Lote finalizado ({con_ia}/{len(resultados)} con IA). Tiempo: {t_total:.1f}s.")
                     callback_log(f"[OK] Guardado en CSV: {ruta_csv.resolve()}")
@@ -151,4 +156,7 @@ class ProcesadorCarpetaImagenes:
                 if estado == "completados" and any(f.estado_ia.startswith(("ERROR", "TIMEOUT")) for f in resultados):
                     estado = "fallidos"
                 ruta_csv = salida.finalizar(estado)
+                if resultados:
+                    filas_dicts = [f.a_diccionario() for f in resultados]
+                    self._gestor_cp.actualizar_checkpoint(carpeta, "imagenes", filas_dicts, ruta_csv)
             return resultados, ruta_csv

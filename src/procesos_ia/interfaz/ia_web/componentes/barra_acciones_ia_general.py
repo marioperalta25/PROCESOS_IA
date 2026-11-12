@@ -44,7 +44,7 @@ class BarraAccionesIAGeneral(QWidget):
         self.btn_ejecutar = QPushButton(self)
         self.btn_ejecutar.setMinimumHeight(32)
         self.btn_ejecutar.setToolTip("Conecta al navegador Chrome y ejecuta la evaluación automática por lotes.")
-        conectar_boton_protegido(self.btn_ejecutar, al_ejecutar, "[INFO] Iniciando...", 800)
+        conectar_boton_protegido(self.btn_ejecutar, al_ejecutar, "[INFO] Iniciando...", auto_desbloquear=False)
         layout_botones.addWidget(self.btn_ejecutar, stretch=2)
 
         self.btn_cancelar = QPushButton(self)

@@ -1,4 +1,4 @@
-﻿"""Servicio de inferencia web que implementa ServicioInferenciaProtocol."""
+"""Servicio de inferencia web que implementa ServicioInferenciaProtocol."""
 
 from __future__ import annotations
 

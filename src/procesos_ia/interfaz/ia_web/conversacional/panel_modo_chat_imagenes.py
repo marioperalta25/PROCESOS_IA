@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QLineEdit, QPushButton, QSpinBox, QVBoxLayout, QWidget,
 )
 
+from procesos_ia.aplicacion.comun.gestor_checkpoint_imagenes import GestorCheckpointImagenes
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
     listar_imagenes_carpeta,
@@ -29,12 +30,28 @@ class PanelModoChatImagenes(QWidget):
         self,
         enrutador: EnrutadorSalidas | None = None,
         parent: QWidget | None = None,
+        nombre_modulo: str = "IA",
     ) -> None:
         super().__init__(parent)
         self._enrutador = enrutador or EnrutadorSalidas()
+        self._nombre_modulo = nombre_modulo
         self._carpeta_imagenes: Path | None = None
         self._carpeta_salida_custom: Path | None = None
         self._iniciar_ui()
+
+    def establecer_modulo(self, nombre_modulo: str) -> None:
+        """Personaliza etiquetas segun el motor en ejecucion."""
+        self._nombre_modulo = nombre_modulo
+        if hasattr(self, "grupo_carpeta"):
+            self.grupo_carpeta.setTitle(f"Carpeta Local de Imágenes ({nombre_modulo})")
+        if hasattr(self, "lbl_guia_carpeta"):
+            self.lbl_guia_carpeta.setText(f"[INFO] 1. Carpeta: Seleccione el directorio de imágenes para evaluar en {nombre_modulo} (1 a 1).")
+        if hasattr(self, "grupo_campos"):
+            self.grupo_campos.setTitle(f"Campos de Extracción para {nombre_modulo}")
+        if hasattr(self, "lbl_guia_campos"):
+            self.lbl_guia_campos.setText(f"Marque los datos que {nombre_modulo} debe extraer en cada imagen:")
+        if hasattr(self, "txt_instrucciones_extra"):
+            self.txt_instrucciones_extra.setPlaceholderText(f"Instrucciones o reglas específicas para {nombre_modulo} (opcional)...")
 
     def _iniciar_ui(self) -> None:
         layout_principal = QVBoxLayout(self)
@@ -42,11 +59,11 @@ class PanelModoChatImagenes(QWidget):
         layout_principal.setSpacing(6)
 
         # 1. Gestion de Carpeta de Imagenes
-        grupo_carpeta = QGroupBox("Carpeta Local de Imágenes", self)
-        layout_c = QVBoxLayout(grupo_carpeta)
+        self.grupo_carpeta = QGroupBox(f"Carpeta Local de Imágenes ({self._nombre_modulo})", self)
+        layout_c = QVBoxLayout(self.grupo_carpeta)
         layout_c.setContentsMargins(8, 8, 8, 8); layout_c.setSpacing(4)
 
-        self.lbl_guia_carpeta = QLabel("[INFO] 1. Carpeta: Seleccione el directorio que contiene las imágenes (.jpg, .png, .webp).", self)
+        self.lbl_guia_carpeta = QLabel(f"[INFO] 1. Carpeta: Seleccione el directorio de imágenes para evaluar en {self._nombre_modulo} (1 a 1).", self)
         self.lbl_guia_carpeta.setStyleSheet("color: #58615B; font-size: 11px;")
         layout_c.addWidget(self.lbl_guia_carpeta)
 
@@ -54,7 +71,7 @@ class PanelModoChatImagenes(QWidget):
         self.input_carpeta = QLineEdit(self); self.input_carpeta.setMinimumHeight(28)
         self.input_carpeta.setPlaceholderText("Seleccionar carpeta con imágenes...")
         self.btn_examinar = QPushButton("Examinar Carpeta...", self); self.btn_examinar.setMinimumHeight(28)
-        self.btn_examinar.setToolTip("Buscar directorio con imágenes en disco local.")
+        self.btn_examinar.setToolTip(f"Buscar directorio con imágenes para {self._nombre_modulo} en disco local.")
         conectar_boton_protegido(self.btn_examinar, self._abrir_dialogo_carpeta, "[INFO] Seleccionando...", 500)
         layout_sel.addWidget(self.input_carpeta, stretch=1); layout_sel.addWidget(self.btn_examinar)
         layout_c.addLayout(layout_sel)
@@ -62,15 +79,15 @@ class PanelModoChatImagenes(QWidget):
         self.lbl_conteo = QLabel("Imágenes detectadas: 0", self)
         self.lbl_conteo.setStyleSheet("font-weight: bold; color: #1E293B;")
         layout_c.addWidget(self.lbl_conteo)
-        layout_principal.addWidget(grupo_carpeta)
+        layout_principal.addWidget(self.grupo_carpeta)
 
         # 2. Checkboxes de Campos Requeridos
-        grupo_campos = QGroupBox("Campos de Extracción para la IA", self)
-        layout_campos = QVBoxLayout(grupo_campos)
+        self.grupo_campos = QGroupBox(f"Campos de Extracción para {self._nombre_modulo}", self)
+        layout_campos = QVBoxLayout(self.grupo_campos)
         layout_campos.setContentsMargins(8, 8, 8, 8); layout_campos.setSpacing(4)
 
         layout_botones_sel = QHBoxLayout()
-        self.lbl_guia_campos = QLabel("Marque los datos que la IA debe extraer en cada imagen:", self)
+        self.lbl_guia_campos = QLabel(f"Marque los datos que {self._nombre_modulo} debe extraer en cada imagen:", self)
         layout_botones_sel.addWidget(self.lbl_guia_campos); layout_botones_sel.addStretch()
         self.btn_todos = QPushButton("Todas", self); self.btn_todos.setMinimumHeight(24); self.btn_todos.setMinimumWidth(75)
         conectar_boton_protegido(self.btn_todos, self._marcar_todos, "[INFO] Marcando...", 300)
@@ -90,7 +107,7 @@ class PanelModoChatImagenes(QWidget):
         layout_checks.addWidget(self.chk_owner); layout_checks.addWidget(self.chk_address)
         layout_checks.addWidget(self.chk_espanol)
         layout_campos.addLayout(layout_checks)
-        layout_principal.addWidget(grupo_campos)
+        layout_principal.addWidget(self.grupo_campos)
 
         # 3. Criterios Adicionales y Rotacion
         grupo_params = QGroupBox("Instrucciones Adicionales y Rotación", self)
@@ -133,24 +150,29 @@ class PanelModoChatImagenes(QWidget):
         """Carga la carpeta y contabiliza las imagenes compatibles."""
         self._carpeta_imagenes = ruta
         self.input_carpeta.setText(str(ruta))
-        dir_sal = self._carpeta_salida_custom or self._enrutador.modo_ia
-        nombres_manif = None
-        if hasattr(self._enrutador, "manifiesto_imagenes"):
-            nombres_manif = self._enrutador.manifiesto_imagenes.obtener_procesadas(ruta.name)
-        estado = verificar_estado_carpeta_imagenes(
-            ruta, dir_sal, prefijo="modo_ia_imagenes", columna_fuente="archivo_imagen",
-            nombres_manifiesto=nombres_manif,
-        )
-        if estado.imagenes_procesadas_count > 0:
+        nom_m = self._nombre_modulo.lower()
+        if "gemini" in nom_m:
+            mod_cod = "gemini"
+        elif "deepseek" in nom_m:
+            mod_cod = "deepseek"
+        else:
+            mod_cod = "modo_ia"
+
+        gestor_cp = GestorCheckpointImagenes(self._enrutador)
+        estado_cp = gestor_cp.evaluar_carpeta(ruta, modulo=mod_cod)
+        if not estado_cp.es_nueva and (estado_cp.exitosas or estado_cp.fallidas):
+            cant_exitosas = len(estado_cp.exitosas)
+            cant_pend = estado_cp.total_pendientes_o_fallidas
+            txt_mot = f" con [{estado_cp.ultimo_motor.upper()}]" if estado_cp.ultimo_motor else ""
             self.lbl_conteo.setText(
-                f"Imágenes: {estado.total_imagenes} total ({estado.imagenes_procesadas_count} procesadas, {len(estado.imagenes_pendientes)} pendientes)"
+                f"Imágenes: {estado_cp.total_disco} total ({cant_exitosas} procesadas{txt_mot}, {cant_pend} pendientes)"
             )
             self.log_notificado.emit(
-                f"[INFO] Historial previo encontrado: {estado.imagenes_procesadas_count} procesadas, {len(estado.imagenes_pendientes)} pendientes."
+                f"[INFO] Historial previo encontrado{txt_mot}: {cant_exitosas} procesadas, {cant_pend} pendientes."
             )
         else:
-            self.lbl_conteo.setText(f"Imágenes detectadas: {estado.total_imagenes} (todas pendientes)")
-            self.log_notificado.emit(f"[OK] Carpeta seleccionada: {ruta.name} ({estado.total_imagenes} imágenes detectadas)")
+            self.lbl_conteo.setText(f"Imágenes detectadas: {estado_cp.total_disco} (todas pendientes)")
+            self.log_notificado.emit(f"[OK] Carpeta seleccionada: {ruta.name} ({estado_cp.total_disco} imágenes detectadas)")
 
     def _marcar_todos(self) -> None:
         for chk in (self.chk_negocio, self.chk_telefonos, self.chk_owner, self.chk_address, self.chk_espanol):

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from procesos_ia.infraestructura.web.base.extractor_json import extraer_y_reparar_json
 
@@ -88,16 +88,7 @@ async def pegar_texto_en_elemento(pestana: Any, elem_input: Any, texto: str) -> 
 async def esperar_input_modo_ia(pestana: Any, timeout_segundos: float = 15.0) -> Any | None:
     """Espera reactivamente a que el input este montado y visible en el DOM."""
     inicio = asyncio.get_event_loop().time()
-    js_busca = """
-    (() => {
-        const sels = ["textarea.ITIRGe", "textarea[aria-label*='pregunta']", "textarea.gLFyf", "textarea#ti6dpd", "textarea[name='q']", "textarea"];
-        for (const s of sels) {
-            const el = document.querySelector(s);
-            if (el && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0)) return s;
-        }
-        return null;
-    })()
-    """
+    js_busca = '(() => { const sels = ["textarea.ITIRGe", "textarea[aria-label*=\'pregunta\']", "textarea.gLFyf", "textarea#ti6dpd", "textarea[name=\'q\']", "textarea"]; for (const s of sels) { const el = document.querySelector(s); if (el && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0)) return s; } return null; })()'
     while (asyncio.get_event_loop().time() - inicio) < timeout_segundos:
         try:
             sel = await pestana.evaluate(js_busca)
@@ -195,9 +186,13 @@ async def marcar_turnos_previos_modo_ia(pestana: Any) -> int:
     return await contar_turnos_modo_ia(pestana)
 
 async def esperar_respuesta_modo_ia(
-    pestana: Any, timeout_segundos: int = 45, turnos_previos: int = 0, filas_esperadas: int = 0
+    pestana: Any,
+    timeout_segundos: int = 45,
+    turnos_previos: int = 0,
+    filas_esperadas: int = 0,
+    verificador_cancelacion: Callable[[], bool] | None = None,
 ) -> str:
-    """Vigila el DOM de forma reactiva y extrae limpiamente la respuesta con blindaje multicapa."""
+    """Vigila el DOM de forma reactiva y extrae la respuesta con detección de cancelación."""
     inicio = asyncio.get_event_loop().time()
     ultimo_texto = ""
     ultimo_cambio = inicio
@@ -244,6 +239,8 @@ async def esperar_respuesta_modo_ia(
     })()
     """
     while (asyncio.get_event_loop().time() - inicio) < timeout_segundos:
+        if verificador_cancelacion and verificador_cancelacion():
+            return ""
         try:
             eval_res = await pestana.evaluate(js_extractor)
             estado = {}
@@ -275,19 +272,17 @@ async def esperar_respuesta_modo_ia(
                     if filas_esperadas == 0 or num_lineas >= filas_esperadas:
                         return texto
         except Exception:
-            pass
-        await asyncio.sleep(0.15)
+            if verificador_cancelacion and verificador_cancelacion():
+                return ""
+        for _ in range(2):
+            if verificador_cancelacion and verificador_cancelacion():
+                return ""
+            await asyncio.sleep(0.075)
     return ultimo_texto
 
 async def extraer_html_ultimo_turno(pestana: Any) -> str:
     """Extrae el HTML crudo del ultimo turno para bitacora de auditoria."""
-    js = """
-    (() => {
-        const turns = document.querySelectorAll("[data-scope-id='turn']");
-        const t = (turns && turns.length > 0) ? turns[turns.length - 1] : document.querySelector("div[data-container-id='main-col']");
-        return t ? (t.outerHTML || t.innerHTML || "") : "";
-    })()
-    """
+    js = "(() => { const turns = document.querySelectorAll(\"[data-scope-id='turn']\"); const t = (turns && turns.length > 0) ? turns[turns.length - 1] : document.querySelector(\"div[data-container-id='main-col']\"); return t ? (t.outerHTML || t.innerHTML || '') : ''; })()"
     try:
         res = await pestana.evaluate(js)
         return str(res) if res is not None else ""

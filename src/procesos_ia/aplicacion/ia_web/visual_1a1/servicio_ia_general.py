@@ -44,21 +44,11 @@ class ServicioIAGeneral:
         self._cancelado = False
         self.ultima_salida: Path | None = None
 
-        self._procesador_url = ProcesadorUrlIndividual(
-            self._gestor, self._enrutador, self._config, self.procesar_imagen_lens
-        )
-        self._procesador_archivo = ProcesadorArchivoUrls(
-            self._gestor, self._enrutador, self._config, self.procesar_imagen_lens
-        )
-        self._procesador_carpeta = ProcesadorCarpetaImagenes(
-            self._gestor, self._enrutador, self._config, self.procesar_imagen_lens
-        )
-        self._procesador_modo_ia = ProcesadorModoIA(
-            self._gestor, self._enrutador, self._config
-        )
-        self._procesador_imagenes_chat = ProcesadorImagenesChat(
-            self._gestor, self._enrutador, self._config
-        )
+        self._procesador_url = ProcesadorUrlIndividual(self._gestor, self._enrutador, self._config, self.procesar_imagen_lens)
+        self._procesador_archivo = ProcesadorArchivoUrls(self._gestor, self._enrutador, self._config, self.procesar_imagen_lens)
+        self._procesador_carpeta = ProcesadorCarpetaImagenes(self._gestor, self._enrutador, self._config, self.procesar_imagen_lens)
+        self._procesador_modo_ia = ProcesadorModoIA(self._gestor, self._enrutador, self._config)
+        self._procesador_imagenes_chat = ProcesadorImagenesChat(self._gestor, self._enrutador, self._config)
 
     @property
     def gestor_sesion(self) -> GestorSesionNodriver:
@@ -74,6 +64,12 @@ class ServicioIAGeneral:
     async def cerrar_navegador(self) -> None:
         """Cierra el navegador y limpia la sesion activa."""
         await self._gestor.cerrar_navegador()
+
+    def forzar_cierre_inmediato(self) -> None:
+        """Termina el árbol de procesos de Chromium y remueve bloqueos del perfil."""
+        self._cancelado = True
+        self._gestor.forzar_cierre_inmediato()
+        self._config.limpiar_bloqueos_perfil()
 
     def _guardar_fichas_csv(self, fichas: list[FichaNegocioLens], ruta_salida: Path) -> Path:
         """Compatibilidad para persistencia en lote de fichas de negocio."""
@@ -187,6 +183,8 @@ class ServicioIAGeneral:
         callback_log: Callable[[str], None] | None = None,
         carpeta_salida: Path | None = None,
         generar_auditoria_md: bool = True,
+        salida_existente: Any | None = None,
+        filas_precargadas: list[dict[str, Any]] | None = None,
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Procesa un archivo tabular (CSV o Excel) mediante el subservicio especializado."""
         self._cancelado = False
@@ -199,6 +197,8 @@ class ServicioIAGeneral:
             callback_log=callback_log,
             verificador_cancelacion=lambda: self._cancelado,
             generar_auditoria_md=generar_auditoria_md,
+            salida_existente=salida_existente,
+            filas_precargadas=filas_precargadas,
         )
         self.ultima_salida = resultado[1]
         return resultado
@@ -242,6 +242,7 @@ class ServicioIAGeneral:
         nombre_salida: str = "evaluacion",
         carpeta_salida: Path | None = None,
         generar_auditoria_md: bool = True,
+        salida_existente: Any | None = None,
     ) -> tuple[list[dict[str, Any]], Path | None]:
         """Procesa registros en Modo IA mediante el subservicio conversacional especializado."""
         self._cancelado = False
@@ -257,6 +258,7 @@ class ServicioIAGeneral:
             carpeta_salida=carpeta_salida,
             verificador_cancelacion=lambda: self._cancelado,
             generar_auditoria_md=generar_auditoria_md,
+            salida_existente=salida_existente,
         )
         self.ultima_salida = resultado[1]
         return resultado

@@ -13,6 +13,8 @@ from typing import Any
 
 PERFIL_IA_GENERAL = "perfil_ia_general"
 PERFIL_MOTORES_WEB = "perfil_motores_web"
+PERFIL_DEEPSEEK = "perfil_deepseek"
+PERFIL_GEMINI = "perfil_gemini"
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,7 +47,7 @@ class ConfiguracionWeb:
         default_factory=ConfiguracionVentanaWeb
     )
     max_consultas_por_chat: int = 2
-    tiempo_espera_respuesta_segundos: int = 45
+    tiempo_espera_respuesta_segundos: int = 90
     tiempo_estabilidad_segundos: float = 1.0
     carpeta_imagenes: Path | None = None
     modo_procesamiento: str = "lote"

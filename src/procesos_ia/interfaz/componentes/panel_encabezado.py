@@ -27,6 +27,9 @@ class PanelEncabezado(QWidget):
     solicitar_actualizacion_ollama = Signal()
     solicitar_chat = Signal()
     solicitar_configuracion_motores = Signal()
+    solicitar_deepseek = Signal()
+    solicitar_gemini = Signal()
+    solicitar_ia_general = Signal()
 
     def __init__(
         self,
@@ -118,17 +121,35 @@ class PanelEncabezado(QWidget):
         )
         self.layout_acciones.addWidget(self.btn_chat, stretch=1)
 
-        self.btn_ia_web = QPushButton("IA Web (DeepSeek / Gemini / Lens)", self)
-        self.btn_motores = self.btn_ia_web
-        self.btn_ia_web.setMinimumHeight(32)
-        self.btn_ia_web.setToolTip("Abrir módulo de inferencia web (DeepSeek / Gemini con imágenes y lotes)")
+        self.btn_deepseek = QPushButton("DeepSeek Web", self)
+        self.btn_deepseek.setMinimumHeight(32)
+        self.btn_deepseek.setToolTip("Abrir módulo dedicado de DeepSeek Web con lotes y delimitador |")
         conectar_boton_protegido(
-            self.btn_ia_web,
-            self.solicitar_configuracion_motores.emit,
-            "[INFO] Abriendo módulo de IA Web...",
-            tiempo_bloqueo_ms=800,
+            self.btn_deepseek, self.solicitar_deepseek.emit,
+            "[INFO] Abriendo DeepSeek Web...", tiempo_bloqueo_ms=600,
         )
-        self.layout_acciones.addWidget(self.btn_ia_web, stretch=1)
+        self.layout_acciones.addWidget(self.btn_deepseek, stretch=1)
+
+        self.btn_gemini = QPushButton("Google Gemini Web", self)
+        self.btn_gemini.setMinimumHeight(32)
+        self.btn_gemini.setToolTip("Abrir módulo dedicado de Google Gemini Web con lotes y delimitador |")
+        conectar_boton_protegido(
+            self.btn_gemini, self.solicitar_gemini.emit,
+            "[INFO] Abriendo Google Gemini Web...", tiempo_bloqueo_ms=600,
+        )
+        self.layout_acciones.addWidget(self.btn_gemini, stretch=1)
+
+        self.btn_ia_general = QPushButton("IA General (Lens)", self)
+        self.btn_ia_general.setMinimumHeight(32)
+        self.btn_ia_general.setToolTip("Abrir módulo de IA General (Google Lens y Modo IA)")
+        conectar_boton_protegido(
+            self.btn_ia_general, self.solicitar_ia_general.emit,
+            "[INFO] Abriendo IA General...", tiempo_bloqueo_ms=600,
+        )
+        self.layout_acciones.addWidget(self.btn_ia_general, stretch=1)
+
+        self.btn_ia_web = self.btn_deepseek
+        self.btn_motores = self.btn_deepseek
 
         layout_raiz.addLayout(self.layout_acciones)
 
@@ -142,12 +163,16 @@ class PanelEncabezado(QWidget):
         if modo == ModoPantalla.COMPACTO:
             self.label_subtitulo.setVisible(False)
             self.btn_refrescar.setText("Reconectar")
-            self.btn_ia_web.setText("IA Web")
+            self.btn_deepseek.setText("DeepSeek")
+            self.btn_gemini.setText("Gemini")
+            self.btn_ia_general.setText("Lens")
             self.label_emblema.setFixedSize(40, 40)
         else:
             self.label_subtitulo.setVisible(True)
             self.btn_refrescar.setText("Conectar / Iniciar Ollama")
-            self.btn_ia_web.setText("IA Web (DeepSeek / Gemini / Lens)")
+            self.btn_deepseek.setText("DeepSeek Web")
+            self.btn_gemini.setText("Google Gemini Web")
+            self.btn_ia_general.setText("IA General (Lens)")
             self.label_emblema.setFixedSize(52, 52)
 
     def actualizar_estado_ollama(self, diagnostico: DiagnosticoOllama) -> None:

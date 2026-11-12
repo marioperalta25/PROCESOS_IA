@@ -76,7 +76,9 @@ class SalidaProceso:
     def __exit__(self, tipo, error, traza) -> None:
         if error is not None and self.estado == "en_proceso":
             try:
-                self.finalizar("fallidos")
+                nom_err = tipo.__name__ if tipo else ""
+                estado_err = "cancelados" if "Cancel" in nom_err else "fallidos"
+                self.finalizar(estado_err)
                 error.add_note(f"Los archivos del trabajo se conservan en {self.directorio}")
             except OSError as fallo:
                 error.add_note(f"La salida se conserva en {self.directorio}: {fallo}")
@@ -109,7 +111,19 @@ class GestorSalidasProceso:
                 salida = SalidaProceso(rama, archivo.parent, archivo.name, self.configuracion, estado)
                 salida.finalizar("en_proceso")
                 return salida
-        # Los resultados antiguos siguen bajo el control de su consumidor.
+
+        # Si el archivo pertenece a otra rama registrada (ej. creado por Gemini y retomado en IA General)
+        for mod_reg in self.configuracion.get("modulos", {}):
+            try:
+                rama_otra = self.rama(mod_reg).resolve()
+                for estado, carpeta in self.configuracion["estados"].items():
+                    if archivo.parent.parent == rama_otra / carpeta:
+                        salida = SalidaProceso(rama_otra, archivo.parent, archivo.name, self.configuracion, estado)
+                        salida.finalizar("en_proceso")
+                        return salida
+            except Exception:
+                continue
+
         return None
 
     def reservar(

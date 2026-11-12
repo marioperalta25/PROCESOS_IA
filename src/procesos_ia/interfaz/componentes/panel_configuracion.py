@@ -45,7 +45,7 @@ class PanelConfiguracionIA(QGroupBox):
 
         # 1. Selector de modelo Ollama
         layout_modelo = QHBoxLayout()
-        self.label_modelo = QLabel("Modelo Ollama:", self)
+        self.label_modelo = QLabel("Modelo Ollama Local:", self)
         layout_modelo.addWidget(self.label_modelo)
 
         self.combo_modelos = QComboBox(self)
@@ -64,7 +64,7 @@ class PanelConfiguracionIA(QGroupBox):
 
         # 2. Selector de prompt y boton para abrir catalogo
         layout_prompt = QHBoxLayout()
-        self.label_prompt = QLabel("Prompt / Instrucción:", self)
+        self.label_prompt = QLabel("Prompt / Instrucción Local:", self)
         layout_prompt.addWidget(self.label_prompt)
 
         self.combo_prompts = QComboBox(self)

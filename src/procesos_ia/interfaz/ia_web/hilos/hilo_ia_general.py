@@ -35,7 +35,10 @@ class HiloIAGeneral(QThread):
         try:
             asyncio.run(self._ejecutar_accion())
         except Exception as error:
-            self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
+            if getattr(self._servicio, "_cancelado", False):
+                self.senial_log.emit("[INFO] Hilo IA General detenido por cancelacion del usuario.")
+            else:
+                self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
 
     async def _ejecutar_accion(self) -> None:
         def notificar_progreso(actual: int, total: int, detalle: str) -> None:
@@ -88,10 +91,13 @@ class HiloIAGeneral(QThread):
             columna = self._parametros.get("columna", "")
             nombre_hoja = self._parametros.get("nombre_hoja")
             c_sal = Path(self._parametros["carpeta_salida"]) if self._parametros.get("carpeta_salida") else None
+            sal_ext = self._parametros.get("salida_existente")
+            filas_pre = self._parametros.get("filas_precargadas")
             notificar_log(f"[INFO] Procesando archivo con imágenes en columna '{columna}': {ruta_csv.name}")
             fichas, salida = await self._servicio.procesar_csv_con_lens(
                 ruta_csv, columna, notificar_progreso, notificar_log, carpeta_salida=c_sal,
                 generar_auditoria_md=gen_md, nombre_hoja=nombre_hoja,
+                salida_existente=sal_ext, filas_precargadas=filas_pre,
             )
             con_ia = sum(1 for f in fichas if f.estado_ia == "EXITOSO")
             ruta_abs = str(salida.resolve())
@@ -109,11 +115,13 @@ class HiloIAGeneral(QThread):
             tamano = int(self._parametros.get("tamano_lote", 5))
             lotes_conv = int(self._parametros.get("lotes_por_conversacion", 5))
             nombre = self._parametros.get("nombre_salida", "evaluacion")
+            salida_ext = self._parametros.get("salida_existente")
             notificar_log(f"[INFO] Iniciando evaluación en Modo IA con lotes de {tamano} ({lotes_conv} lotes/chat)...")
             resultado, ruta_salida = await self._servicio.procesar_modo_ia_lote(
                 filas, instrucciones, columnas, tamano, lotes_conv, notificar_progreso, notificar_log, nombre,
                 carpeta_salida=self._parametros.get("carpeta_salida"),
                 generar_auditoria_md=gen_md,
+                salida_existente=salida_ext,
             )
             ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"
             notificar_log(f"[OK] Modo IA completado con {len(resultado)} respuestas.")
@@ -155,5 +163,6 @@ class HiloIAGeneral(QThread):
             self.proceso_fallido.emit(f"[ERROR] Acción no reconocida: {self._tipo_accion}")
 
     def cancelar(self) -> None:
-        """Solicita la cancelacion anticipada del proceso."""
+        """Solicita la cancelacion anticipada y cierra de inmediato el navegador."""
         self._servicio.cancelar()
+        self._servicio.forzar_cierre_inmediato()

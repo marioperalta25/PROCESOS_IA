@@ -44,7 +44,7 @@ class PanelArchivos(QGroupBox):
         parent: QWidget | None = None,
         enrutador: EnrutadorSalidas | None = None,
     ) -> None:
-        super().__init__("1. Datos de Entrada y Destino", parent)
+        super().__init__("1. Datos de Entrada y Destino (Ollama Local)", parent)
         self._enrutador = enrutador or EnrutadorSalidas()
         self._ruta_entrada: Path | None = None
         self._raiz_salidas = self._enrutador.raiz
@@ -120,7 +120,7 @@ class PanelArchivos(QGroupBox):
 
         # 2. Segmento de columnas detectadas
         layout_columnas_header = QHBoxLayout()
-        self.label_columnas = QLabel("Columnas a evaluar por el modelo local (marque las deseadas):", self)
+        self.label_columnas = QLabel("Columnas a evaluar por Ollama Local (marque las deseadas):", self)
         layout_columnas_header.addWidget(self.label_columnas, stretch=1)
 
         self.btn_todas_cols = QPushButton("Todas", self)
@@ -149,7 +149,7 @@ class PanelArchivos(QGroupBox):
 
         # 3. Fila de seleccion de carpeta de salida
         layout_salida = QHBoxLayout()
-        self.label_salida = QLabel("Carpeta de salida:", self)
+        self.label_salida = QLabel("Carpeta de salida (Ollama Local):", self)
         layout_salida.addWidget(self.label_salida)
         self.input_salida = QLineEdit(str(self._ruta_salida), self)
         self.input_salida.setReadOnly(True)

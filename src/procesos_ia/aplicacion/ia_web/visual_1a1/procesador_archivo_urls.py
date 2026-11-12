@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ from procesos_ia.aplicacion.ia_web.comun.guardador_extracciones import (
     guardar_auditoria_extraccion_md,
     guardar_filas_enriquecidas_csv,
 )
+from procesos_ia.dominio.reanudacion import EstadoIA
 from procesos_ia.dominio.ia_web.desglosador_telefonos import desglosar_ficha_por_telefono
 from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
 from procesos_ia.infraestructura.archivos.fabrica_lectores import crear_lector_flujo
@@ -64,15 +66,17 @@ class ProcesadorArchivoUrls:
         callback_log: Callable[[str], None] | None = None,
         verificador_cancelacion: Callable[[], bool] | None = None,
         generar_auditoria_md: bool = True,
+        salida_existente: Any | None = None,
+        filas_precargadas: list[dict[str, Any]] | None = None,
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Procesa registros del archivo tabular enriqueciendolos con datos de Google Lens."""
         t_inicio = asyncio.get_event_loop().time()
-        filas = leer_filas_archivo_tabular(ruta_archivo, nombre_hoja=nombre_hoja)
+        filas = filas_precargadas if filas_precargadas is not None else leer_filas_archivo_tabular(ruta_archivo, nombre_hoja=nombre_hoja)
         total = len(filas)
         resultados: list[FichaNegocioLens] = []
         filas_enriquecidas: list[dict[str, Any]] = []
 
-        salida = self._enrutador.reservar_salida(
+        salida = salida_existente or self._enrutador.reservar_salida(
             "imagenes", f"enriquecido_lens_{ruta_archivo.stem}.csv", raiz_destino=carpeta_salida,
         )
         ruta_salida = salida.ruta
@@ -124,9 +128,17 @@ class ProcesadorArchivoUrls:
 
                     fichas_duplicadas = desglosar_ficha_por_telefono(ficha)
                     resultados.extend(fichas_duplicadas)
+                    ahora_iso = datetime.now(timezone.utc).isoformat()
+                    est_val = EstadoIA.EXITOSO.value if ficha.estado_ia == "EXITOSO" else (
+                        EstadoIA.FALLIDO.value if "ERROR" in ficha.estado_ia or "TIMEOUT" in ficha.estado_ia else EstadoIA.OMITIDO.value
+                    )
+                    motivo = f"[{est_val}] {ficha.estado_ia}"
                     for f_dup in fichas_duplicadas:
                         fila_salida = dict(fila)
                         fila_salida.update(f_dup.a_diccionario(normalizado=True))
+                        fila_salida["_estado_ia"] = est_val
+                        fila_salida["_motivo_estado"] = motivo
+                        fila_salida["_fecha_procesamiento"] = ahora_iso
                         filas_enriquecidas.append(fila_salida)
 
                     if generar_auditoria_md:

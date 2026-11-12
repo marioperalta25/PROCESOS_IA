@@ -90,6 +90,11 @@ class EnrutadorSalidas:
         return self._raiz / "extracciones"
 
     @property
+    def modo_ia(self) -> Path:
+        """Subcarpeta para resultados de IA General / Conversacional."""
+        return self.extracciones / "ia_general"
+
+    @property
     def reportes(self) -> Path:
         """Subcarpeta central para reportes y exportaciones analiticas."""
         return self._raiz / "reportes"

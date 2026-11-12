@@ -86,33 +86,13 @@ class VistaConfiguracionMotores(QWidget):
 
     def _al_cambiar_operacion(self) -> None:
         op = self.combo_operacion.currentData()
-        es_neg = op == "extraccion_negocios_imagenes"
-        self.panel_imagenes_1a1.setVisible(es_neg)
-        self.grupo_prompt.setVisible(not es_neg); self.widget_opts.setVisible(not es_neg)
-        if es_neg:
-            self.panel_archivo.setVisible(False); self.grupo_directo.setVisible(False); return
-        es_csv_texto, es_csv_img = op == "csv_texto", op == "csv_imagen"
-        es_csv = es_csv_texto or es_csv_img
-        self.panel_archivo.setVisible(es_csv); self.panel_archivo.configurar_modo_imagen(es_csv_img)
-        self.grupo_directo.setVisible(not es_csv)
-        if op == "carpeta_imagenes":
-            self.grupo_directo.setTitle("Entrada de Carpeta de Imágenes (Modo Tsukuyomi)")
-            self.lbl_directo.setText("Carpeta de Imágenes:"); self.btn_examinar_directo.setText("Examinar Carpeta...")
-        elif op == "imagen_individual":
-            self.grupo_directo.setTitle("Entrada de Imagen Individual")
-            self.lbl_directo.setText("Archivo de Imagen:"); self.btn_examinar_directo.setText("Examinar Imagen...")
-        self.spin_lote.setEnabled(es_csv_texto)
-        self.input_imagenes.setVisible(es_csv_img); self.btn_examinar_imagenes.setVisible(es_csv_img)
-
-    def _abrir_dialogo_directo(self) -> None:
-        op, base_dir = self.combo_operacion.currentData(), self._servicio_proc._enrutador.imagenes
-        base_dir.mkdir(parents=True, exist_ok=True)
-        if op == "carpeta_imagenes":
-            d = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta", str(base_dir))
-            if d: self.input_directo.setText(d)
-        else:
-            f, _ = QFileDialog.getOpenFileName(self, "Seleccionar Imagen", str(base_dir), "Imágenes (*.jpg *.jpeg *.png *.webp *.bmp)")
-            if f: self.input_directo.setText(f)
+        es_img = op in ("extraccion_negocios_imagenes", "carpeta_imagenes")
+        self.panel_imagenes_1a1.setVisible(es_img)
+        self.panel_archivo.setVisible(not es_img)
+        self.grupo_prompt.setVisible(not es_img)
+        self.widget_opts.setVisible(not es_img)
+        self.spin_lote.setEnabled(not es_img)
+        if hasattr(self, "grupo_directo"): self.grupo_directo.setVisible(es_img)
 
     def _obtener_servicio_prompts(self):
         if not hasattr(self, "_servicio_prompts") or self._servicio_prompts is None:
@@ -173,42 +153,24 @@ class VistaConfiguracionMotores(QWidget):
                 campos_activos=params_img["campos_activos"], instrucciones=params_img.get("instrucciones_extra", ""),
                 rotacion_chat=params_img.get("rotacion_chat", 2), archivos_especificos=estado.imagenes_pendientes,
                 modo_escritura=("reanudar" if estado.csv_existente else "sobrescribir"),
-                csv_existente=estado.csv_existente, carpeta_salida=dest, parent=self,
+                csv_existente=estado.csv_existente, carpeta_salida=dest,
+                generar_auditoria_md=self.check_auditoria_md.isChecked(), parent=self,
             )
         else:
             inst = self.txt_instrucciones.toPlainText().strip()
             if not inst:
                 self.banner.mostrar_error("[ALERTA] Ingrese instrucciones o seleccione una plantilla."); return
-            if op in ("csv_texto", "csv_imagen"):
-                ruta = self.panel_archivo.obtener_ruta_csv()
-                if not ruta or not ruta.is_file():
-                    self.banner.mostrar_error("[ALERTA] Seleccione un archivo CSV o Excel válido."); return
-                cols = self.panel_archivo.obtener_columnas_seleccionadas()
-                col_img = self.panel_archivo.obtener_columna_imagen() if op == "csv_imagen" else None
-                if not cols and not col_img:
-                    self.banner.mostrar_error("[ALERTA] Seleccione al menos una columna a procesar."); return
-                if op == "csv_imagen" and not col_img:
-                    self.banner.mostrar_error("[ALERTA] Seleccione la columna que contiene los nombres de imagen."); return
-                carp_txt = self.input_imagenes.text().strip()
-                carp = Path(carp_txt) if carp_txt else None
-                if op == "csv_imagen" and (not carp or not carp.is_dir()):
-                    self.banner.mostrar_error("[ALERTA] Seleccione una carpeta válida de imágenes."); return
-                self._hilo_proc = HiloProcesamientoWeb(
-                    self._servicio_proc, motor, ruta_csv=ruta, columnas=cols, instrucciones=inst,
-                    tamano_lote=self.spin_lote.value(), columna_imagen=col_img, carpeta_imagenes=carp,
-                    rotacion_chat=rot, parent=self,
-                )
-            else:
-                txt_d = self.input_directo.text().strip()
-                if not txt_d:
-                    self.banner.mostrar_error("[ALERTA] Seleccione la carpeta o archivo de imagen."); return
-                p_d = Path(txt_d)
-                if (op == "carpeta_imagenes" and not p_d.is_dir()) or (op == "imagen_individual" and not p_d.is_file()):
-                    self.banner.mostrar_error("[ALERTA] La ruta seleccionada no existe en disco."); return
-                self._hilo_proc = HiloProcesamientoWeb(
-                    self._servicio_proc, motor, instrucciones=inst, rotacion_chat=rot,
-                    tipo_operacion=op, ruta_directa=p_d, parent=self,
-                )
+            ruta = self.panel_archivo.obtener_ruta_csv()
+            if not ruta or not ruta.is_file():
+                self.banner.mostrar_error("[ALERTA] Seleccione un archivo CSV o Excel válido."); return
+            cols = self.panel_archivo.obtener_columnas_seleccionadas()
+            if not cols:
+                self.banner.mostrar_error("[ALERTA] Seleccione al menos una columna a procesar."); return
+            self._hilo_proc = HiloProcesamientoWeb(
+                self._servicio_proc, motor, ruta_csv=ruta, columnas=cols, instrucciones=inst,
+                tamano_lote=self.spin_lote.value(), columna_imagen=None, carpeta_imagenes=None,
+                rotacion_chat=rot, generar_auditoria_md=self.check_auditoria_md.isChecked(), parent=self,
+            )
         self.btn_ejecutar.setEnabled(False); self.radio_gemini.setEnabled(False); self.radio_deepseek.setEnabled(False)
         self.combo_operacion.setEnabled(False); self.btn_cancelar.setText("Detener"); liberar_boton_protegido(self.btn_cancelar, habilitar=True)
         self.barra_progreso.setValue(0); self.banner.mostrar_en_proceso(f"[INFO] Procesando en {motor.upper()}...")
@@ -254,11 +216,26 @@ class VistaConfiguracionMotores(QWidget):
         self.combo_modo.setCurrentIndex(1 if self._config_web.modo_procesamiento == "individual" else 0)
         self.input_imagenes.setText(str(self._config_web.carpeta_imagenes or ""))
         self.spin_rotacion.setValue(self._config_web.max_consultas_por_chat); self.panel_opciones.sincronizar_desde_config(self._config_web)
+        self._actualizar_etiquetas_motor()
+
+    def _actualizar_etiquetas_motor(self) -> None:
+        es_gemini = self.radio_gemini.isChecked()
+        nom_largo = "Google Gemini Web" if es_gemini else "DeepSeek Web"
+        nom_corto = "Gemini" if es_gemini else "DeepSeek"
+        if hasattr(self, "lbl_operacion"): self.lbl_operacion.setText(f"Operación {nom_corto}:")
+        if hasattr(self, "panel_archivo"): self.panel_archivo.establecer_modulo(nom_largo)
+        if hasattr(self, "panel_imagenes_1a1"): self.panel_imagenes_1a1.establecer_modulo(nom_largo)
+        if hasattr(self, "grupo_prompt"): self.grupo_prompt.setTitle(f"Instrucciones de Evaluación para {nom_corto} (Prompt)")
+        if hasattr(self, "btn_ejecutar"): self.btn_ejecutar.setText(f"Iniciar Procesamiento en {nom_corto}")
+        if hasattr(self, "btn_cancelar"): self.btn_cancelar.setText(f"Detener {nom_corto}")
+        if hasattr(self, "btn_abrir_salida"): self.btn_abrir_salida.setText(f"Abrir Carpeta de Salida ({nom_corto})")
+        if hasattr(self, "btn_iniciar_sesion"): self.btn_iniciar_sesion.setText(f"Iniciar Sesión / Abrir {nom_corto}")
 
     def _al_cambiar_seleccion_motor(self, _id: int, marcado: bool) -> None:
         if marcado:
             m = "Gemini" if self.radio_gemini.isChecked() else "DeepSeek"
             self.banner.mostrar_info(f"[INFO] Motor activo: {m} Web. Listo para procesar.")
+            self._actualizar_etiquetas_motor()
 
     def _construir_configuracion_web(self) -> ConfiguracionWeb:
         v, r = self.panel_opciones.obtener_ventana_web(), self.input_imagenes.text().strip()

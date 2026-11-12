@@ -37,6 +37,7 @@ class PanelControles(QWidget):
         # Boton Iniciar
         self.btn_iniciar = QPushButton("Iniciar Procesamiento", self)
         self.btn_iniciar.setObjectName("btn_principal")
+        self.btn_iniciar.setToolTip("Iniciar enriquecimiento con el modelo Ollama Local seleccionado")
         conectar_boton_protegido(
             self.btn_iniciar, self.solicitar_iniciar.emit,
             "[INFO] Iniciando verificación y preparación de trabajo...", tiempo_bloqueo_ms=800,

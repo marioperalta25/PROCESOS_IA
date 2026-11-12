@@ -88,6 +88,9 @@ class VentanaPrincipal(QMainWindow):
         for senial, slot in (
             (self.panel_configuracion.solicitar_gestion_prompts, self._abrir_dialogo_prompts),
             (self.panel_encabezado.solicitar_configuracion_motores, self._navegacion.abrir_motores),
+            (self.panel_encabezado.solicitar_deepseek, self._navegacion.abrir_deepseek),
+            (self.panel_encabezado.solicitar_gemini, self._navegacion.abrir_gemini),
+            (self.panel_encabezado.solicitar_ia_general, self._navegacion.abrir_ia_general),
             (self.panel_controles.solicitar_iniciar, self._iniciar_procesamiento),
             (self.panel_controles.solicitar_pausa, self._pausar_procesamiento),
             (self.panel_controles.solicitar_reanudacion, self._reanudar_procesamiento),
@@ -98,8 +101,7 @@ class VentanaPrincipal(QMainWindow):
         establecer_notificador_predeterminado(self.panel_telemetria.agregar_log)
 
     def _actualizar_modelos_segundo_plano(self, auto_iniciar: bool = False) -> None:
-        if self._consulta_activa or self._cierre.pendiente:
-            return
+        if self._consulta_activa or self._cierre.pendiente: return
         self._consulta_activa = True
         if self._hilo_modelos is not None:
             self._hilo_modelos.deleteLater()
@@ -163,21 +165,23 @@ class VentanaPrincipal(QMainWindow):
 
     def _al_guardar_plantilla(self, plantilla: PlantillaPrompt) -> None:
         self._cargar_catalogo_prompts()
-        if self._navegacion.vista_motores: self._navegacion.vista_motores._cargar_plantillas_ia_web()
+        for v in (self._navegacion.vista_motores, self._navegacion.vista_deepseek, self._navegacion.vista_gemini):
+            if v and hasattr(v, "_cargar_plantillas"): v._cargar_plantillas()
+            elif v and hasattr(v, "_cargar_plantillas_ia_web"): v._cargar_plantillas_ia_web()
         if self._navegacion.vista_ia_general: self._navegacion.vista_ia_general.panel_modo_chat._cargar_plantillas()
 
     def _volver_de_prompts(self) -> None:
         origen = getattr(self, "_origen_prompts", None); self._origen_prompts = None
         self._cargar_catalogo_prompts()
-        if origen == "ia_general" and self._navegacion.vista_ia_general:
-            self._navegacion.activar(self._navegacion.vista_ia_general)
-        elif origen == "motores" and self._navegacion.vista_motores:
-            self._navegacion.activar(self._navegacion.vista_motores)
+        vistas = {"ia_general": self._navegacion.vista_ia_general, "deepseek": self._navegacion.vista_deepseek,
+                  "gemini": self._navegacion.vista_gemini, "motores": self._navegacion.vista_motores}
+        dest = vistas.get(str(origen))
+        if dest: self._navegacion.activar(dest)
         else: self._volver_a_principal()
 
     def _volver_a_principal(self) -> None:
-        self.pila_vistas.setCurrentWidget(self.vista_principal)
-        self._cargar_catalogo_prompts()
+        if getattr(self, "_navegacion", None): self._navegacion.limpiar_historial()
+        self.pila_vistas.setCurrentWidget(self.vista_principal); self._cargar_catalogo_prompts()
 
     def _al_seleccionar_plantilla(self, plantilla: PlantillaPrompt) -> None:
         self._cargar_catalogo_prompts()
@@ -237,16 +241,14 @@ class VentanaPrincipal(QMainWindow):
         self._vista_preparacion.restaurar_borrador_si_existe()
         self.pila_vistas.addWidget(self._vista_preparacion); self._navegacion.activar(self._vista_preparacion)
 
-    def _obtener_servicio_inferencia(self):
-        return self._servicio_inferencia
+    def _obtener_servicio_inferencia(self): return self._servicio_inferencia
 
     def _al_configurar_motor(self, tipo: str, cfg_web: ConfiguracionWeb) -> None:
         self._config_web = cfg_web
         self.panel_telemetria.agregar_log(f"[INFO] Configuración de IA Web guardada: {tipo}")
 
     def _al_confirmar_trabajo(self, configuracion: ConfiguracionTrabajo) -> None:
-        if self._cierre.pendiente or not self._navegacion.permitir_inferencia():
-            return
+        if self._cierre.pendiente or not self._navegacion.permitir_inferencia(): return
         from procesos_ia.interfaz.composicion_trabajo import iniciar_trabajo_local
         iniciar_trabajo_local(self, configuracion)
 
@@ -278,8 +280,7 @@ class VentanaPrincipal(QMainWindow):
         if self._cierre.pendiente or not self._navegacion.permitir_inferencia(): return
         modelo = self.panel_configuracion.modelo_seleccionado
         if not modelo:
-            QMessageBox.warning(self, "Modelo requerido", "[ALERTA] Seleccione un modelo.")
-            return
+            QMessageBox.warning(self, "Modelo requerido", "[ALERTA] Seleccione un modelo."); return
         self.panel_telemetria.agregar_log(f"[INFO] Descargando memoria de '{modelo}'...")
         if self._hilo_memoria is not None: self._hilo_memoria.deleteLater()
         self._hilo_memoria = HiloLiberarMemoria(modelo, self._cliente_ollama, self)
