@@ -6,18 +6,17 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QPixmap
 
+from procesos_ia.aplicacion.comun.localizador_recursos import obtener_ruta_recurso
+
 
 class GestorRecursos:
     """Localiza y carga recursos visuales (iconos, emblemas) sin rutas absolutas fijas."""
 
     def __init__(self, directorio_base: Path | None = None) -> None:
         if directorio_base is not None:
-            self._directorio_raiz = directorio_base
+            self._directorio_imagenes = directorio_base / "imagenes"
         else:
-            # Subir desde src/procesos_ia/interfaz hasta la raiz del proyecto
-            self._directorio_raiz = Path(__file__).resolve().parent.parent.parent.parent
-
-        self._directorio_imagenes = self._directorio_raiz / "recursos" / "imagenes"
+            self._directorio_imagenes = obtener_ruta_recurso("imagenes")
 
     @property
     def ruta_icono_aplicacion(self) -> Path:

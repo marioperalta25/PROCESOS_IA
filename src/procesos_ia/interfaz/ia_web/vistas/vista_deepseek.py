@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from PySide6.QtCore import QTimer, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
@@ -17,12 +16,10 @@ from procesos_ia.interfaz.comun.dialogo_checkpoint_imagenes import (
     solicitar_decision_checkpoint_imagenes,
 )
 from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
-    listar_imagenes_carpeta, verificar_estado_carpeta_imagenes,
+    listar_imagenes_carpeta,
 )
-from procesos_ia.aplicacion.ia_web.comun.gestor_reanudacion_tabular import GestorReanudacionTabular
-from procesos_ia.aplicacion.ia_web.comun.gestor_reanudacion_imagenes import GestorReanudacionImagenes
-from procesos_ia.dominio.reanudacion import AccionReanudacion
-from procesos_ia.interfaz.comun.dialogo_reanudacion import solicitar_decision_reanudacion
+from procesos_ia.interfaz.comun.preparacion_tabular import preparar_trabajo_con_dialogo
+from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_archivo_urls import leer_filas_archivo_tabular
 from procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web import ServicioProcesamientoWeb
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb, PERFIL_DEEPSEEK
 from procesos_ia.interfaz.componentes.banner_notificacion import BannerNotificacion
@@ -235,21 +232,20 @@ class VistaDeepSeek(QWidget):
             if not instr:
                 QMessageBox.warning(self, "Prompt requerido", "Ingrese las instrucciones de evaluación.")
                 liberar_boton_protegido(self.btn_ejecutar, habilitar=True); return
-            gestor_tab = GestorReanudacionTabular(self._enrutador)
-            regs_prev, resumen_tab = gestor_tab.evaluar_origen(ruta_csv, modulo="deepseek")
-            salida_ret = None
-            if resumen_tab.requiere_decision:
-                accion = solicitar_decision_reanudacion(resumen_tab, parent=self)
-                if accion == AccionReanudacion.CANCELAR:
-                    liberar_boton_protegido(self.btn_ejecutar, habilitar=True); return
-                if resumen_tab.ruta_respaldo and accion != AccionReanudacion.REINICIAR_TODO:
-                    salida_ret = self._enrutador.gestor_procesos().retomar("deepseek", resumen_tab.ruta_respaldo)
+            hoja = self.panel_archivo.obtener_hoja_seleccionada()
+            trabajo = preparar_trabajo_con_dialogo(
+                self._enrutador, ruta_csv, "deepseek", instr, columnas,
+                leer_filas_archivo_tabular(ruta_csv, hoja), {"hoja": hoja}, parent=self,
+            )
+            if trabajo is None:
+                liberar_boton_protegido(self.btn_ejecutar, habilitar=True)
+                return
             self.btn_ejecutar.setEnabled(False); self.btn_cancelar.setEnabled(True); self.barra_progreso.setValue(0)
             self.consola.agregar_log(f"[INFO] Preparando corrida DeepSeek con {ruta_csv.name}...")
             self._hilo_proc = HiloProcesamientoWeb(
                 servicio=self._servicio_proc, motor="deepseek", ruta_csv=ruta_csv, columnas=columnas,
                 instrucciones=instr, tamano_lote=self.spin_lote.value(), rotacion_chat=self.spin_rotacion.value(),
-                generar_auditoria_md=self.check_auditoria_md.isChecked(), salida_existente=salida_ret, parent=self,
+                generar_auditoria_md=self.check_auditoria_md.isChecked(), trabajo_tabular=trabajo, nombre_hoja=hoja, parent=self,
             )
         self._hilo_proc.senial_log.connect(self.consola.agregar_log); self._hilo_proc.progreso_actualizado.connect(self._al_progreso)
         self._hilo_proc.proceso_completado.connect(self._al_completado); self._hilo_proc.proceso_fallido.connect(self._al_fallo)
@@ -259,8 +255,11 @@ class VistaDeepSeek(QWidget):
         pct = int((act / tot) * 100) if tot > 0 else 0; self.barra_progreso.setValue(pct)
 
     def _al_completado(self, msg: str, ruta_salida: Path) -> None:
-        self._ultima_salida = ruta_salida; self.barra_progreso.setValue(100); self.consola.agregar_log(msg)
+        self._ultima_salida = ruta_salida; self.consola.agregar_log(msg)
+        if not msg.startswith("[ALERTA]") and "cancelad" not in msg.lower():
+            self.barra_progreso.setValue(100)
         if "cancelad" in msg.lower(): self.banner.mostrar_info(f"[INFO] Corrida cancelada. Guardado en: {ruta_salida.name}")
+        elif msg.startswith("[ALERTA]"): self.banner.mostrar_advertencia(msg)
         else: self.banner.mostrar_exito(f"[OK] Archivo guardado: {ruta_salida.name}")
         self.btn_ejecutar.setEnabled(True); self.btn_cancelar.setText("Detener DeepSeek"); self.btn_cancelar.setEnabled(False)
         liberar_boton_protegido(self.btn_ejecutar, habilitar=True)

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 from typing import Any
+from procesos_ia.dominio.excepciones import ErrorPersistenciaTabular
 from PySide6.QtCore import QThread, Signal
 
 from procesos_ia.aplicacion.ia_web.motores.procesador_imagenes_motores import (
@@ -42,6 +43,8 @@ class HiloProcesamientoWeb(QThread):
         generar_auditoria_md: bool = True,
         salida_existente: Any | None = None,
         parent: Any = None,
+        trabajo_tabular: Any | None = None,
+        nombre_hoja: str | None = None,
     ) -> None:
         super().__init__(parent)
         self._servicio = servicio
@@ -63,13 +66,15 @@ class HiloProcesamientoWeb(QThread):
         self._generar_auditoria_md = generar_auditoria_md
         self._salida_existente = salida_existente
         self._cancelado = False
+        self._trabajo_tabular = trabajo_tabular
+        self._nombre_hoja = nombre_hoja
 
     def run(self) -> None:
         """Punto de entrada del hilo que lanza la corrutina asincrona."""
         try:
             asyncio.run(self._ejecutar())
         except Exception as error:
-            if self._cancelado:
+            if self._cancelado and not isinstance(error, (ErrorPersistenciaTabular, ValueError)):
                 self.senial_log.emit("[INFO] Hilo finalizado por cancelacion del usuario.")
             else:
                 self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
@@ -136,9 +141,14 @@ class HiloProcesamientoWeb(QThread):
                     callback_log=on_log,
                     generar_auditoria_md=self._generar_auditoria_md,
                     salida_existente=self._salida_existente,
+                    trabajo_tabular=self._trabajo_tabular, nombre_hoja=self._nombre_hoja,
                 )
 
+            from procesos_ia.aplicacion.comun.identidad_tabular import parametros_tabulares
+            estados = self._servicio._enrutador.gestor_procesos().configuracion["estados"]
             prefijo = "[INFO] Corrida cancelada." if self._cancelado else f"[OK] Procesamiento en {self._motor.upper()} finalizado."
+            if not self._cancelado and ruta_salida.parent.parent.name == estados["fallidos"]:
+                prefijo = parametros_tabulares()["parcial"]
             self.proceso_completado.emit(
                 f"{prefijo} {len(resultados)} registros guardados en {ruta_salida.name}",
                 ruta_salida,

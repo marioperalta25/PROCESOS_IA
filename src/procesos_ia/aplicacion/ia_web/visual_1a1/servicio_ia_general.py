@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
+from procesos_ia.aplicacion.comun.trabajo_tabular import TrabajoTabular
 from procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia import ProcesadorModoIA
 from procesos_ia.aplicacion.ia_web.conversacional.procesador_imagenes_chat import ProcesadorImagenesChat
+from procesos_ia.aplicacion.ia_web.conversacional.procesador_urls_modo_ia import ProcesadorUrlsModoIA
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_archivo_urls import ProcesadorArchivoUrls
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_carpeta_imagenes import ProcesadorCarpetaImagenes
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_url_individual import ProcesadorUrlIndividual
@@ -18,16 +19,9 @@ from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
 from procesos_ia.infraestructura.web.base.gestor_sesion_nodriver import GestorSesionNodriver
 from procesos_ia.infraestructura.web.visual_1a1.manipulador_dom_lens import (
-    abrir_modal_lens,
-    cargar_archivo_en_lens,
-    cargar_url_en_lens,
-    esperar_vision_general_ia,
-    extraer_enlaces_relacionados,
-    parsear_sintesis_negocio,
+    abrir_modal_lens, cargar_archivo_en_lens, cargar_url_en_lens,
+    esperar_vision_general_ia, extraer_enlaces_relacionados, parsear_sintesis_negocio,
 )
-
-logger = logging.getLogger(__name__)
-
 
 class ServicioIAGeneral:
     """Orquestador de consultas visuales y estructuradas compartiendo sesion de Chromium."""
@@ -49,6 +43,7 @@ class ServicioIAGeneral:
         self._procesador_carpeta = ProcesadorCarpetaImagenes(self._gestor, self._enrutador, self._config, self.procesar_imagen_lens)
         self._procesador_modo_ia = ProcesadorModoIA(self._gestor, self._enrutador, self._config)
         self._procesador_imagenes_chat = ProcesadorImagenesChat(self._gestor, self._enrutador, self._config)
+        self._procesador_urls_modo_ia = ProcesadorUrlsModoIA(self._gestor, self._enrutador, self._config)
 
     @property
     def gestor_sesion(self) -> GestorSesionNodriver:
@@ -86,10 +81,16 @@ class ServicioIAGeneral:
         """Abre una pestana de Google y analiza la imagen o URL con Google Lens."""
         if self._cancelado:
             return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado")
-        t0 = asyncio.get_event_loop().time()
+        t0 = asyncio.get_running_loop().time()
         if callback_log:
-            callback_log("[INFO] Abriendo navegador...")
-        pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
+            callback_log(f"[INFO] Abriendo navegador (perfil: {self._config.directorio_perfil})...")
+        try:
+            pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
+            aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
+            if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
+        except Exception as error:
+            if callback_log: callback_log(f"[ERROR] No se pudo abrir el navegador: {error}")
+            raise
         try:
             if self._cancelado:
                 return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado")
@@ -140,7 +141,7 @@ class ServicioIAGeneral:
             ficha.estado_ia = estado_ia
             if html_pagina:
                 ficha.metadatos_adicionales["html_completo"] = html_pagina
-            dur = asyncio.get_event_loop().time() - t0
+            dur = asyncio.get_running_loop().time() - t0
             nombre_res = ficha.negocio or ficha.propietario or "Ficha encontrada"
             if callback_log:
                 callback_log(f"[OK] Respuesta encontrada ({dur:.1f}s, {estado_ia}): {nombre_res}")
@@ -185,6 +186,7 @@ class ServicioIAGeneral:
         generar_auditoria_md: bool = True,
         salida_existente: Any | None = None,
         filas_precargadas: list[dict[str, Any]] | None = None,
+        trabajo_tabular: TrabajoTabular | None = None,
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Procesa un archivo tabular (CSV o Excel) mediante el subservicio especializado."""
         self._cancelado = False
@@ -198,6 +200,7 @@ class ServicioIAGeneral:
             verificador_cancelacion=lambda: self._cancelado,
             generar_auditoria_md=generar_auditoria_md,
             salida_existente=salida_existente,
+            trabajo_tabular=trabajo_tabular,
             filas_precargadas=filas_precargadas,
         )
         self.ultima_salida = resultado[1]
@@ -231,67 +234,58 @@ class ServicioIAGeneral:
         return resultado
 
     async def procesar_modo_ia_lote(
-        self,
-        filas: list[dict[str, Any]],
-        instrucciones: str,
-        columnas: list[str] | None = None,
-        tamano_lote: int = 5,
-        lotes_por_conversacion: int = 5,
+        self, filas: list[dict[str, Any]], instrucciones: str, columnas: list[str] | None = None,
+        tamano_lote: int = 5, lotes_por_conversacion: int = 5,
         callback_progreso: Callable[[int, int, str], None] | None = None,
-        callback_log: Callable[[str], None] | None = None,
-        nombre_salida: str = "evaluacion",
-        carpeta_salida: Path | None = None,
-        generar_auditoria_md: bool = True,
-        salida_existente: Any | None = None,
+        callback_log: Callable[[str], None] | None = None, nombre_salida: str = "evaluacion",
+        carpeta_salida: Path | None = None, generar_auditoria_md: bool = True,
+        salida_existente: Any | None = None, trabajo_tabular: TrabajoTabular | None = None,
     ) -> tuple[list[dict[str, Any]], Path | None]:
         """Procesa registros en Modo IA mediante el subservicio conversacional especializado."""
         self._cancelado = False
         resultado = await self._procesador_modo_ia.ejecutar(
-            filas=filas,
-            instrucciones=instrucciones,
-            columnas=columnas,
-            tamano_lote=tamano_lote,
-            lotes_por_conversacion=lotes_por_conversacion,
-            callback_progreso=callback_progreso,
-            callback_log=callback_log,
-            nombre_salida=nombre_salida,
-            carpeta_salida=carpeta_salida,
-            verificador_cancelacion=lambda: self._cancelado,
-            generar_auditoria_md=generar_auditoria_md,
-            salida_existente=salida_existente,
+            filas=filas, instrucciones=instrucciones, columnas=columnas, tamano_lote=tamano_lote,
+            lotes_por_conversacion=lotes_por_conversacion, callback_progreso=callback_progreso,
+            callback_log=callback_log, nombre_salida=nombre_salida, carpeta_salida=carpeta_salida,
+            verificador_cancelacion=lambda: self._cancelado, generar_auditoria_md=generar_auditoria_md,
+            salida_existente=salida_existente, trabajo_tabular=trabajo_tabular,
         )
-        self.ultima_salida = resultado[1]
-        return resultado
+        self.ultima_salida = resultado[1]; return resultado
 
     async def procesar_modo_ia_imagenes(
-        self,
-        carpeta: Path,
-        campos_activos: list[str] | dict[str, bool],
-        instrucciones_adicionales: str = "",
-        rotacion_chat: int = 3,
-        callback_progreso: Callable[[int, int, str], None] | None = None,
-        callback_log: Callable[[str], None] | None = None,
-        carpeta_salida: Path | None = None,
-        generar_auditoria_md: bool = True,
-        archivos_especificos: list[Path] | None = None,
-        modo_escritura: str = "sobrescribir",
-        csv_existente: Path | None = None,
+        self, carpeta: Path, campos_activos: list[str] | dict[str, bool], instrucciones_adicionales: str = "",
+        rotacion_chat: int = 3, callback_progreso: Callable[[int, int, str], None] | None = None,
+        callback_log: Callable[[str], None] | None = None, carpeta_salida: Path | None = None,
+        generar_auditoria_md: bool = True, archivos_especificos: list[Path] | None = None,
+        modo_escritura: str = "sobrescribir", csv_existente: Path | None = None,
     ) -> tuple[list[dict[str, Any]], Path | None]:
         """Procesa una carpeta de imagenes 1 a 1 en Modo IA con rotacion de chat."""
         self._cancelado = False
         resultado = await self._procesador_imagenes_chat.ejecutar(
-            carpeta=carpeta,
-            campos_activos=campos_activos,
-            instrucciones_adicionales=instrucciones_adicionales,
-            rotacion_chat=rotacion_chat,
-            callback_progreso=callback_progreso,
-            callback_log=callback_log,
-            carpeta_salida=carpeta_salida,
-            verificador_cancelacion=lambda: self._cancelado,
-            generar_auditoria_md=generar_auditoria_md,
-            archivos_especificos=archivos_especificos,
-            modo_escritura=modo_escritura,
-            csv_existente=csv_existente,
+            carpeta=carpeta, campos_activos=campos_activos, instrucciones_adicionales=instrucciones_adicionales,
+            rotacion_chat=rotacion_chat, callback_progreso=callback_progreso, callback_log=callback_log,
+            carpeta_salida=carpeta_salida, verificador_cancelacion=lambda: self._cancelado,
+            generar_auditoria_md=generar_auditoria_md, archivos_especificos=archivos_especificos,
+            modo_escritura=modo_escritura, csv_existente=csv_existente,
         )
-        self.ultima_salida = resultado[1]
-        return resultado
+        self.ultima_salida = resultado[1]; return resultado
+
+    async def procesar_modo_ia_urls(
+        self, filas: list[dict[str, Any]], columna_url: str, campos_activos: list[str] | dict[str, bool],
+        instrucciones_adicionales: str = "", tamano_lote: int = 3, lotes_por_conversacion: int = 4,
+        nombre_salida: str = "urls_modo_ia", carpeta_salida: Path | None = None,
+        callback_progreso: Callable[[int, int, str], None] | None = None,
+        callback_log: Callable[[str], None] | None = None, generar_auditoria_md: bool = True,
+        trabajo_tabular: TrabajoTabular | None = None,
+    ) -> tuple[list[dict[str, Any]], Path | None]:
+        """Procesa un CSV/Excel de URLs por lotes en Modo IA."""
+        self._cancelado = False
+        resultado = await self._procesador_urls_modo_ia.ejecutar(
+            filas=filas, columna_url=columna_url, campos_activos=campos_activos,
+            instrucciones_adicionales=instrucciones_adicionales, tamano_lote=tamano_lote,
+            lotes_por_conversacion=lotes_por_conversacion, nombre_salida=nombre_salida,
+            carpeta_salida=carpeta_salida, callback_progreso=callback_progreso, callback_log=callback_log,
+            verificador_cancelacion=lambda: self._cancelado, generar_auditoria_md=generar_auditoria_md,
+            trabajo_tabular=trabajo_tabular,
+        )
+        self.ultima_salida = resultado[1]; return resultado

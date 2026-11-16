@@ -141,7 +141,7 @@ class TestInterfazIAGeneral(unittest.TestCase):
 
     def test_inicializacion_vista_ia_general(self) -> None:
         vista = VistaIAGeneral()
-        self.assertEqual(vista.combo_flujo.count(), 5)
+        self.assertEqual(vista.combo_flujo.count(), 6)
         self.assertTrue(hasattr(vista, "btn_ejecutar"))
         self.assertTrue(hasattr(vista, "btn_cancelar"))
         self.assertTrue(hasattr(vista, "tabla"))

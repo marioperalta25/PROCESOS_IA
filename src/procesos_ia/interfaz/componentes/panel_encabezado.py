@@ -179,8 +179,12 @@ class PanelEncabezado(QWidget):
         """Actualiza el indicador visual según el diagnóstico de Ollama."""
         estado = diagnostico.estado
         if estado == EstadoServicioOllama.DISPONIBLE:
-            v = diagnostico.version_servidor or "activa"
-            self.badge_estado.setText(f"[DISPONIBLE - v{v}]")
+            v = diagnostico.version_servidor
+            if v and any(c.isdigit() for c in v) and v not in ("activa", "desconocida"):
+                prefijo = "" if v.startswith("v") else "v"
+                self.badge_estado.setText(f"[DISPONIBLE - {prefijo}{v}]")
+            else:
+                self.badge_estado.setText("[DISPONIBLE]")
             self.badge_estado.setStyleSheet(
                 f"background-color: #E2ECE8; color: {self._paleta.exito}; "
                 f"border: 1px solid {self._paleta.exito}; border-radius: 14px; padding: 4px 14px; font-weight: bold;"

@@ -56,6 +56,7 @@ class PruebaIntegracionSalidas(unittest.IsolatedAsyncioTestCase):
         procesador = ProcesadorModoIA(self.gestor, self.enrutador, self.configuracion)
         modulo = "procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia."
         with ExitStack() as parches:
+            parches.enter_context(patch(modulo + "verificar_conexion_internet", return_value=True))
             parches.enter_context(patch(modulo + "activar_modo_ia", new=AsyncMock(return_value=True)))
             parches.enter_context(patch(modulo + "enviar_prompt_modo_ia", new=AsyncMock(return_value=True)))
             parches.enter_context(patch(modulo + "esperar_respuesta_modo_ia",

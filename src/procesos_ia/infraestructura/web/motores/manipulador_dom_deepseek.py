@@ -94,8 +94,8 @@ async def esperar_editor_deepseek(pestana: Any, timeout: float = 25.0) -> bool:
         return !!(ta || fileInp);
     })()
     """
-    inicio = asyncio.get_event_loop().time()
-    while (asyncio.get_event_loop().time() - inicio) < timeout:
+    inicio = asyncio.get_running_loop().time()
+    while (asyncio.get_running_loop().time() - inicio) < timeout:
         try:
             listo = await pestana.evaluate(js_check)
             if listo and not hasattr(listo, "exception"):
@@ -273,10 +273,10 @@ async def esperar_respuesta_deepseek(
         }
     })())
     """
-    inicio = asyncio.get_event_loop().time()
+    inicio = asyncio.get_running_loop().time()
     ultimo_texto, contador_estable = "", 0
 
-    while (asyncio.get_event_loop().time() - inicio) < tiempo_limite:
+    while (asyncio.get_running_loop().time() - inicio) < tiempo_limite:
         if verificador_cancelacion and verificador_cancelacion():
             return None
         try:

@@ -1,0 +1,28 @@
+argumentos_comunes = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-session-crashed-bubble", "--hide-crash-restore-bubble", "--disable-features=InfiniteSessionRestore", "--disable-notifications"]
+argumentos_manuales = ["--no-first-run", "--no-default-browser-check", "--new-window"]
+patrones_titulo = ["Google Chrome", "Chromium", "DeepSeek", "Gemini"]
+tiempo_posicion_segundos = 8.0
+intervalo_posicion_segundos = 0.1
+confirmaciones_posicion = 2
+tiempo_cierre_segundos = 2.0
+
+[mensajes]
+ventana_no_aplicada = "El navegador se abrio, pero no se pudo aplicar el tamano o mantenerlo al frente. Revise si otra sesion ocupa el mismo perfil."
+error_inicio = "No se pudo iniciar el navegador: {causa}"
+abierto = "Navegador abierto y configurado (PID: {pid})"
+perfil_activo = "Cierre la sesion del navegador antes de cambiar su perfil."
+
+[comprobacion]
+argumento = "--comprobar-distribucion"
+tiempo_limite_segundos = 30
+ancho = 640
+alto = 480
+margen_fuera_pantalla = 2
+titulo = "Comprobacion de PROCESOS_IA"
+url = "about:blank"
+fila_url = "https://ejemplo.invalid/tarjeta.png"
+nombre_csv = "entrada_sintetica.csv"
+perfil = "comprobacion_distribucion"
+
+[version]
+aplicacion = "1.0.1"

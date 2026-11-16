@@ -1262,3 +1262,118 @@ Modulos Involucrados:
 - 39 pruebas unitarias ejecutadas y aprobadas al 100% (`Ran 39 tests - OK`).
 - Limite de lineas cumplido estrictamente: `hilos.py` (258 lineas) y `servicio_local.py` (133 lineas).
 - Cero emojis verificados en todo el codigo y bitacoras.
+
+
+---
+
+# Implementacion: Verificador de Primer Arranque y Persistencia de Rutas Recientes de Navegacion
+
+Fecha: 12 de Noviembre de 2026 - 12:35
+Modulos Involucrados:
+- `src/procesos_ia/aplicacion/inicio/verificador_entorno_inicial.py` (Nuevo)
+- `src/procesos_ia/interfaz/comun/gestor_rutas_recientes.py` (Nuevo)
+- `src/procesos_ia/interfaz/app.py`
+- `src/procesos_ia/interfaz/ia_web/conversacional/panel_modo_chat_imagenes.py`
+- `src/procesos_ia/interfaz/ia_web/componentes/panel_archivo_general.py`
+- `src/procesos_ia/interfaz/ia_web/conversacional/panel_modo_chat.py`
+- `src/procesos_ia/interfaz/ia_web/vistas/vista_ia_general.py`
+- `pruebas/unitarias/test_inicio_y_rutas.py` (Nuevo)
+
+## 1. Persistencia de Rutas de Navegacion en Dialogos (Eliminacion de Rutas Hardcodeadas)
+- Anteriormente, al pulsar "Examinar Carpeta..." o "Examinar Archivo...", los selectores (`QFileDialog`) abrian siempre rutas fijas del sistema (`self._enrutador.imagenes`, `self._enrutador.datos`), ignorando la carpeta que el usuario acababa de abrir.
+- Se implemento `GestorRutasRecientes` mediante `QSettings`, que almacena y recuerda la ultima ubicacion visitada por el usuario para carpetas de imagenes, archivos tabulares y destinos de salida.
+- Todos los paneles de seleccion recuperan la ruta previa al abrir el dialogo y persisten la nueva seleccion.
+
+## 2. Verificador de Primer Arranque y Dependencias Silenciosas
+- Se creo `verificador_entorno_inicial.py` y se integro en `app.py` antes de levantar `VentanaPrincipal`:
+  - **Mecanismo de Deteccion**: Usa el archivo testigo persistente `%LOCALAPPDATA%\PROCESOS_IA\.inicializacion_completada.json`. En arranques regulares, se comprueba en < 1 ms y se omite.
+  - **En Primer Arranque (Modo Codigo)**: Comprueba librerias Python (`nodriver`, `psutil`, `openpyxl`, `PySide6`). Si alguna falta, ejecuta en segundo plano invisible (`CREATE_NO_WINDOW`) `python -m pip install <libreria>`. Si la instalacion automatica falla, presenta una advertencia guiada al usuario con el comando manual.
+  - **En Primer Arranque (Modo Empaquetado `.exe`)**: Al estar el codigo compilado y sin acceso a pip externo, comprueba las dependencias de sistema operativo (Google Chrome y Ollama en sus rutas estandar de Windows) e inicializa directorios.
+
+## 3. Estado de Pruebas y Cumplimiento
+- Nueva suite `test_inicio_y_rutas.py`: 3/3 pruebas aprobadas (`Ran 3 tests in 0.020s - OK`).
+- Suite global conjunta: 51/51 pruebas aprobadas al 100% (`Ran 51 tests in 1.272s - OK`).
+- Limite de lineas cumplido estrictamente en todos los archivos (todos <= 300 lineas).
+- Verificacion permanente de ausencia total de emojis aprobada.
+
+## [2026-11-12] Correccion de Badge de Estado: Eliminacion de "vactiva"
+
+### 1. Diagnostico y Causa Raiz
+- En la interfaz de usuario, el badge superior derecho mostraba el texto `[DISPONIBLE - vactiva]`.
+- Se rastreo el origen del texto:
+  - En `src/procesos_ia/interfaz/componentes/panel_encabezado.py` (lineas 181-184), la plantilla formateaba el texto como:
+    `f"[DISPONIBLE - v{v}]"`
+    donde la letra `v` se anteponia asumiendo que la variable `v` contenia un numero de version numerico (ej. `0.4.1` -> `v0.4.1`).
+  - Sin embargo, en `src/procesos_ia/interfaz/ventana_principal.py` (linea 130), al recibir los modelos disponibles se instanciaba `DiagnosticoOllama` con `version_servidor="activa"` (o fallback a `"activa"`).
+  - Al concatenar `v` + `activa`, el texto resultante era literalmente `vactiva`.
+
+### 2. Modificaciones Realizadas
+- `src/procesos_ia/interfaz/componentes/panel_encabezado.py`:
+  - Se filtro `diagnostico.version_servidor`. Si es un string numerico de version valido (ej. `0.4.1`), muestra `[DISPONIBLE - v0.4.1]`.
+  - Si es `None`, `"activa"` o no numerico, muestra limpiamente `[DISPONIBLE]`.
+- `src/procesos_ia/interfaz/ventana_principal.py`:
+  - Se cambio `version_servidor="activa"` a `version_servidor=None`.
+- `pruebas/unitarias/test_interfaz.py`:
+  - Se agregaron aserciones en `test_panel_encabezado_estados` para validar tanto la version numerica como el caso sin version o `"activa"`.
+
+### 3. Verificacion
+- Total de lineas respetado (todos <= 300 lineas).
+- Cero emojis en codigo y comentarios.
+- Suite de pruebas de interfaz ejecutada con resultado exitoso (12/12 OK).
+
+## [2026-11-12] Sistema de Empaquetado e Instalador con Actualizaciones In-Place
+
+### 1. Requerimiento
+- Empaquetar la aplicacion excluyendo directorios de desarrollo (`.agents`, `analisishumano`, `pruebas`, `temp`, etc.).
+- Entregar como aplicacion formal instalable en Windows (no portable).
+- Permitir que futuras modificaciones y versiones se instalen sobre la existente como actualizacion transparente (in-place update) sin obligar al usuario a desinstalar.
+
+### 2. Implementacion
+- `PROCESOS_IA.spec`:
+  - Entrada en `src/procesos_ia/__main__.py`.
+  - Empaqueta exclusivamente `src` y `recursos`.
+  - Excluye frameworks de test y librerias no usadas en runtime.
+  - Genera modo `onedir` con icono de dragón oficial y `console=False`.
+- `empaquetado/instalador.iss`:
+  - `AppId` unico fijado: `{{B745A192-3B4A-48DC-9D22-C8912E3C0F55}}`.
+  - Directivas de actualizacion: `UsePreviousAppDir=yes`, `DisableDirPage=auto`, `CloseApplications=yes`, `RestartApplications=yes`.
+  - Si el usuario ejecuta un instalador de una nueva version, Inno Setup detecta la instalacion previa y reemplaza archivos en el mismo directorio sin perder datos del usuario (que estan en `%AppData%` y Escritorio).
+- `empaquetar.bat`:
+  - Script automatizado de un solo comando para compilar con PyInstaller y generar el instalador final con Inno Setup indicando version deseada.
+
+## [2026-11-12] Auditoria de Rutas Locales y Desacoplamiento para Distribucion
+
+### 1. Auditoria Exhaustiva Realizada
+- Se escaneo todo el codigo fuente (`src/`, `recursos/`) buscando:
+  - Rutas absolutas vinculadas al usuario o maquina (`mgutierrez`, `Users`, unidades fijas).
+  - Comportamiento de `nodriver` al ser compilado con PyInstaller.
+  - Resolucion de archivos de configuracion (`.toml`) e imagenes (`recursos/`) tanto en desarrollo como en ejecutable empaquetado.
+
+### 2. Hallazgos y Correcciones Aplicadas
+- **Cero rutas de usuario hardcodeadas**: Las rutas de salida y perfiles usan `Path.home() / "Desktop"` y `Path.home() / ".procesos_ia"`, y los dialogos usan `QSettings` dinamico.
+- **Submodulos de Nodriver para CDP**: Se agrego `collect_submodules('nodriver')` en `PROCESOS_IA.spec` para evitar que fallen los 57 submodulos de CDP en el ejecutable empaquetado.
+- **Resolucion blindada de recursos**: Se creo `src/procesos_ia/aplicacion/comun/localizador_recursos.py` con `obtener_ruta_recurso` que soporta `sys._MEIPASS`, `_internal/recursos` y modo desarrollo. Se integraron `recursos.py`, `salidas_proceso.py`, `parametros_chat.py`, `servicio_local.py` y `parametros.py`.
+- **Suite de Pruebas**: 381/381 tests completados con 100% de exito.
+
+## [2026-11-12] Verificacion de Compilacion, Inclusion y Apertura de Instalador
+
+### 1. Auditoria de Contenido del Instalador
+- Se audito la carpeta `dist/PROCESOS_IA`:
+  - 0 archivos o carpetas de `.git`, `.agents`, `analisishumano`, `pruebas` o temporales.
+  - El instalador contiene unicamente los binarios compilados, librerias y la carpeta `recursos`.
+- El instalador compilado final se genero en `empaquetado/salida/Instalador_PROCESOS_IA_v1.0.0_Setup.exe` (52.44 MB).
+
+### 2. Mejoras a empaquetar.bat
+- Se agrego `pause` para que la consola no se cierre al terminar.
+- Se configuro la apertura automatica de la carpeta `empaquetado\salida` en el Explorador de Windows al finalizar exitosamente la compilacion.
+
+## [2026-11-12] Optimizacion y Reduccion de Peso del Instalador
+
+### 1. Limpieza y Recompilacion
+- Se eliminaron las compilaciones previas en `dist/`, `build/` y `empaquetado/salida/`.
+- Se configuraron exclusiones de componentes no utilizados de PySide6 (`Qt6Qml`, `Qt6Quick`, `Qt6Pdf`, `Qt6VirtualKeyboard`, `opengl32sw` y catalogo de traducciones `.qm`).
+
+### 2. Resultados Obtenidos
+- Tamano descomprimido: Reducido de 175.93 MB a **132.47 MB** (-43.46 MB).
+- Peso final del instalador `.exe`: Reducido de 52.44 MB a **41.50 MB** (-10.94 MB, ahorro del 21%).
+- Ubicacion final del instalador: `empaquetado/salida/Instalador_PROCESOS_IA_v1.0.0_Setup.exe`.

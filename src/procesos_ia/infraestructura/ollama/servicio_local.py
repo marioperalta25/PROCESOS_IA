@@ -14,6 +14,7 @@ import tomllib
 from typing import Callable
 from urllib.parse import urlsplit
 
+from procesos_ia.aplicacion.comun.localizador_recursos import obtener_ruta_recurso
 from procesos_ia.dominio.excepciones import ErrorConexionRechazada, ErrorProcesamiento
 
 
@@ -22,10 +23,7 @@ class ServicioLocalOllama:
 
     def __init__(self, url_base: str, ruta_parametros: Path | None = None) -> None:
         self._url_base = url_base
-        ruta = ruta_parametros or (
-            Path(__file__).resolve().parents[4]
-            / "recursos" / "configuracion" / "arranque_ollama.toml"
-        )
+        ruta = ruta_parametros or obtener_ruta_recurso("configuracion", "arranque_ollama.toml")
         self._parametros = tomllib.loads(ruta.read_text(encoding="utf-8"))
         self._bloqueo = Lock()
         self._proceso: subprocess.Popen | None = None

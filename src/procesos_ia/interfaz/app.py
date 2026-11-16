@@ -41,6 +41,20 @@ def crear_aplicacion(argumentos: list[str] | None = None) -> QApplication:
 def ejecutar_interfaz(argumentos: list[str] | None = None) -> int:
     """Arranca el bucle de eventos principal de la interfaz gráfica."""
     app = crear_aplicacion(argumentos)
+
+    from procesos_ia.aplicacion.inicio.verificador_entorno_inicial import (
+        es_primer_arranque, verificar_entorno_primer_arranque,
+    )
+    if es_primer_arranque():
+        _, advertencias = verificar_entorno_primer_arranque()
+        if advertencias:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                None,
+                "Configuración Inicial de PROCESOS_IA",
+                "[ALERTA] Aviso de primera configuración:\n\n" + "\n\n".join(f"- {adv}" for adv in advertencias),
+            )
+
     ventana = VentanaPrincipal()
     ventana.show()
     return app.exec()

@@ -11,8 +11,11 @@ from typing import Any
 
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
 from procesos_ia.infraestructura.web.base.controlador_ventana import (
-    aplicar_modo_flotante_sin_foco,
+    aplicar_ventana_con_reintentos,
+    obtener_ventana_activa,
 )
+
+from procesos_ia.infraestructura.web.base.parametros_navegador import argumentos_navegador, parametros_navegador
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +58,7 @@ def terminar_arbol_procesos(pid_padre: int | None) -> int:
                 ["taskkill", "/F", "/T", "/PID", str(pid_padre)],
                 capture_output=True,
                 check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
         except Exception:
             pass
@@ -70,6 +74,26 @@ class GestorSesionNodriver:
         self._navegador: Any | None = None
         self._pestana_activa: Any | None = None
         self._pid_navegador: int | None = None
+        self._ventana_aplicada: Any | None = None
+        self.ultimo_aviso_ventana: str | None = None
+
+    def actualizar_configuracion(self, configuracion: ConfiguracionWeb) -> None:
+        if self._navegador is not None and configuracion.directorio_perfil != self._config.directorio_perfil:
+            raise ValueError(parametros_navegador()["mensajes"]["perfil_activo"])
+        self._config = configuracion
+
+    async def _aplicar_ventana(self, patrones: list[str] | tuple[str, ...], hwnd_foco_previo: int | None = None) -> None:
+        aplicado = await asyncio.to_thread(
+            aplicar_ventana_con_reintentos, patrones, self._config.ventana,
+            self._pid_navegador, self._config.directorio_perfil, hwnd_foco_previo,
+        )
+        if not aplicado:
+            aviso = parametros_navegador()["mensajes"]["ventana_no_aplicada"]
+            self.ultimo_aviso_ventana = aviso
+            logger.warning(aviso)
+        else:
+            self.ultimo_aviso_ventana = None
+            self._ventana_aplicada = self._config.ventana
 
     @property
     def configuracion(self) -> ConfiguracionWeb:
@@ -85,7 +109,7 @@ class GestorSesionNodriver:
 
     async def iniciar_navegador(
         self,
-        patrones_ventana: list[str] | tuple[str, ...] = ("Google Chrome", "Chromium"),
+        patrones_ventana: list[str] | tuple[str, ...] | None = None,
     ) -> Any:
         """Inicia el navegador persistente con limpieza de bloqueos previa."""
         if not NODRIVER_DISPONIBLE:
@@ -93,21 +117,17 @@ class GestorSesionNodriver:
                 "[ERROR] nodriver no esta instalado en el entorno de ejecucion"
             )
 
+        patrones = tuple(parametros_navegador()["patrones_titulo"]) if patrones_ventana is None else patrones_ventana
         if self._navegador is not None:
+            if self._ventana_aplicada != self._config.ventana:
+                await self._aplicar_ventana(patrones)
             return self._navegador
 
         self._config.asegurar_directorios()
         self._config.limpiar_bloqueos_perfil()
 
-        argumentos = [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-session-crashed-bubble",
-            "--hide-crash-restore-bubble",
-            "--disable-features=InfiniteSessionRestore",
-            "--disable-notifications",
-        ]
+        argumentos = argumentos_navegador(self._config)
+        hwnd_previo = obtener_ventana_activa() if self._config.ventana.no_activar_foco else None
 
         logger.info("[INFO] Iniciando sesion de navegador Nodriver...")
         try:
@@ -130,9 +150,7 @@ class GestorSesionNodriver:
 
         # Aplicar modo flotante sin foco tras el arranque
         await asyncio.sleep(1.0)
-        aplicar_modo_flotante_sin_foco(
-            patrones_ventana, self._config.ventana, pid_esperado=self._pid_navegador
-        )
+        await self._aplicar_ventana(patrones, hwnd_foco_previo=hwnd_previo)
 
         return self._navegador
 
@@ -150,27 +168,24 @@ class GestorSesionNodriver:
             await self._pestana_activa.get(url_destino)
 
         await asyncio.sleep(0.5)
-        aplicar_modo_flotante_sin_foco(
-            patrones_ventana, self._config.ventana, pid_esperado=self._pid_navegador
-        )
+        await self._aplicar_ventana(patrones_ventana)
         return self._pestana_activa
 
     async def abrir_nueva_pestana(
         self,
         url_destino: str = "https://www.google.com",
-        patrones_ventana: list[str] | tuple[str, ...] = ("Google Chrome", "Chromium"),
+        patrones_ventana: list[str] | tuple[str, ...] | None = None,
     ) -> Any:
         """Abre una nueva pestaña en el mismo navegador y perfil persistente."""
-        navegador = await self.iniciar_navegador(patrones_ventana)
+        patrones = tuple(parametros_navegador()["patrones_titulo"]) if patrones_ventana is None else patrones_ventana
+        navegador = await self.iniciar_navegador(patrones)
         try:
             pestana = await navegador.get(url_destino, new_tab=True)
         except Exception:
             pestana = await navegador.get(url_destino)
 
         await asyncio.sleep(0.5)
-        aplicar_modo_flotante_sin_foco(
-            patrones_ventana, self._config.ventana, pid_esperado=self._pid_navegador
-        )
+        await self._aplicar_ventana(patrones)
         return pestana
 
     async def cerrar(self) -> None:
@@ -202,6 +217,11 @@ class GestorSesionNodriver:
             finally:
                 pid_a_cerrar = pid or self._pid_navegador
                 terminar_arbol_procesos(pid_a_cerrar)
+                if isinstance(proc, asyncio.subprocess.Process):
+                    try:
+                        await asyncio.wait_for(proc.communicate(), parametros_navegador()["tiempo_cierre_segundos"])
+                    except (OSError, ValueError, asyncio.TimeoutError):
+                        pass
                 self._navegador = None
                 self._pestana_activa = None
                 self._pid_navegador = None

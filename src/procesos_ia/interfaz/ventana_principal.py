@@ -21,12 +21,12 @@ from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPrompt
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
 from procesos_ia.interfaz.borradores import GestorBorradores
 from procesos_ia.interfaz.cierre import CierreCooperativo
+from procesos_ia.interfaz.comun.preferencias_web import cargar_configuracion_web, guardar_configuracion_web
 from procesos_ia.interfaz.composicion_ventana import construir_paneles
 from procesos_ia.interfaz.dialogo_prompt import DialogoGestionPrompts
 from procesos_ia.interfaz.dialogo_preparacion import DialogoPrepararTrabajo
 from procesos_ia.interfaz.hilos import HiloCoordinadorTrabajo, HiloDiagnosticoOllama, HiloLiberarMemoria, HiloListarModelos
-from procesos_ia.interfaz.recursos import GestorRecursos
-from procesos_ia.interfaz.navegacion import NavegacionVistas
+from procesos_ia.interfaz.recursos import GestorRecursos; from procesos_ia.interfaz.navegacion import NavegacionVistas
 from procesos_ia.interfaz.protector_botones import establecer_notificador_predeterminado
 from procesos_ia.interfaz.tema import PaletaVisual, construir_hoja_estilos
 
@@ -62,7 +62,7 @@ class VentanaPrincipal(QMainWindow):
         self._gestor_borradores = GestorBorradores()
         self._vista_prompts: DialogoGestionPrompts | None = None
         self._vista_preparacion: DialogoPrepararTrabajo | None = None
-        self._consulta_activa, self._config_web = False, ConfiguracionWeb()
+        self._consulta_activa, self._config_web = False, cargar_configuracion_web()
         self._motor_activo = "ollama"
         self._hilo_trabajo = self._hilo_diagnostico = self._hilo_memoria = self._hilo_modelos = None
         ruta_cache = (directorio_base / ".cache_modelos.json") if directorio_base else None
@@ -127,7 +127,7 @@ class VentanaPrincipal(QMainWindow):
         self._navegacion.actualizar_catalogo()
         self._cache_modelos.guardar(modelos)
         diag = DiagnosticoOllama(
-            estado=EstadoServicioOllama.DISPONIBLE, version_cliente=None, version_servidor="activa",
+            estado=EstadoServicioOllama.DISPONIBLE, version_cliente=None, version_servidor=None,
             ruta_ejecutable=None, url_base=self._cliente_ollama.url_base,
             mensaje=f"Servicio Ollama disponible ({len(modelos)} modelos)",
         )
@@ -244,7 +244,7 @@ class VentanaPrincipal(QMainWindow):
     def _obtener_servicio_inferencia(self): return self._servicio_inferencia
 
     def _al_configurar_motor(self, tipo: str, cfg_web: ConfiguracionWeb) -> None:
-        self._config_web = cfg_web
+        guardar_configuracion_web(cfg_web); self._navegacion.actualizar_configuracion_web(cfg_web)
         self.panel_telemetria.agregar_log(f"[INFO] Configuración de IA Web guardada: {tipo}")
 
     def _al_confirmar_trabajo(self, configuracion: ConfiguracionTrabajo) -> None:

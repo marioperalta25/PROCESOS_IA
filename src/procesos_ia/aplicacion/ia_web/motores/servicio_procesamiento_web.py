@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-import csv
 from pathlib import Path
 from typing import Any, Callable
 
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
+from procesos_ia.aplicacion.comun.identidad_tabular import IdentidadTabular
+from procesos_ia.aplicacion.comun.trabajo_tabular import TrabajoTabular
+from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_archivo_urls import leer_filas_archivo_tabular
+from procesos_ia.aplicacion.ia_web.conversacional.mapeo_respuestas_tabulares import mapear_respuestas_lote
 from procesos_ia.aplicacion.ia_web.comun.diagnostico_lotes import (
     evaluar_calidad_lote, notificar_balance_lote, notificar_cierre_exitoso,
     notificar_envio_lote, notificar_fallo_envio_lote, notificar_respuesta_lote,
@@ -18,6 +21,7 @@ from procesos_ia.aplicacion.comun.gestor_reanudacion_base import (
     COLUMNA_ESTADO, COLUMNA_FECHA, COLUMNA_MOTIVO, GestorReanudacionBase,
 )
 from procesos_ia.dominio.reanudacion import EstadoIA
+from procesos_ia.dominio.excepciones import ErrorPersistenciaTabular
 from procesos_ia.dominio.normalizador import formatear_columnas_delimitadas, normalizar_texto
 from procesos_ia.infraestructura.archivos.escritor_csv import guardar_filas_csv
 from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb
@@ -45,6 +49,14 @@ class ServicioProcesamientoWeb:
         self._cancelado = False
         self._consultas_chat = 0
 
+    @property
+    def gestor_sesion(self) -> GestorSesionNodriver:
+        return self._gestor
+
+    def configurar(self, configuracion: ConfiguracionWeb) -> None:
+        self._gestor.actualizar_configuracion(configuracion)
+        self._config = configuracion
+
     def cancelar(self) -> None:
         self._cancelado = True
 
@@ -58,10 +70,13 @@ class ServicioProcesamientoWeb:
         self._gestor.forzar_cierre_inmediato()
         self._config.limpiar_bloqueos_perfil()
 
-    async def _obtener_pestana(self, motor: str) -> Any:
+    async def _obtener_pestana(self, motor: str, callback_log: Callable[[str], None] | None = None) -> Any:
         url = self._config.url_gemini if motor == "gemini" else self._config.url_deepseek
         patrones = ("Gemini", "Google") if motor == "gemini" else ("DeepSeek",)
-        return await self._gestor.navegar_o_reutilizar(url, patrones)
+        pestana = await self._gestor.navegar_o_reutilizar(url, patrones)
+        aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
+        if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
+        return pestana
 
     async def _rotar_chat_si_requerido(self, pestana: Any, motor: str, limite: int) -> None:
         if limite > 0 and self._consultas_chat >= limite:
@@ -87,22 +102,27 @@ class ServicioProcesamientoWeb:
         tamano_lote: int = 5, columna_imagen: str | None = None, carpeta_imagenes: Path | None = None,
         rotacion_chat: int = 2, callback_progreso: Callable | None = None, callback_log: Callable | None = None,
         generar_auditoria_md: bool = True, salida_existente: Any | None = None,
+        trabajo_tabular: TrabajoTabular | None = None, nombre_hoja: str | None = None,
     ) -> tuple[list[dict[str, Any]], Path]:
         """Procesa registros del CSV enviando lotes de texto o imagenes 1 a 1 al navegador."""
         self._cancelado = False
         self._consultas_chat = 0
         motor = motor.lower().strip()
 
-        filas: list[dict[str, Any]] = []
-        with open(ruta_csv, mode="r", encoding="utf-8-sig", errors="ignore") as f:
-            lector = csv.DictReader(f)
-            filas = [dict(r) for r in lector]
+        filas = trabajo_tabular.filas_pendientes if trabajo_tabular else leer_filas_archivo_tabular(ruta_csv, nombre_hoja)
+        trabajo = trabajo_tabular or TrabajoTabular(
+            filas, IdentidadTabular.crear(ruta_csv, motor, filas, instrucciones, columnas, {"hoja": nombre_hoja}),
+        )
+        filas = trabajo.filas_pendientes
 
         total_filas = len(filas)
+        if trabajo.solo_exportar:
+            with trabajo.abrir(self._enrutador, f"{motor}_evaluacion_{ruta_csv.stem}.csv", salida_existente=salida_existente):
+                return [], trabajo.finalizar("completados")
         if total_filas == 0:
             raise ValueError("El archivo CSV no contiene registros para procesar.")
 
-        pestana = await self._obtener_pestana(motor)
+        pestana = await self._obtener_pestana(motor, callback_log)
         if callback_log:
             callback_log(f"[INFO] Navegador conectado a {motor.upper()} para {total_filas} registros")
 
@@ -119,7 +139,7 @@ class ServicioProcesamientoWeb:
             motor, pestana, filas, columnas, instrucciones, tamano_lote,
             rotacion_chat, ruta_csv.stem, callback_progreso, callback_log,
             generar_auditoria_md=generar_auditoria_md,
-            salida_existente=salida_existente,
+            salida_existente=salida_existente, trabajo_tabular=trabajo,
         )
 
     async def procesar_carpeta_imagenes(
@@ -131,7 +151,7 @@ class ServicioProcesamientoWeb:
         archivos = [p for p in carpeta.iterdir() if p.is_file() and p.suffix.lower() in exts]
         if not archivos: raise ValueError(f"Sin imágenes compatibles en {carpeta}")
         filas = [{"id": i, "archivo": p.name, "ruta_archivo": str(p)} for i, p in enumerate(archivos, 1)]
-        pestana = await self._obtener_pestana(motor)
+        pestana = await self._obtener_pestana(motor, callback_log)
         return await self._procesar_flujo_imagenes(
             motor, pestana, filas, ["archivo"], instrucciones, "ruta_archivo",
             carpeta, rotacion_chat, f"carpeta_{carpeta.name}", callback_progreso, callback_log,
@@ -144,7 +164,7 @@ class ServicioProcesamientoWeb:
         self._cancelado = False; self._consultas_chat = 0
         if not ruta_img.is_file(): raise ValueError(f"Archivo no existe: {ruta_img}")
         filas = [{"id": 1, "archivo": ruta_img.name, "ruta_archivo": str(ruta_img)}]
-        pestana = await self._obtener_pestana(motor)
+        pestana = await self._obtener_pestana(motor, callback_log)
         return await self._procesar_flujo_imagenes(
             motor, pestana, filas, ["archivo"], instrucciones, "ruta_archivo",
             ruta_img.parent, 0, f"individual_{ruta_img.stem}", callback_progreso, callback_log,
@@ -205,9 +225,15 @@ class ServicioProcesamientoWeb:
         cb_prog: Callable | None, cb_log: Callable | None,
         generar_auditoria_md: bool = True,
         salida_existente: Any | None = None,
+        trabajo_tabular: TrabajoTabular | None = None,
     ) -> tuple[list[dict[str, Any]], Path]:
-        salida = salida_existente or self._enrutador.reservar_salida(motor, f"{motor}_evaluacion_{stem}.csv")
-        with salida:
+        trabajo = trabajo_tabular or TrabajoTabular(
+            filas, IdentidadTabular.crear(None, motor, filas, instrucciones, columnas),
+        )
+        filas = trabajo.filas_pendientes
+        with trabajo.abrir(self._enrutador, f"{motor}_evaluacion_{stem}.csv", salida_existente=salida_existente) as salida:
+            if trabajo.respaldo:
+                trabajo.notificar_progreso(cb_prog, 0, trabajo.parametros["progreso_recuperado"])
             total = len(filas); total_lotes = (total + tamano_lote - 1) // tamano_lote
             resultados: list[dict[str, Any]] = []
             ruta_md = salida.ruta.with_suffix(".md") if generar_auditoria_md else None
@@ -226,7 +252,7 @@ class ServicioProcesamientoWeb:
                         instrucciones=instrucciones, lote_filas=lote, columnas_seleccionadas=columnas, indice_inicio=i + 1,
                     )
                     notificar_envio_lote(cb_log, n_lote, total_lotes, i + 1, min(i + tamano_lote, total), total, delimitador="|")
-                    t_ini = asyncio.get_event_loop().time()
+                    t_ini = asyncio.get_running_loop().time()
                     enviado = (await enviar_prompt_gemini(pestana, prompt, None)) if motor == "gemini" else (await enviar_prompt_deepseek(pestana, prompt, None))
                     self._consultas_chat += 1
                     if self._cancelado: break
@@ -236,41 +262,33 @@ class ServicioProcesamientoWeb:
                             sal = dict(f); sal["error_inferencia"] = "Fallo de envio"
                             sal[COLUMNA_ESTADO] = EstadoIA.FALLIDO.value; sal[COLUMNA_MOTIVO] = "[ERROR] Fallo de envio al motor"
                             sal[COLUMNA_FECHA] = fecha_iso; resultados.append(sal)
-                        guardar_filas_csv(resultados, salida.ruta)
-                        if cb_prog: cb_prog(n_lote, total_lotes, f"Lote {n_lote}/{total_lotes} (fallo de envío)")
+                        trabajo.confirmar(resultados[-len(lote):])
+                        trabajo.notificar_progreso(cb_prog, min(i + len(lote), total), f"Lote {n_lote}/{total_lotes} (fallo de envío)")
                         continue
                     resp_txt = (await esperar_respuesta_gemini(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado)) if motor == "gemini" else (await esperar_respuesta_deepseek(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado))
                     if self._cancelado: break
-                    t_dur = asyncio.get_event_loop().time() - t_ini
+                    t_dur = asyncio.get_running_loop().time() - t_ini
                     notificar_respuesta_lote(cb_log, n_lote, total_lotes, t_dur)
                     if ruta_md:
                         guardar_auditoria_modo_ia_md(ruta_md, n_lote, total_lotes, i + 1, min(i + tamano_lote, total), prompt, resp_txt or "", t_dur)
                     parsed = extraer_y_reparar_json(resp_txt)
-                    items_res = parsed if isinstance(parsed, list) else (parsed.get("resultados", []) if isinstance(parsed, dict) else [])
-                    lote_resultado = []
-                    for sub_idx, f in enumerate(lote):
-                        sal = dict(f); sal[COLUMNA_FECHA] = fecha_iso
-                        if sub_idx < len(items_res) and isinstance(items_res[sub_idx], dict):
-                            sal.update(items_res[sub_idx]); sal[COLUMNA_ESTADO] = EstadoIA.EXITOSO.value; sal[COLUMNA_MOTIVO] = "[OK] Evaluado"
-                        elif resp_txt:
-                            sal["respuesta_modelo"] = normalizar_texto(resp_txt[:300]); sal[COLUMNA_ESTADO] = EstadoIA.OMITIDO.value; sal[COLUMNA_MOTIVO] = "[ALERTA] No estructurado"
-                        else:
-                            sal[COLUMNA_ESTADO] = EstadoIA.FALLIDO.value; sal[COLUMNA_MOTIVO] = "[ERROR] Respuesta vacia"
-                        lote_resultado.append(sal)
+                    lote_resultado = mapear_respuestas_lote("", parsed, lote, i + 1)
+                    if not resp_txt:
+                        for fila in lote_resultado:
+                            fila[COLUMNA_ESTADO] = EstadoIA.FALLIDO.value
                     evaluadas, omitidas = evaluar_calidad_lote(lote_resultado, len(lote))
                     notificar_balance_lote(cb_log, n_lote, evaluadas, len(lote))
+                    trabajo.confirmar(lote_resultado)
                     resultados.extend(lote_resultado)
-                    guardar_filas_csv(resultados, salida.ruta)
-                    if cb_prog: cb_prog(n_lote, total_lotes, f"Lote {n_lote}/{total_lotes} completado")
+                    trabajo.notificar_progreso(cb_prog, min(i + len(lote), total), f"Lote {n_lote}/{total_lotes} completado")
                     await asyncio.sleep(0.5)
+            except (ErrorPersistenciaTabular, ValueError):
+                raise
             except Exception as err:
                 if not self._cancelado: raise
                 if cb_log: cb_log(f"[INFO] Procesamiento cancelado: {err}")
-            guardar_filas_csv(resultados, salida.ruta)
             estado = "cancelados" if self._cancelado else "completados"
-            if estado == "completados" and any("error_inferencia" in f or "respuesta_modelo" in f for f in resultados):
-                estado = "fallidos"
-            ruta_final = salida.finalizar(estado)
-            if estado == "completados":
-                notificar_cierre_exitoso(cb_log, ruta_final, ruta_md)
+            ruta_final = trabajo.finalizar(estado)
+            if salida.estado == "completados":
+                notificar_cierre_exitoso(cb_log, ruta_final, ruta_final.with_suffix(".md") if ruta_md else None)
             return resultados, ruta_final

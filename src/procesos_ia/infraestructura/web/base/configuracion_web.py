@@ -23,7 +23,7 @@ class ConfiguracionVentanaWeb:
 
     x: int = 1100
     y: int = 0
-    ancho: int = 150
+    ancho: int = 500
     alto: int = 450
     siempre_al_frente: bool = True
     no_activar_foco: bool = True

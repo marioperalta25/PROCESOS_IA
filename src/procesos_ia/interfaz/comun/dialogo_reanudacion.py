@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from procesos_ia.dominio.reanudacion import AccionReanudacion, ResumenReanudacion
+from procesos_ia.aplicacion.comun.identidad_tabular import parametros_tabulares
 from procesos_ia.interfaz.protector_botones import ProtectorBotones
 
 
@@ -73,7 +74,7 @@ class DialogoReanudacionEstado(QDialog):
         layout_m = QVBoxLayout(marco_metricas)
         layout_m.setSpacing(6)
 
-        txt_total = f"• Total de registros evaluados: <b>{self._resumen.total}</b>"
+        txt_total = f"• {parametros_tabulares()['etiqueta_total']}: <b>{self._resumen.total}</b>"
         txt_exit = f"• <span style='color: #16A34A;'>Exitosos:</span> <b>{self._resumen.exitosos}</b>"
         txt_fall = (
             f"• <span style='color: #DC2626;'>Fallidos / Omitidos:</span> "
@@ -90,6 +91,14 @@ class DialogoReanudacionEstado(QDialog):
         # Botonera de Acciones
         layout_botones = QVBoxLayout()
         layout_botones.setSpacing(8)
+
+        if self._resumen.pendientes == 0 and self._resumen.total_reintentables == 0:
+            btn_exportar = QPushButton(parametros_tabulares()["recuperar_resultados"], self)
+            btn_exportar.setMinimumHeight(parametros_tabulares()["altura_minima_boton"])
+            self._protector.vincular(
+                btn_exportar, lambda: self._finalizar(AccionReanudacion.RECUPERAR_RESULTADOS),
+            )
+            layout_botones.addWidget(btn_exportar)
 
         # Boton 1: Reprocesar pendientes y fallidos (Recomendado si hay fallos o pendientes)
         if self._resumen.total_reintentables > 0 or self._resumen.pendientes > 0:

@@ -139,8 +139,6 @@ class EnrutadorSalidas:
             self.analisis,
             self.conversaciones,
             self.extracciones,
-            self.reportes,
-            self.temporales,
         ):
             destino.mkdir(parents=True, exist_ok=True)
         self.gestor_procesos().asegurar_directorios()

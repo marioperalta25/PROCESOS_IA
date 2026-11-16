@@ -144,14 +144,17 @@ class PanelArchivoGeneral(QGroupBox):
             self.lbl_guia_archivo.setText("[INFO] 1. Archivo Lens" if es_compacto else "[INFO] 1. Archivo: Seleccione un archivo CSV o Excel para extracción con Google Lens.")
 
     def _abrir_dialogo_archivo(self) -> None:
-        self._enrutador.datos.mkdir(parents=True, exist_ok=True)
+        from procesos_ia.interfaz.comun.gestor_rutas_recientes import GestorRutasRecientes
+        gestor_r = GestorRutasRecientes()
+        dir_base = gestor_r.obtener_ruta_tabular(self.input_ruta.text() or self._enrutador.datos)
         ruta, _ = QFileDialog.getOpenFileName(
             self,
             "Seleccionar Archivo Tabular",
-            str(self._enrutador.datos),
+            dir_base,
             "Archivos Tabulares (*.csv *.xlsx *.xlsm);;Archivos CSV (*.csv);;Archivos Excel (*.xlsx *.xlsm);;Todos los archivos (*.*)",
         )
         if ruta:
+            gestor_r.guardar_ruta_tabular(ruta)
             self.cargar_archivo(Path(ruta))
 
     def cargar_archivo(self, ruta: Path) -> None:

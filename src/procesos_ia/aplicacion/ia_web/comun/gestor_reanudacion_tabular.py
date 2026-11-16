@@ -14,7 +14,10 @@ from procesos_ia.aplicacion.comun.gestor_reanudacion_base import (
     COLUMNA_ID,
     COLUMNA_MOTIVO,
     GestorReanudacionBase,
+    identificar_fila,
 )
+from procesos_ia.aplicacion.comun.identidad_tabular import IdentidadTabular, buscar_identidad, parametros_tabulares
+from procesos_ia.aplicacion.comun.trabajo_tabular import TrabajoTabular, leer_progreso
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from procesos_ia.dominio.reanudacion import (
     AccionReanudacion,
@@ -27,16 +30,46 @@ from procesos_ia.dominio.reanudacion import (
 class GestorReanudacionTabular(GestorReanudacionBase):
     """Subclase especializada en el flujo de CSVs por lotes o conversacional."""
 
-    def __init__(self, enrutador: EnrutadorSalidas) -> None:
+    def __init__(self, enrutador: EnrutadorSalidas, raiz_destino: Path | None = None) -> None:
         self._enrutador = enrutador
+        self._raiz_destino = raiz_destino
+
+    def preparar_trabajo(
+        self, ruta_origen: Path, modulo: str, instrucciones: str,
+        columnas: list[str] | None, filas: list[dict[str, Any]], opciones: dict | None = None,
+    ) -> TrabajoTabular:
+        """Resuelve la copia compatible a partir del original sin escribir ni mover archivos."""
+        parametros = parametros_tabulares()
+        identidad = IdentidadTabular.crear(ruta_origen, modulo, filas, instrucciones, columnas, opciones)
+        gestor = self._enrutador.gestor_procesos(self._raiz_destino)
+        respaldo = buscar_identidad(gestor, identidad, parametros)
+        anteriores = None
+        if respaldo:
+            anteriores = leer_progreso(respaldo, parametros)
+            if len(anteriores) != len(filas):
+                raise ValueError(parametros["error_filas"])
+        elif modulo == "modo_ia":
+            from procesos_ia.aplicacion.comun.respaldo_tabular_anterior import importar_respaldo_anterior
+            for candidata in self._candidatas(modulo, ruta_origen):
+                if (candidata.parent / parametros["archivo_identidad"]).exists():
+                    continue
+                recuperadas = importar_respaldo_anterior(candidata, filas, instrucciones, columnas, parametros)
+                if recuperadas:
+                    respaldo, anteriores = candidata, recuperadas
+                    break
+        return TrabajoTabular(filas, identidad, respaldo, anteriores)
 
     def buscar_respaldo_existente(self, modulo: str, ruta_archivo: Path) -> Path | None:
         """Localiza si existe una corrida previa asociada a este CSV en estados inconclusos."""
+        candidatas = self._candidatas(modulo, ruta_archivo)
+        return candidatas[0] if candidatas else None
+
+    def _candidatas(self, modulo: str, ruta_archivo: Path) -> list[Path]:
         nombre_base = ruta_archivo.stem.lower()
-        gestor = self._enrutador.gestor_procesos()
+        gestor = self._enrutador.gestor_procesos(self._raiz_destino)
         base_modulo = gestor.rama(modulo)
         if not base_modulo.is_dir():
-            return None
+            return []
 
         candidatas: list[Path] = []
         for estado in ("cancelados", "en_proceso", "fallidos"):
@@ -44,17 +77,14 @@ class GestorReanudacionTabular(GestorReanudacionBase):
             if carpeta_estado.is_dir():
                 candidatas.extend(
                     list(carpeta_estado.glob(f"*{nombre_base}*.csv"))
-                    + list(carpeta_estado.glob(f"modo_ia_*{nombre_base}*.csv"))
+                    + list(carpeta_estado.glob(f"*/*{nombre_base}*.csv"))
                 )
 
-        if not candidatas:
-            return None
-
         candidatas.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-        return candidatas[0]
+        return candidatas
 
     def evaluar_origen(
-        self, ruta_origen: Path, modulo: str = "modo_ia"
+        self, ruta_origen: Path, modulo: str = "modo_ia",
     ) -> tuple[list[RegistroEstado], ResumenReanudacion]:
         """Evalua si el archivo directo o un respaldo previo amerita reanudacion."""
         regs_directos, resumen = self.inspeccionar_csv(ruta_origen)
@@ -82,7 +112,7 @@ class GestorReanudacionTabular(GestorReanudacionBase):
             resultado = []
             for idx, f in enumerate(filas_originales, start=1):
                 f_nueva = dict(f)
-                f_nueva[COLUMNA_ID] = str(f.get(COLUMNA_ID) or f"fila_{idx}")
+                f_nueva[COLUMNA_ID] = identificar_fila(f, idx)
                 f_nueva[COLUMNA_ESTADO] = EstadoIA.PENDIENTE.value
                 f_nueva[COLUMNA_MOTIVO] = ""
                 f_nueva[COLUMNA_FECHA] = ""
@@ -93,7 +123,7 @@ class GestorReanudacionTabular(GestorReanudacionBase):
         filas_procesar: list[dict[str, Any]] = []
 
         for idx, f in enumerate(filas_originales, start=1):
-            id_reg = str(f.get(COLUMNA_ID) or f.get("id_registro") or f"fila_{idx}").strip()
+            id_reg = identificar_fila(f, idx)
             reg_prev = mapa_evaluados.get(id_reg)
             if not reg_prev:
                 f_copia = dict(f)

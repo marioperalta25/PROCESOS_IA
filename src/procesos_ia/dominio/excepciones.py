@@ -7,6 +7,10 @@ class ErrorProcesamiento(Exception):
     """Excepcion base para fallos durante el procesamiento de datos."""
 
 
+class ErrorPersistenciaTabular(ErrorProcesamiento):
+    """No se pudo confirmar o exportar el progreso; nunca equivale a una cancelacion."""
+
+
 class ErrorConexionRechazada(ErrorProcesamiento):
     """El destino rechazo la conexion; no implica instalacion ausente."""
 

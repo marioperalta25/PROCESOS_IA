@@ -87,9 +87,9 @@ async def pegar_texto_en_elemento(pestana: Any, elem_input: Any, texto: str) -> 
 
 async def esperar_input_modo_ia(pestana: Any, timeout_segundos: float = 15.0) -> Any | None:
     """Espera reactivamente a que el input este montado y visible en el DOM."""
-    inicio = asyncio.get_event_loop().time()
+    inicio = asyncio.get_running_loop().time()
     js_busca = '(() => { const sels = ["textarea.ITIRGe", "textarea[aria-label*=\'pregunta\']", "textarea.gLFyf", "textarea#ti6dpd", "textarea[name=\'q\']", "textarea"]; for (const s of sels) { const el = document.querySelector(s); if (el && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0)) return s; } return null; })()'
-    while (asyncio.get_event_loop().time() - inicio) < timeout_segundos:
+    while (asyncio.get_running_loop().time() - inicio) < timeout_segundos:
         try:
             sel = await pestana.evaluate(js_busca)
             if sel:
@@ -193,7 +193,7 @@ async def esperar_respuesta_modo_ia(
     verificador_cancelacion: Callable[[], bool] | None = None,
 ) -> str:
     """Vigila el DOM de forma reactiva y extrae la respuesta con detección de cancelación."""
-    inicio = asyncio.get_event_loop().time()
+    inicio = asyncio.get_running_loop().time()
     ultimo_texto = ""
     ultimo_cambio = inicio
 
@@ -238,7 +238,7 @@ async def esperar_respuesta_modo_ia(
         return JSON.stringify({ num_turnos: nTurnos, completo: completo, texto: txt, lineas: lines.length });
     })()
     """
-    while (asyncio.get_event_loop().time() - inicio) < timeout_segundos:
+    while (asyncio.get_running_loop().time() - inicio) < timeout_segundos:
         if verificador_cancelacion and verificador_cancelacion():
             return ""
         try:
@@ -267,8 +267,8 @@ async def esperar_respuesta_modo_ia(
                     return texto
                 if texto and texto != ultimo_texto:
                     ultimo_texto = texto
-                    ultimo_cambio = asyncio.get_event_loop().time()
-                elif texto and (asyncio.get_event_loop().time() - ultimo_cambio) >= 1.5:
+                    ultimo_cambio = asyncio.get_running_loop().time()
+                elif texto and (asyncio.get_running_loop().time() - ultimo_cambio) >= 1.5:
                     if filas_esperadas == 0 or num_lineas >= filas_esperadas:
                         return texto
         except Exception:

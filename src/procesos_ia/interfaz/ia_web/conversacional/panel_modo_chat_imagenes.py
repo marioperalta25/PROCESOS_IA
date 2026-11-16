@@ -133,15 +133,21 @@ class PanelModoChatImagenes(QWidget):
         layout_principal.addWidget(grupo_params)
 
     def _abrir_dialogo_carpeta(self) -> None:
-        dir_base = self._enrutador.imagenes; dir_base.mkdir(parents=True, exist_ok=True)
-        ruta = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta de Imágenes", str(dir_base))
+        from procesos_ia.interfaz.comun.gestor_rutas_recientes import GestorRutasRecientes
+        gestor_r = GestorRutasRecientes()
+        dir_base = gestor_r.obtener_ruta_imagenes(self.input_carpeta.text() or self._enrutador.imagenes)
+        ruta = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta de Imágenes", dir_base)
         if ruta:
+            gestor_r.guardar_ruta_imagenes(ruta)
             self.cargar_carpeta(Path(ruta))
 
     def _abrir_dialogo_salida(self) -> None:
-        dir_base = self._enrutador.modo_ia; dir_base.mkdir(parents=True, exist_ok=True)
-        ruta = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta de Destino CSV", str(dir_base))
+        from procesos_ia.interfaz.comun.gestor_rutas_recientes import GestorRutasRecientes
+        gestor_r = GestorRutasRecientes()
+        dir_base = gestor_r.obtener_ruta_salida(self.input_salida.text() or self._enrutador.modo_ia)
+        ruta = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta de Destino CSV", dir_base)
         if ruta:
+            gestor_r.guardar_ruta_salida(ruta)
             self._carpeta_salida_custom = Path(ruta)
             self.input_salida.setText(ruta)
             self.log_notificado.emit(f"[INFO] Carpeta de salida personalizada: {ruta}")

@@ -58,7 +58,7 @@ class ProcesadorCarpetaImagenes:
         generar_auditoria_md: bool = True,
     ) -> tuple[list[FichaNegocioLens], Path]:
         """Ejecuta el procesamiento incremental de las imagenes de una carpeta."""
-        t_inicio = asyncio.get_event_loop().time()
+        t_inicio = asyncio.get_running_loop().time()
         archivos = archivos_especificos if archivos_especificos is not None else listar_imagenes_carpeta(carpeta)
         total = len(archivos)
         resultados: list[FichaNegocioLens] = []
@@ -137,7 +137,7 @@ class ProcesadorCarpetaImagenes:
                     recolectar_basura_ciclo(idx, intervalo=10)
                     await asyncio.sleep(0.5)
 
-                t_total = asyncio.get_event_loop().time() - t_inicio
+                t_total = asyncio.get_running_loop().time() - t_inicio
                 con_ia = sum(1 for f in resultados if f.estado_ia == "EXITOSO")
                 if resultados:
                     filas_dicts = [f.a_diccionario() for f in resultados]

@@ -233,6 +233,7 @@ class ClienteHttpOllama:
                 text=True,
                 timeout=3.0,
                 check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
             salida = (proceso.stdout + " " + proceso.stderr).strip()
             coincidencia = re.search(

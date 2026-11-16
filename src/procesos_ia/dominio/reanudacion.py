@@ -37,6 +37,7 @@ class AccionReanudacion(str, Enum):
     REPROCESAR_PENDIENTES_Y_FALLIDOS = "reprocesar_pendientes_y_fallidos"
     SOLO_PENDIENTES = "solo_pendientes"
     REINICIAR_TODO = "reiniciar_todo"
+    RECUPERAR_RESULTADOS = "recuperar_resultados"
     CANCELAR = "cancelar"
 
 
@@ -77,4 +78,6 @@ class ResumenReanudacion:
     @property
     def requiere_decision(self) -> bool:
         """Indica si amerita consultar al usuario por haber avance previo significativo."""
-        return self.tiene_metadatos and (self.exitosos > 0 or self.total_reintentables > 0)
+        return self.ruta_respaldo is not None or (
+            self.tiene_metadatos and (self.exitosos > 0 or self.total_reintentables > 0)
+        )

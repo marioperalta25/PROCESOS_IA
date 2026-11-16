@@ -164,6 +164,8 @@ class ProcesadorImagenesChat:
                                 f"[INFO] Límite de {rotacion_chat} imágenes por chat alcanzado. Renovando conversación..."
                             )
                         pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
+                        aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
+                        if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
                         await asyncio.sleep(0.3)
                         await activar_modo_ia(pestana)
                         imgs_en_chat = 0
@@ -201,7 +203,7 @@ class ProcesadorImagenesChat:
                         imgs_en_chat = 0
                         continue
 
-                    t_inicio = asyncio.get_event_loop().time()
+                    t_inicio = asyncio.get_running_loop().time()
                     resp_texto = await esperar_respuesta_modo_ia(
                         pestana,
                         self._config.tiempo_espera_respuesta_segundos,
@@ -209,7 +211,7 @@ class ProcesadorImagenesChat:
                         filas_esperadas=1,
                         verificador_cancelacion=verificador_cancelacion,
                     )
-                    t_dur = asyncio.get_event_loop().time() - t_inicio
+                    t_dur = asyncio.get_running_loop().time() - t_inicio
                     if verificador_cancelacion and verificador_cancelacion(): break
 
                     html_crudo = ""

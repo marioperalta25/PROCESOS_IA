@@ -141,6 +141,19 @@ class TestManipuladorDOMLens(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(estado, "EXITOSO")
         self.assertIn("Respuesta de Vision General", texto)
 
+    async def test_esperar_vision_general_ia_ignora_encabezado_vacio_y_espera_cuerpo(self) -> None:
+        pestana_mock = MagicMock()
+        pestana_mock.evaluate = AsyncMock(
+            side_effect=[
+                {"tipo": "EXITOSO", "texto": "Visión general creada por IA El Modo IA respondió:", "completo": False},
+                {"tipo": "EXITOSO", "texto": "Visión general creada por IA El Modo IA respondió:", "completo": False},
+                {"tipo": "EXITOSO", "texto": "La imagen es de CG Garcia Construction con telefono (973) 336-7018.", "completo": True},
+            ]
+        )
+        texto, estado = await esperar_vision_general_ia(pestana_mock, timeout_segundos=4)
+        self.assertEqual(estado, "EXITOSO")
+        self.assertIn("CG Garcia Construction", texto)
+
     async def test_esperar_vision_general_ia_sin_vision(self) -> None:
         pestana_mock = MagicMock()
         pestana_mock.select = AsyncMock(return_value=None)

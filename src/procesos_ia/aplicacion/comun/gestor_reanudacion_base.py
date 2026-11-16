@@ -24,6 +24,14 @@ COLUMNA_FECHA = "_fecha_procesamiento"
 COLUMNA_ID = "_id_registro"
 
 
+def identificar_fila(fila: dict[str, Any], indice: int, usar_id_externo: bool = True) -> str:
+    """Conserva el identificador tabular o deriva uno estable de su posicion."""
+    from procesos_ia.aplicacion.comun.identidad_tabular import parametros_tabulares
+    prefijo = parametros_tabulares()["prefijo_fila"]
+    externo = fila.get("id_registro") if usar_id_externo else None
+    return str(fila.get(COLUMNA_ID) or externo or f"{prefijo}{indice}").strip()
+
+
 class GestorReanudacionBase:
     """Clase base con utilidades de lectura linea a linea y clasificacion de estados."""
 
@@ -40,13 +48,12 @@ class GestorReanudacionBase:
             or fila.get("id_registro")
             or fila.get("fuente_imagen")
             or fila.get("archivo_imagen")
-            or f"reg_{indice_defecto}"
+            or identificar_fila(fila, indice_defecto)
         ).strip()
 
         estado_crudo = (
             fila.get(COLUMNA_ESTADO)
             or fila.get("estado_ia")
-            or fila.get("estado")
             or ""
         )
         estado = EstadoIA.normalizar(str(estado_crudo)) if estado_crudo else EstadoIA.PENDIENTE

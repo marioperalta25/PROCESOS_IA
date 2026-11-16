@@ -49,6 +49,15 @@ htmlcov/
 !/pruebas/unitarias/test_salidas_proceso.py
 !/pruebas/unitarias/test_integracion_salidas.py
 !/pruebas/unitarias/test_regresiones_conexiones.py
+!/pruebas/ejecutar_reanudacion.py
+!/pruebas/unitarias/test_trabajo_tabular.py
+!/pruebas/unitarias/test_reanudacion_consumidores.py
+!/pruebas/unitarias/test_seleccion_progreso_tabular.py
+!/pruebas/unitarias/test_respaldo_tabular_anterior.py
+!/pruebas/unitarias/test_mapeo_progreso_tabular.py
+!/pruebas/unitarias/test_modo_ia_conversacional.py
+!/pruebas/unitarias/test_correccion_empaquetado.py
+!/pruebas/unitarias/test_vistas_deepseek_gemini.py
 
 # Archivos tabulares: proteger datos reales aunque se copien fuera del almacen
 *.csv

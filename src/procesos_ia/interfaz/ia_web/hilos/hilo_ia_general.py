@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 from typing import Any
+from procesos_ia.dominio.excepciones import ErrorPersistenciaTabular
 from PySide6.QtCore import QThread, Signal
 
 from procesos_ia.aplicacion.ia_web.visual_1a1.servicio_ia_general import ServicioIAGeneral
@@ -35,7 +36,7 @@ class HiloIAGeneral(QThread):
         try:
             asyncio.run(self._ejecutar_accion())
         except Exception as error:
-            if getattr(self._servicio, "_cancelado", False):
+            if getattr(self._servicio, "_cancelado", False) and not isinstance(error, (ErrorPersistenciaTabular, ValueError)):
                 self.senial_log.emit("[INFO] Hilo IA General detenido por cancelacion del usuario.")
             else:
                 self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
@@ -95,9 +96,10 @@ class HiloIAGeneral(QThread):
             filas_pre = self._parametros.get("filas_precargadas")
             notificar_log(f"[INFO] Procesando archivo con imágenes en columna '{columna}': {ruta_csv.name}")
             fichas, salida = await self._servicio.procesar_csv_con_lens(
-                ruta_csv, columna, notificar_progreso, notificar_log, carpeta_salida=c_sal,
+                ruta_csv, columna, callback_progreso=notificar_progreso, callback_log=notificar_log, carpeta_salida=c_sal,
                 generar_auditoria_md=gen_md, nombre_hoja=nombre_hoja,
                 salida_existente=sal_ext, filas_precargadas=filas_pre,
+                trabajo_tabular=self._parametros.get("trabajo_tabular"),
             )
             con_ia = sum(1 for f in fichas if f.estado_ia == "EXITOSO")
             ruta_abs = str(salida.resolve())
@@ -122,12 +124,20 @@ class HiloIAGeneral(QThread):
                 carpeta_salida=self._parametros.get("carpeta_salida"),
                 generar_auditoria_md=gen_md,
                 salida_existente=salida_ext,
+                trabajo_tabular=self._parametros.get("trabajo_tabular"),
             )
             ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"
-            notificar_log(f"[OK] Modo IA completado con {len(resultado)} respuestas.")
+            from procesos_ia.aplicacion.comun.identidad_tabular import parametros_tabulares
+            etiqueta = "cancelado" if getattr(self._servicio, "_cancelado", False) else "completado"
+            parametros = parametros_tabulares()
+            mensaje = parametros[etiqueta].format(cantidad=len(resultado))
+            estados = self._servicio.enrutador.gestor_procesos().configuracion["estados"]
+            if ruta_salida and ruta_salida.parent.parent.name == estados["fallidos"]:
+                mensaje = parametros["parcial"]
+            notificar_log(mensaje)
             notificar_log(f"[OK] Archivo guardado en: {ruta_abs}")
             self.proceso_completado.emit(
-                f"[OK] Modo IA completo con {len(resultado)} respuestas. Guardado en: {ruta_abs}",
+                mensaje,
                 ruta_salida or resultado,
             )
 
@@ -159,6 +169,20 @@ class HiloIAGeneral(QThread):
                 f"[OK] Modo IA Imágenes finalizado ({len(resultado)} registros). Guardado en: {ruta_abs}",
                 resultado,
             )
+        elif self._tipo_accion == "modo_ia_urls":
+            p = self._parametros
+            notificar_log(f"[INFO] Iniciando Modo IA por URLs: lotes de {p.get('tamano_lote', 3)}...")
+            resultado, ruta_salida = await self._servicio.procesar_modo_ia_urls(
+                filas=p.get("filas", []), columna_url=p.get("columna", ""),
+                campos_activos=p.get("campos_activos", []), instrucciones_adicionales=p.get("instrucciones_extra", ""),
+                tamano_lote=int(p.get("tamano_lote", 3)), lotes_por_conversacion=int(p.get("lotes_por_conversacion", 4)),
+                nombre_salida=p.get("nombre_salida", "urls_modo_ia"), carpeta_salida=p.get("carpeta_salida"),
+                callback_progreso=notificar_progreso, callback_log=notificar_log,
+                generar_auditoria_md=gen_md, trabajo_tabular=p.get("trabajo_tabular"),
+            )
+            ruta_abs = str(ruta_salida.resolve()) if ruta_salida else "salida"
+            msg = f"[OK] Modo IA URLs finalizado ({len(resultado)} registros). Guardado en: {ruta_abs}"
+            notificar_log(msg); self.proceso_completado.emit(msg, ruta_salida or resultado)
         else:
             self.proceso_fallido.emit(f"[ERROR] Acción no reconocida: {self._tipo_accion}")
 

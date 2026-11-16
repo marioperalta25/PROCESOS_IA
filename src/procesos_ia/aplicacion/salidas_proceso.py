@@ -6,16 +6,20 @@ from dataclasses import dataclass
 from pathlib import Path
 import tomllib
 
+from procesos_ia.aplicacion.comun.localizador_recursos import obtener_ruta_recurso
 from procesos_ia.aplicacion.rutas_salida import sanitizar_nombre_subcarpeta
 
 
 def cargar_configuracion_salidas(ruta: Path | None = None) -> dict:
     """Lee y valida las ramas y estados declarativos sin crear directorios."""
-    archivo = ruta or (Path(__file__).resolve().parents[3]
-                       / "recursos" / "configuracion" / "salidas.toml")
+    archivo = ruta or obtener_ruta_recurso("configuracion", "salidas.toml")
     datos = tomllib.loads(archivo.read_text(encoding="utf-8"))
     segmentos = [datos["carpeta_padre"], datos["carpeta_reservas"]]
     segmentos.extend(datos["estados"].values())
+    tabular = datos.get("tabular", {})
+    segmentos.extend(tabular[clave] for clave in (
+        "archivo_identidad", "archivo_progreso", "carpeta_estado", "carpeta_bloqueos",
+    ) if clave in tabular)
     for rama in datos["modulos"].values():
         if not isinstance(rama, list) or not rama:
             raise ValueError("Cada modulo debe declarar una rama de salida")

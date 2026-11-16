@@ -67,8 +67,8 @@ async def esperar_restablecimiento_conexion(
         callback_log("[ALERTA] Sin conexion a internet detectada. Pausando proceso...")
     logger.warning("[ALERTA] Conexion perdida. Esperando recuperacion...")
 
-    inicio = asyncio.get_event_loop().time()
-    while (asyncio.get_event_loop().time() - inicio) < timeout_max_seg:
+    inicio = asyncio.get_running_loop().time()
+    while (asyncio.get_running_loop().time() - inicio) < timeout_max_seg:
         await asyncio.sleep(intervalo_seg)
         if verificar_conexion_internet():
             if callback_log:

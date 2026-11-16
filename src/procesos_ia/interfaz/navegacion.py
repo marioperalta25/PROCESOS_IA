@@ -1,6 +1,7 @@
 """Activación de vistas integradas y composición diferida del chat."""
 
 from pathlib import Path
+from dataclasses import replace
 from functools import partial
 from PySide6.QtCore import QStandardPaths
 
@@ -164,6 +165,15 @@ class NavegacionVistas:
                 )
             ventana.pila_vistas.addWidget(self.vista_ia_general)
         self.activar(self.vista_ia_general)
+
+    def actualizar_configuracion_web(self, configuracion) -> None:
+        """Propaga la geometria a las sesiones ya compuestas sin cambiar sus perfiles."""
+        self.ventana._config_web = configuracion
+        for vista in (self.vista_ia_general, self.vista_deepseek, self.vista_gemini):
+            if vista is not None:
+                gestor = vista._servicio.gestor_sesion
+                gestor.actualizar_configuracion(replace(gestor.configuracion, ventana=configuracion.ventana))
+                vista._config_web = replace(vista._config_web, ventana=configuracion.ventana)
 
     def permitir_inferencia(self) -> bool:
         if self.ocupado():

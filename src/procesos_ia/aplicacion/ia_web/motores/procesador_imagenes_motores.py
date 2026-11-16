@@ -55,10 +55,13 @@ class ProcesadorImagenesMotores:
         self._config = configuracion
         self._gestor_cp = GestorCheckpointImagenes(enrutador)
 
-    async def _obtener_pestana(self, motor: str) -> Any:
+    async def _obtener_pestana(self, motor: str, callback_log: Callable[[str], None] | None = None) -> Any:
         url = self._config.url_gemini if motor == "gemini" else self._config.url_deepseek
         patrones = ("Gemini", "Google") if motor == "gemini" else ("DeepSeek",)
-        return await self._gestor.navegar_o_reutilizar(url, patrones)
+        pestana = await self._gestor.navegar_o_reutilizar(url, patrones)
+        aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
+        if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
+        return pestana
 
     async def _rotar_chat(self, pestana: Any, motor: str) -> None:
         if motor == "gemini":
@@ -119,7 +122,7 @@ class ProcesadorImagenesMotores:
             txt_modo = f"Reanudando {total_archivos} pendientes" if modo_escritura == "reanudar" else f"{total_archivos} imágenes"
             callback_log(f"[INFO] {motor.upper()} Imágenes 1 a 1: {txt_modo} en '{carpeta.name}' (rotación cada {rotacion_chat} turnos)")
 
-        pestana = await self._obtener_pestana(motor)
+        pestana = await self._obtener_pestana(motor, callback_log)
         if callback_log:
             callback_log(f"[INFO] Esperando inicialización del editor de {motor.upper()}...")
         editor_listo = (await esperar_editor_gemini(pestana, timeout=25.0)) if motor == "gemini" else (await esperar_editor_deepseek(pestana, timeout=25.0))
@@ -154,7 +157,7 @@ class ProcesadorImagenesMotores:
                     if callback_log:
                         callback_log(f"[INFO] ({idx}/{total_archivos}) Enviando imagen a {motor.upper()}: {ruta_img.name}...")
 
-                    t_ini = asyncio.get_event_loop().time()
+                    t_ini = asyncio.get_running_loop().time()
                     enviado = False
                     for intento in range(1, 3):
                         enviado = (await enviar_prompt_gemini(pestana, prompt_base, ruta_img)) if motor == "gemini" else (await enviar_prompt_deepseek(pestana, prompt_base, ruta_img))
@@ -184,7 +187,7 @@ class ProcesadorImagenesMotores:
                         continue
 
                     resp_txt = (await esperar_respuesta_gemini(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=verificador_cancelacion)) if motor == "gemini" else (await esperar_respuesta_deepseek(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=verificador_cancelacion))
-                    t_dur = asyncio.get_event_loop().time() - t_ini
+                    t_dur = asyncio.get_running_loop().time() - t_ini
                     if verificador_cancelacion and verificador_cancelacion(): break
 
                     parsed = extraer_y_reparar_json(resp_txt)

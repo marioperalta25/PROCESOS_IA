@@ -143,12 +143,14 @@ async def cargar_url_en_lens(
     sels = selectores or SELECTORES_LENS
     try:
         caja_input = None
-        for sel in sels["campo_url"]:
-            caja_input = await pestana.select(sel, timeout=2)
+        for _ in range(3):
+            for sel in sels["campo_url"]:
+                caja_input = await pestana.select(sel, timeout=2)
+                if caja_input is not None: break
             if caja_input is not None: break
+            await asyncio.sleep(0.5)
         if caja_input is None: return False
-        await caja_input.send_keys(url_imagen)
-        await asyncio.sleep(0.5)
+        await caja_input.send_keys(url_imagen); await asyncio.sleep(0.5)
 
         btn_buscar = None
         for sel in sels["boton_buscar_url"]:
@@ -172,7 +174,7 @@ async def esperar_vision_general_ia(
     verificador_cancelacion: Callable[[], bool] | None = None,
 ) -> tuple[str, str]:
     """Espera la respuesta de IA en Google Lens, detectando el tipo exacto de respuesta."""
-    tiempo_inicio = asyncio.get_event_loop().time()
+    tiempo_inicio = asyncio.get_running_loop().time()
     ultimo_texto = ""
     estable_ticks = 0
     coincidencias_inicio: float | None = None
@@ -209,7 +211,7 @@ async def esperar_vision_general_ia(
                 }
                 for (const td of cl.querySelectorAll('td:first-child, th:first-child')) td.insertAdjacentText('afterend', ': ');
                 const t = (cl.innerText || '').trim();
-                const tCuerpo = t.replace(/^El Modo IA respondi[oó]:\\s*/gi, '').trim();
+                const tCuerpo = t.replace(/^(?:Visi[oó]n general creada por IA|AI Overview|El Modo IA respondi[oó]:?|Buscando|Compartido(?:\\s+\\d+\\s+archivos?)?)\\s*/gi, '').trim();
                 if (tCuerpo.length > 25 && !t.includes('function(') && !t.includes('window.')) {
                     cont = cl; contElem = el; break;
                 }
@@ -217,14 +219,13 @@ async def esperar_vision_general_ia(
         }
         if (cont && contElem) {
             const txt = cont.innerText.trim();
-            const txtCuerpo = txt.replace(/^El Modo IA respondi[oó]:\\s*/gi, '').trim();
+            const txtCuerpo = txt.replace(/^(?:Visi[oó]n general creada por IA|AI Overview|El Modo IA respondi[oó]:?|Buscando|Compartido(?:\\s+\\d+\\s+archivos?)?)\\s*/gi, '').trim();
             if (/No hay una visi[oó]n general|AI Overview isn't available/i.test(txt)) {
                 return JSON.stringify({ tipo: 'SIN_VISION_GENERAL', texto: txt });
             }
             const tieneComplete = contElem.getAttribute('data-complete') === 'true' || !!contElem.querySelector('[data-complete="true"]') || !!contElem.closest('[data-complete="true"]');
             const tieneContacto = !!cont.querySelector('ul.XSq4R, li.Z1qcYe') || /Tel[eé]fonos?|Licencia|Correo|Sitio\\s*web|Email|Phone/i.test(txt);
-            const tieneEntidad = /empresa|negocio|compañ[ií]a|contratista|servicios|publicidad|anuncio|tarjeta|propietario|logotipo/i.test(txt);
-            const completo = (tieneComplete && txtCuerpo.length > 35) || tieneContacto || (tieneEntidad && txtCuerpo.length > 60);
+            const completo = (tieneComplete && txtCuerpo.length > 25) || tieneContacto;
             return JSON.stringify({ tipo: 'EXITOSO', texto: txt, completo: completo });
         }
         const visual = document.querySelector('div[jsname="r5xl4"], .Vd9M6, .G19kAf, a.PMDqCb, div.iaqvce');
@@ -232,7 +233,7 @@ async def esperar_vision_general_ia(
         return JSON.stringify({ tipo: 'ESPERANDO', texto: '' });
     })()
     """
-    while (asyncio.get_event_loop().time() - tiempo_inicio) < timeout_segundos:
+    while (asyncio.get_running_loop().time() - tiempo_inicio) < timeout_segundos:
         if verificador_cancelacion and verificador_cancelacion():
             return "[INFO] Cancelado por el usuario.", "CANCELADO"
         try:
@@ -250,14 +251,15 @@ async def esperar_vision_general_ia(
                 if tipo == "SIN_VISION_GENERAL":
                     return txt_res or "[INFO] No hay visión general disponible.", "SIN_VISION_GENERAL"
                 if tipo == "EXITOSO":
-                    txt_cuerpo = re.sub(r"^El Modo IA respondi[oó]:\s*", "", txt_res, flags=re.I).strip()
+                    txt_cuerpo = re.sub(r"^(?:Visi[oó]n general creada por IA|AI Overview|El Modo IA respondi[oó]:?|Buscando)\s*", "", txt_res, flags=re.I).strip()
+                    txt_cuerpo = re.sub(r"^(?:El Modo IA respondi[oó]:?\s*)+", "", txt_cuerpo, flags=re.I).strip()
                     comp = eval_res.get("completo")
                     if (comp is True or comp is None) and len(txt_cuerpo) > 20: return txt_res, "EXITOSO"
                     estable_ticks = (estable_ticks + 1) if (txt_res == ultimo_texto and len(txt_cuerpo) > 20) else 0
-                    if estable_ticks >= 2: return txt_res, "EXITOSO"
-                    ultimo_texto = txt_res
+                    if estable_ticks >= 4: return txt_res, "EXITOSO"
+                    ultimo_texto = txt_res if len(txt_cuerpo) > 20 else ""
                 elif tipo == "VISUAL_PRESENTE":
-                    ahora = asyncio.get_event_loop().time()
+                    ahora = asyncio.get_running_loop().time()
                     if coincidencias_inicio is None: coincidencias_inicio = ahora
                     elif (ahora - coincidencias_inicio) > 6.0:
                         return "[INFO] Coincidencias visuales presentes.", "SIN_VISION_GENERAL"

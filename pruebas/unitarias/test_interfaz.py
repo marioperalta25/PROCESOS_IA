@@ -52,12 +52,17 @@ class PruebaInterfazEscritorio(unittest.TestCase):
 
     def test_panel_encabezado_estados(self) -> None:
         panel = PanelEncabezado()
-
         diag_disp = DiagnosticoOllama(
             EstadoServicioOllama.DISPONIBLE, "0.24.0", "0.4.1", Path("ollama.exe"), "http://127.0.0.1:11434", "Activo"
         )
         panel.actualizar_estado_ollama(diag_disp)
-        self.assertIn("DISPONIBLE", panel.badge_estado.text())
+        self.assertEqual(panel.badge_estado.text(), "[DISPONIBLE - v0.4.1]")
+
+        diag_activa = DiagnosticoOllama(
+            EstadoServicioOllama.DISPONIBLE, None, "activa", None, "http://127.0.0.1:11434", "Activo"
+        )
+        panel.actualizar_estado_ollama(diag_activa)
+        self.assertEqual(panel.badge_estado.text(), "[DISPONIBLE]")
 
         diag_det = DiagnosticoOllama(
             EstadoServicioOllama.DETENIDO, "0.24.0", None, Path("ollama.exe"), "http://127.0.0.1:11434", "Detenido"

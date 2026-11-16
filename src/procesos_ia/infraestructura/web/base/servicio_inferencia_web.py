@@ -54,19 +54,14 @@ class ServicioInferenciaWeb:
     ) -> list[dict[str, Any]]:
         """Ejecuta el procesamiento del lote en el navegador y correlaciona por ID."""
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # En hilos con event loop activo, usamos una tarea o runner
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    futuro = executor.submit(
-                        asyncio.run,
-                        self._procesar_lote_asincrono(lote, configuracion),
-                    )
-                    return futuro.result()
-            return loop.run_until_complete(
-                self._procesar_lote_asincrono(lote, configuracion)
-            )
+            asyncio.get_running_loop()
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                futuro = executor.submit(
+                    asyncio.run,
+                    self._procesar_lote_asincrono(lote, configuracion),
+                )
+                return futuro.result()
         except RuntimeError:
             return asyncio.run(
                 self._procesar_lote_asincrono(lote, configuracion)

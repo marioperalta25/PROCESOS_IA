@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from dataclasses import replace
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QButtonGroup, QFileDialog, QGroupBox, QHBoxLayout, QMessageBox,
@@ -43,7 +44,7 @@ class VistaConfiguracionMotores(QWidget):
         super().__init__(parent)
         self.setWindowTitle("IA Web: Procesamiento y Motores (DeepSeek y Gemini)")
         self._motor_actual = motor_actual if motor_actual in ("gemini", "deepseek") else "gemini"
-        self._config_web = configuracion_web or ConfiguracionWeb(nombre_perfil=PERFIL_MOTORES_WEB)
+        self._config_web = replace(configuracion_web or ConfiguracionWeb(), nombre_perfil=PERFIL_MOTORES_WEB)
         self._servicio_proc = ServicioProcesamientoWeb(configuracion_web=self._config_web, enrutador=enrutador)
         self._hilo_nav: HiloLanzarNavegador | None = None
         self._hilo_proc: HiloProcesamientoWeb | None = None
@@ -123,7 +124,7 @@ class VistaConfiguracionMotores(QWidget):
             self.banner.mostrar_advertencia("[ALERTA] Ya hay un proceso en ejecución en el navegador. Espere o deténgalo."); return
         op = self.combo_operacion.currentData()
         motor = "gemini" if self.radio_gemini.isChecked() else "deepseek"
-        self._servicio_proc._config = self._construir_configuracion_web()
+        self._servicio_proc.configurar(self._construir_configuracion_web())
         rot = self.spin_rotacion.value()
         if op == "extraccion_negocios_imagenes":
             params_img = self.panel_imagenes_1a1.obtener_parametros()
@@ -240,10 +241,10 @@ class VistaConfiguracionMotores(QWidget):
     def _construir_configuracion_web(self) -> ConfiguracionWeb:
         v, r = self.panel_opciones.obtener_ventana_web(), self.input_imagenes.text().strip()
         return ConfiguracionWeb(
-            ventana=v, tiempo_espera_respuesta_segundos=self.panel_opciones.tiempo_espera(),
+            ventana=replace(self._config_web.ventana, ancho=v.ancho, alto=v.alto, siempre_al_frente=v.siempre_al_frente), tiempo_espera_respuesta_segundos=self.panel_opciones.tiempo_espera(),
             max_consultas_por_chat=self.spin_rotacion.value(), carpeta_imagenes=Path(r) if r else None,
             modo_procesamiento="individual" if self.combo_modo.currentIndex() == 1 else "lote",
-            nombre_perfil=PERFIL_MOTORES_WEB,
+            nombre_perfil=PERFIL_MOTORES_WEB, generar_auditoria_md=self.panel_opciones.generar_auditoria(),
         )
 
     def _abrir_navegador_manual(self) -> None:
