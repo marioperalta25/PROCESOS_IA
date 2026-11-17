@@ -143,6 +143,31 @@ class TestVistasDeepSeekGemini(unittest.TestCase):
             hilo.run()
             self.assertTrue(any("1234" in m for m in mensajes))
 
+    def test_cancelar_hilo_ia_general_interrumpe_asyncio_y_libera_vista(self) -> None:
+        from unittest.mock import MagicMock
+        from procesos_ia.interfaz.ia_web.hilos.hilo_ia_general import HiloIAGeneral
+        from procesos_ia.interfaz.ia_web.vistas.vista_ia_general import VistaIAGeneral
+
+        servicio_mock = MagicMock()
+        hilo = HiloIAGeneral(servicio_mock, "modo_ia_lote", {})
+        loop_mock = MagicMock(); loop_mock.is_closed.return_value = False
+        tarea_mock = MagicMock()
+        hilo._loop = loop_mock; hilo._tarea_principal = tarea_mock
+        hilo.cancelar()
+        servicio_mock.cancelar.assert_called_once()
+        servicio_mock.forzar_cierre_inmediato.assert_called_once()
+        loop_mock.call_soon_threadsafe.assert_called_once_with(tarea_mock.cancel)
+
+        vista = VistaIAGeneral(configuracion_web=ConfiguracionWeb())
+        vista._cancelando = True
+        vista.btn_cancelar.setText("Cancelando...")
+        vista.btn_ejecutar.setEnabled(False)
+        vista._hilo = MagicMock(); vista._hilo.isRunning.return_value = True
+        vista._restablecer_botones_cancelacion(forzar=True)
+        self.assertFalse(vista._cancelando)
+        self.assertEqual(vista.btn_cancelar.text(), "Detener")
+        self.assertTrue(vista.btn_ejecutar.isEnabled())
+
 
 if __name__ == "__main__":
     unittest.main()

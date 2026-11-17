@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QButtonGroup,
     QComboBox,
     QFormLayout,
     QHBoxLayout,
@@ -13,6 +14,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QPlainTextEdit,
     QPushButton,
+    QRadioButton,
     QScrollArea,
     QSplitter,
     QVBoxLayout,
@@ -101,6 +103,20 @@ def construir_interfaz_prompts(dialogo: DialogoGestionPrompts) -> None:
     form.addRow("Descripción:", dialogo.input_descripcion)
     layout_der.addLayout(form)
 
+    fila_destino = QHBoxLayout()
+    fila_destino.addWidget(QLabel("Motor destino:", panel_der))
+    dialogo.rb_destino_web = QRadioButton("IA Web (Gemini, DeepSeek, Modo IA)", panel_der)
+    dialogo.rb_destino_local = QRadioButton("IA Local (Ollama)", panel_der)
+    dialogo.grupo_destino = QButtonGroup(panel_der)
+    dialogo.grupo_destino.addButton(dialogo.rb_destino_web)
+    dialogo.grupo_destino.addButton(dialogo.rb_destino_local)
+    dialogo.rb_destino_web.setChecked(True)
+    dialogo.rb_destino_web.toggled.connect(dialogo._al_cambiar_destino)
+    fila_destino.addWidget(dialogo.rb_destino_web)
+    fila_destino.addWidget(dialogo.rb_destino_local)
+    fila_destino.addStretch()
+    layout_der.addLayout(fila_destino)
+
     etiqueta_criterios = QLabel(
         "Instrucciones del Prompt:\n"
         "Escribe la tarea para la IA (ej. clasificar registros, comparar columnas o extraer datos). "
@@ -121,6 +137,31 @@ def construir_interfaz_prompts(dialogo: DialogoGestionPrompts) -> None:
         dialogo.texto_contenido, 100, 550, parent=panel_der,
     )
     layout_der.addWidget(dialogo.tirador_prompt)
+
+    dialogo.panel_opciones_web = QWidget(panel_der)
+    lay_web = QVBoxLayout(dialogo.panel_opciones_web)
+    lay_web.setContentsMargins(0, 4, 0, 4); lay_web.setSpacing(6)
+    fila_sal = QHBoxLayout()
+    fila_sal.addWidget(QLabel("Columnas de salida (IA Web):", dialogo.panel_opciones_web))
+    dialogo.rb_salida_una = QRadioButton("1 columna", dialogo.panel_opciones_web)
+    dialogo.rb_salida_varias = QRadioButton("Varias columnas (2+)", dialogo.panel_opciones_web)
+    dialogo.grupo_salida_web = QButtonGroup(dialogo.panel_opciones_web)
+    dialogo.grupo_salida_web.addButton(dialogo.rb_salida_una)
+    dialogo.grupo_salida_web.addButton(dialogo.rb_salida_varias)
+    dialogo.rb_salida_una.setChecked(True)
+    dialogo.rb_salida_varias.toggled.connect(dialogo._al_cambiar_modo_salida_web)
+    fila_sal.addWidget(dialogo.rb_salida_una); fila_sal.addWidget(dialogo.rb_salida_varias); fila_sal.addStretch()
+    lay_web.addLayout(fila_sal)
+
+    fila_cols = QHBoxLayout()
+    dialogo.input_columnas_web = QLineEdit("calificacion", dialogo.panel_opciones_web)
+    dialogo.input_columnas_web.setPlaceholderText("Ej: calificacion  o  habla_espanol, categoria")
+    dialogo.btn_formato_web = QPushButton("Insertar Formato Web (JSON)", dialogo.panel_opciones_web)
+    dialogo.btn_formato_web.setMinimumHeight(28)
+    conectar_boton_protegido(dialogo.btn_formato_web, dialogo._insertar_formato_web, "[INFO] Insertando formato JSON...", dialogo._notificar_estado, 300)
+    fila_cols.addWidget(dialogo.input_columnas_web, stretch=1); fila_cols.addWidget(dialogo.btn_formato_web)
+    lay_web.addLayout(fila_cols)
+    layout_der.addWidget(dialogo.panel_opciones_web)
 
     dialogo.editor_resultados = EditorResultados(panel_der)
     layout_der.addWidget(dialogo.editor_resultados)

@@ -216,7 +216,7 @@ class VistaIAGeneral(QWidget):
         self._hilo = HiloIAGeneral(self._servicio, tipo, params, self)
         self._hilo.progreso_actualizado.connect(self._al_progreso); self._hilo.senial_log.connect(self._registrar_log)
         self._hilo.proceso_completado.connect(self._al_exito); self._hilo.proceso_fallido.connect(self._al_error)
-        self._hilo.finished.connect(self._restablecer_botones_cancelacion)
+        self._hilo.finished.connect(lambda: self._restablecer_botones_cancelacion(True))
         self._hilo.start()
 
     def _al_progreso(self, actual: int, total: int, detalle: str) -> None:
@@ -248,11 +248,11 @@ class VistaIAGeneral(QWidget):
         if self._hilo is not None and self._hilo.isRunning():
             import threading; threading.Thread(target=self._hilo.cancelar, daemon=True).start()
             self._registrar_log("[INFO] Cancelando tarea en curso y cerrando navegador...")
-        QTimer.singleShot(1500, self._restablecer_botones_cancelacion)
+        QTimer.singleShot(2500, self._restablecer_botones_cancelacion)
 
-    def _restablecer_botones_cancelacion(self) -> None:
-        if self._hilo is not None and self._hilo.isRunning():
-            return
+    def _restablecer_botones_cancelacion(self, forzar: bool = False) -> None:
+        if not forzar and self._hilo is not None and self._hilo.isRunning():
+            QTimer.singleShot(2500, lambda: self._restablecer_botones_cancelacion(True)); return
         self._cancelando = False; self.btn_cancelar.setText("Detener")
         liberar_boton_protegido(self.btn_cancelar, habilitar=False)
         liberar_boton_protegido(self.btn_ejecutar, habilitar=True); self.combo_flujo.setEnabled(True)

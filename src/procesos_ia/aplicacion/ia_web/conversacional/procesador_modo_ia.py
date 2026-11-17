@@ -21,7 +21,7 @@ from procesos_ia.aplicacion.ia_web.comun.diagnostico_lotes import (
     notificar_reintento_lote, notificar_respuesta_lote,
 )
 from procesos_ia.aplicacion.ia_web.comun.gestor_resiliencia_web import (
-    esperar_restablecimiento_conexion, verificar_conexion_internet,
+    esperar_restablecimiento_conexion, recuperar_si_captcha_google, verificar_conexion_internet,
 )
 from procesos_ia.aplicacion.ia_web.comun.guardador_extracciones import (
     guardar_auditoria_modo_ia_md, guardar_filas_enriquecidas_csv,
@@ -48,6 +48,15 @@ class ProcesadorModoIA:
         self._gestor = gestor_sesion
         self._enrutador = enrutador
         self._config = configuracion
+
+    async def _manejar_captcha(self, pestana: Any, reintentos_captcha: int, callback_log: Any) -> tuple[bool, int]:
+        """Detecta CAPTCHA de Google, reinicia con perfil limpio + 2s y controla el limite de reintentos."""
+        if not await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
+            return False, reintentos_captcha
+        reintentos_captcha += 1
+        if reintentos_captcha > 3 and callback_log:
+            callback_log("[ERROR] CAPTCHA persistente tras 3 reinicios de perfil. Deteniendo proceso.")
+        return True, reintentos_captcha
 
     async def ejecutar(
         self,
@@ -85,7 +94,7 @@ class ProcesadorModoIA:
                 guardar_auditoria_modo_ia_md(ruta_md, 0, total_lotes, 0, 0, "", "", prompt_inicial=instrucciones_compactas)
             try:
                 pestana = None
-                lotes_en_conversacion = i = reintentos_limite = reintentos_lote = reintentos_invalidos = 0
+                lotes_en_conversacion = i = reintentos_limite = reintentos_lote = reintentos_invalidos = reintentos_captcha = 0
                 n_lote = 1
 
                 while i < total_filas:
@@ -103,18 +112,33 @@ class ProcesadorModoIA:
                             aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
                             if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
                         await activar_modo_ia(pestana); lotes_en_conversacion = 0
+                        hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
+                        if hubo_captcha:
+                            pestana = None
+                            if reintentos_captcha > 3: break
+                            continue
                         if verificador_cancelacion and verificador_cancelacion(): break
                         notificar_envio_prompt_sistema(callback_log, len(instrucciones_compactas))
                         prompt_inicial = construir_prompt_inicial_conversacion(instrucciones_compactas, columnas_seleccionadas=columnas, tamano_lote=tamano_lote)
                         turnos_inicio = await marcar_turnos_previos_modo_ia(pestana)
                         enviado_inicial = await enviar_prompt_modo_ia(pestana, prompt_inicial)
                         if not enviado_inicial:
+                            hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
+                            if hubo_captcha:
+                                pestana, lotes_en_conversacion = None, 0
+                                if reintentos_captcha > 3: break
+                                continue
                             notificar_fallo_prompt_sistema(callback_log); pestana = None; await asyncio.sleep(0.5); continue
                         resp_inicio = await esperar_respuesta_modo_ia(
                             pestana, self._config.tiempo_espera_respuesta_segundos, turnos_previos=turnos_inicio,
                             verificador_cancelacion=verificador_cancelacion,
                         )
                         if not resp_inicio.strip():
+                            hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
+                            if hubo_captcha:
+                                pestana, lotes_en_conversacion = None, 0
+                                if reintentos_captcha > 3: break
+                                continue
                             notificar_alerta_confirmacion_inicio(callback_log); pestana = None; continue
                         await asyncio.sleep(0.3)
 
@@ -125,6 +149,11 @@ class ProcesadorModoIA:
                     turnos_antes = await marcar_turnos_previos_modo_ia(pestana)
                     enviado = await enviar_prompt_modo_ia(pestana, mensaje_lote)
                     if not enviado:
+                        hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
+                        if hubo_captcha:
+                            pestana, lotes_en_conversacion = None, 0
+                            if reintentos_captcha > 3: break
+                            continue
                         notificar_fallo_envio_lote(callback_log, n_lote); continue
                     if verificador_cancelacion and verificador_cancelacion(): break
 
@@ -138,6 +167,11 @@ class ProcesadorModoIA:
                     if verificador_cancelacion and verificador_cancelacion(): break
 
                     if not texto_resp.strip() or re.search(r"estoy listo para procesar|env[ií]a el primer lote", texto_resp, re.I):
+                        hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
+                        if hubo_captcha:
+                            pestana, lotes_en_conversacion = None, 0
+                            if reintentos_captcha > 3: break
+                            continue
                         reintentos_invalidos += 1
                         if reintentos_invalidos <= 2:
                             if callback_log: callback_log(f"[ALERTA] Respuesta no válida en Lote {n_lote}. Renovando sesión ({reintentos_invalidos}/2)...")
@@ -174,12 +208,12 @@ class ProcesadorModoIA:
                             pestana, lotes_en_conversacion = None, 0; await asyncio.sleep(1.0); continue
                         if callback_log: callback_log(f"[ERROR] Lote {n_lote} incompleto ({evaluadas}/{len(lote_actual)}) tras 2 reinicios. Marcando lote como fallido.")
                         for f in filas_lote: f["_estado_ia"], f["_motivo_estado"] = EstadoIA.FALLIDO.value, f"[FALLIDO] Lote incompleto ({evaluadas}/{len(lote_actual)})"
-                        reintentos_lote = 0
+                        reintentos_lote = reintentos_captcha = 0
                         trabajo.confirmar(filas_lote); todos_resultados.extend(filas_lote)
                         pestana, lotes_en_conversacion = None, 0
                         trabajo.notificar_progreso(callback_progreso, min(i + tamano_lote, total_filas), f"Lote {n_lote}/{total_lotes} incompleto")
                         i += tamano_lote; n_lote += 1; continue
-                    reintentos_lote = 0
+                    reintentos_lote = reintentos_captcha = 0
                     notificar_balance_lote(callback_log, n_lote, evaluadas, len(lote_actual))
                     trabajo.confirmar(filas_lote)
                     todos_resultados.extend(filas_lote)
@@ -188,7 +222,7 @@ class ProcesadorModoIA:
                     await asyncio.sleep(0.2); i += tamano_lote; n_lote += 1
             except (ErrorPersistenciaTabular, ValueError):
                 raise
-            except Exception as err:
+            except (Exception, asyncio.CancelledError) as err:
                 if not (verificador_cancelacion and verificador_cancelacion()): raise
                 if callback_log: callback_log(f"[INFO] Tarea interrumpida por cancelacion: {err}")
             finally:

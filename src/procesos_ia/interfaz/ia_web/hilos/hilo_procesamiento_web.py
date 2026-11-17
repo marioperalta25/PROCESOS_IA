@@ -68,11 +68,15 @@ class HiloProcesamientoWeb(QThread):
         self._cancelado = False
         self._trabajo_tabular = trabajo_tabular
         self._nombre_hoja = nombre_hoja
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._tarea_principal: asyncio.Task[Any] | None = None
 
     def run(self) -> None:
         """Punto de entrada del hilo que lanza la corrutina asincrona."""
         try:
             asyncio.run(self._ejecutar())
+        except asyncio.CancelledError:
+            self.senial_log.emit("[INFO] Hilo finalizado por cancelacion del usuario.")
         except Exception as error:
             if self._cancelado and not isinstance(error, (ErrorPersistenciaTabular, ValueError)):
                 self.senial_log.emit("[INFO] Hilo finalizado por cancelacion del usuario.")
@@ -80,6 +84,8 @@ class HiloProcesamientoWeb(QThread):
                 self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
 
     async def _ejecutar(self) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._tarea_principal = asyncio.current_task()
         def on_progreso(act: int, tot: int, det: str) -> None:
             self.progreso_actualizado.emit(act, tot, det)
 
@@ -166,4 +172,9 @@ class HiloProcesamientoWeb(QThread):
     def cancelar(self) -> None:
         self._cancelado = True
         self._servicio.cancelar()
+        if self._loop is not None and self._tarea_principal is not None and not self._loop.is_closed():
+            try:
+                self._loop.call_soon_threadsafe(self._tarea_principal.cancel)
+            except RuntimeError:
+                pass
         self._servicio.forzar_cierre_inmediato()

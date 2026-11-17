@@ -9,6 +9,7 @@ from typing import Any
 
 from procesos_ia.aplicacion.enrutador_salidas import EnrutadorSalidas
 from procesos_ia.aplicacion.comun.trabajo_tabular import TrabajoTabular
+from procesos_ia.aplicacion.ia_web.comun.gestor_resiliencia_web import recuperar_si_captcha_google
 from procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia import ProcesadorModoIA
 from procesos_ia.aplicacion.ia_web.conversacional.procesador_imagenes_chat import ProcesadorImagenesChat
 from procesos_ia.aplicacion.ia_web.conversacional.procesador_urls_modo_ia import ProcesadorUrlsModoIA
@@ -71,6 +72,16 @@ class ServicioIAGeneral:
         from procesos_ia.aplicacion.ia_web.comun.guardador_extracciones import guardar_fichas_lote_csv
         return guardar_fichas_lote_csv(fichas, ruta_salida)
 
+    async def _verificar_captcha_lens(self, pestana: Any, intento_captcha: int, callback_log: Callable[[str], None] | None) -> str:
+        """Retorna 'reintentar', 'agotado' o 'ok' tras inspeccionar si Google mostro CAPTCHA."""
+        if not await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
+            return "ok"
+        if intento_captcha < 3:
+            return "reintentar"
+        if callback_log:
+            callback_log("[ERROR] CAPTCHA persistente en Google Lens tras 3 reinicios de perfil.")
+        return "agotado"
+
     async def procesar_imagen_lens(
         self,
         fuente_imagen: str,
@@ -79,101 +90,95 @@ class ServicioIAGeneral:
         callback_log: Callable[[str], None] | None = None,
     ) -> FichaNegocioLens:
         """Abre una pestana de Google y analiza la imagen o URL con Google Lens."""
-        if self._cancelado:
-            return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado")
-        t0 = asyncio.get_running_loop().time()
-        if callback_log:
-            callback_log(f"[INFO] Abriendo navegador (perfil: {self._config.directorio_perfil})...")
-        try:
-            pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
-            aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
-            if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
-        except Exception as error:
-            if callback_log: callback_log(f"[ERROR] No se pudo abrir el navegador: {error}")
-            raise
-        try:
+        for intento_captcha in range(4):
             if self._cancelado:
                 return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado")
-            modal_abierto = await abrir_modal_lens(pestana)
-            if not modal_abierto:
-                if callback_log:
-                    callback_log("[ERROR] No se pudo abrir modal de Google Lens.")
-                return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_MODAL", texto_sintesis="[ERROR] No se pudo abrir modal de Google Lens")
-
-            es_url = fuente_imagen.startswith("http://") or fuente_imagen.startswith("https://")
+            t0 = asyncio.get_running_loop().time()
             if callback_log:
-                callback_log(f"[INFO] Enviando imagen a Google Lens ({'URL' if es_url else 'archivo'})...")
-            if es_url:
-                cargado = await cargar_url_en_lens(pestana, fuente_imagen)
-            else:
-                p_img = Path(fuente_imagen)
-                if not p_img.is_file() and (self._enrutador.imagenes / fuente_imagen).is_file():
-                    p_img = self._enrutador.imagenes / fuente_imagen
-                cargado = await cargar_archivo_en_lens(pestana, p_img)
-
-            if not cargado:
-                if callback_log:
-                    callback_log("[ERROR] No se pudo ingresar imagen a Google Lens.")
-                return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_SUBIDA", texto_sintesis="[ERROR] No se pudo ingresar la imagen a Google Lens")
-
-            if callback_log:
-                callback_log("[INFO] Recibiendo respuesta de IA...")
-            texto_respuesta, estado_ia = await esperar_vision_general_ia(
-                pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado
-            )
-            if estado_ia == "CANCELADO":
-                return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado por el usuario")
-            if callback_log:
-                callback_log("[INFO] Leyendo respuesta del DOM...")
-            html_pagina = ""
+                callback_log(f"[INFO] Abriendo navegador (perfil: {self._config.directorio_perfil})...")
             try:
-                html_res = await pestana.evaluate("document.documentElement.outerHTML")
-                html_pagina = html_res if isinstance(html_res, str) and len(html_res) > 100 else await pestana.get_content()
-            except Exception:
-                pass
-            enlaces = await extraer_enlaces_relacionados(pestana)
+                pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
+                aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
+                if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
+            except Exception as error:
+                if callback_log: callback_log(f"[ERROR] No se pudo abrir el navegador: {error}")
+                raise
+            try:
+                if self._cancelado:
+                    return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado")
+                modal_abierto = await abrir_modal_lens(pestana)
+                if not modal_abierto:
+                    estado_cap = await self._verificar_captcha_lens(pestana, intento_captcha, callback_log)
+                    if estado_cap == "reintentar": continue
+                    if estado_cap == "agotado":
+                        return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_CAPTCHA", texto_sintesis="[ERROR] CAPTCHA persistente tras 3 reinicios de perfil")
+                    if callback_log: callback_log("[ERROR] No se pudo abrir modal de Google Lens.")
+                    return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_MODAL", texto_sintesis="[ERROR] No se pudo abrir modal de Google Lens")
 
-            if callback_log:
-                callback_log("[INFO] Sacando respuesta y estructurando datos con BeautifulSoup...")
-            ficha = parsear_sintesis_negocio(
-                texto=texto_respuesta, html=html_pagina, enlaces=enlaces, id_registro=id_registro, fuente_imagen=fuente_imagen,
-            )
-            ficha.estado_ia = estado_ia
-            if html_pagina:
-                ficha.metadatos_adicionales["html_completo"] = html_pagina
-            dur = asyncio.get_running_loop().time() - t0
-            nombre_res = ficha.negocio or ficha.propietario or "Ficha encontrada"
-            if callback_log:
-                callback_log(f"[OK] Respuesta encontrada ({dur:.1f}s, {estado_ia}): {nombre_res}")
-            return ficha
-        finally:
-            if cerrar_pestana:
+                es_url = fuente_imagen.startswith("http://") or fuente_imagen.startswith("https://")
+                if callback_log: callback_log(f"[INFO] Enviando imagen a Google Lens ({'URL' if es_url else 'archivo'})...")
+                if es_url:
+                    cargado = await cargar_url_en_lens(pestana, fuente_imagen)
+                else:
+                    p_img = Path(fuente_imagen)
+                    if not p_img.is_file() and (self._enrutador.imagenes / fuente_imagen).is_file():
+                        p_img = self._enrutador.imagenes / fuente_imagen
+                    cargado = await cargar_archivo_en_lens(pestana, p_img)
+
+                if not cargado:
+                    estado_cap = await self._verificar_captcha_lens(pestana, intento_captcha, callback_log)
+                    if estado_cap == "reintentar": continue
+                    if estado_cap == "agotado":
+                        return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_CAPTCHA", texto_sintesis="[ERROR] CAPTCHA persistente tras 3 reinicios de perfil")
+                    if callback_log: callback_log("[ERROR] No se pudo ingresar imagen a Google Lens.")
+                    return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_SUBIDA", texto_sintesis="[ERROR] No se pudo ingresar la imagen a Google Lens")
+
+                if callback_log: callback_log("[INFO] Recibiendo respuesta de IA...")
+                texto_respuesta, estado_ia = await esperar_vision_general_ia(
+                    pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado
+                )
+                if estado_ia == "CANCELADO":
+                    return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado por el usuario")
+                if estado_ia == "TIMEOUT":
+                    estado_cap = await self._verificar_captcha_lens(pestana, intento_captcha, callback_log)
+                    if estado_cap == "reintentar": continue
+                if callback_log: callback_log("[INFO] Leyendo respuesta del DOM...")
+                html_pagina = ""
                 try:
-                    await pestana.close()
+                    html_res = await pestana.evaluate("document.documentElement.outerHTML")
+                    html_pagina = html_res if isinstance(html_res, str) and len(html_res) > 100 else await pestana.get_content()
                 except Exception:
                     pass
+                enlaces = await extraer_enlaces_relacionados(pestana)
+                if callback_log: callback_log("[INFO] Sacando respuesta y estructurando datos con BeautifulSoup...")
+                ficha = parsear_sintesis_negocio(
+                    texto=texto_respuesta, html=html_pagina, enlaces=enlaces, id_registro=id_registro, fuente_imagen=fuente_imagen,
+                )
+                ficha.estado_ia = estado_ia
+                if html_pagina: ficha.metadatos_adicionales["html_completo"] = html_pagina
+                dur = asyncio.get_running_loop().time() - t0
+                nombre_res = ficha.negocio or ficha.propietario or "Ficha encontrada"
+                if callback_log: callback_log(f"[OK] Respuesta encontrada ({dur:.1f}s, {estado_ia}): {nombre_res}")
+                return ficha
+            finally:
+                if cerrar_pestana:
+                    try: await pestana.close()
+                    except Exception: pass
+        return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_CAPTCHA", texto_sintesis="[ERROR] CAPTCHA persistente")
 
     async def procesar_url_individual(
-        self,
-        fuente_imagen: str,
-        id_registro: str = "img_1",
-        carpeta_salida: Path | None = None,
-        cerrar_navegador_al_terminar: bool = True,
-        callback_log: Callable[[str], None] | None = None,
+        self, fuente_imagen: str, id_registro: str = "img_1", carpeta_salida: Path | None = None,
+        cerrar_navegador_al_terminar: bool = True, callback_log: Callable[[str], None] | None = None,
         generar_auditoria_md: bool = True,
     ) -> tuple[FichaNegocioLens, Path | None]:
         """Procesa una URL individual mediante el subservicio dedicado, guardando CSV y cerrando sesion."""
         self._cancelado = False
         resultado = await self._procesador_url.ejecutar(
-            fuente_imagen=fuente_imagen,
-            id_registro=id_registro,
-            carpeta_salida=carpeta_salida,
-            cerrar_navegador_al_terminar=cerrar_navegador_al_terminar,
-            callback_log=callback_log,
+            fuente_imagen=fuente_imagen, id_registro=id_registro, carpeta_salida=carpeta_salida,
+            cerrar_navegador_al_terminar=cerrar_navegador_al_terminar, callback_log=callback_log,
             generar_auditoria_md=generar_auditoria_md,
         )
-        self.ultima_salida = resultado[1]
-        return resultado
+        self.ultima_salida = resultado[1]; return resultado
 
     async def procesar_csv_con_lens(
         self,

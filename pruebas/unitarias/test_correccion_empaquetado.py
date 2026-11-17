@@ -367,3 +367,15 @@ class PruebaCorreccionEmpaquetado(unittest.TestCase):
         self.assertEqual(v_gen._config_web.nombre_perfil, "perfil_ia_general")
         self.assertEqual(v_ds._config_web.nombre_perfil, "perfil_motores_web")
         self.assertEqual(v_gm._config_web.nombre_perfil, "perfil_motores_web")
+
+    def test_esperar_respuesta_modo_ia_acepta_json_una_linea_para_lote_multiple(self):
+        import asyncio, json, time
+        from unittest.mock import AsyncMock, MagicMock
+        from procesos_ia.infraestructura.web.conversacional.manipulador_dom_modo_ia import esperar_respuesta_modo_ia
+        json_1_linea = '{"resultados": [{"id": 1, "categoria": "A"}, {"id": 2, "categoria": "B"}]}'
+        pestana = MagicMock()
+        pestana.evaluate = AsyncMock(return_value=json.dumps({"num_turnos": 2, "completo": True, "texto": json_1_linea, "lineas": 1}))
+        t0 = time.monotonic()
+        res = asyncio.run(esperar_respuesta_modo_ia(pestana, timeout_segundos=10, turnos_previos=1, filas_esperadas=5))
+        self.assertEqual(res, json_1_linea)
+        self.assertLess(time.monotonic() - t0, 1.0)

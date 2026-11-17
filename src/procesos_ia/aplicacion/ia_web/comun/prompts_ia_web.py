@@ -171,3 +171,31 @@ def poblar_combo_plantillas_ia_web(combo: object, servicio_prompts: object = Non
                 combo.setCurrentIndex(idx)
     except Exception as error:
         logger.warning("[ALERTA] No se pudieron cargar plantillas IA Web: %s", error)
+
+
+def construir_bloque_salida_web(columnas: list[str] | tuple[str, ...]) -> str:
+    """Construye el bloque determinista de formato JSON (1 o varias columnas) para IA Web."""
+    from procesos_ia.dominio.normalizador import sanear_identificador_columna
+    limpias = [sanear_identificador_columna(c, f"col_{i+1}") for i, c in enumerate(columnas) if str(c).strip()]
+    if not limpias:
+        limpias = ["calificacion"]
+    ejemplo_campos = ", ".join(f'"{c}": "..."' for c in limpias)
+    tipo_txt = f"1 columna ('{limpias[0]}')" if len(limpias) == 1 else f"{len(limpias)} columnas ({', '.join(limpias)})"
+    return (
+        "FORMATO DE SALIDA OBLIGATORIO:\n"
+        "1. Cada fila llega identificada como [FILA <id>]: ... (si hay varias columnas de entrada vienen separadas por '|').\n"
+        f"2. Responde EXCLUSIVAMENTE un bloque JSON valido con la clave \"resultados\" y {tipo_txt}, usando en \"id\" el numero exacto de [FILA N]:\n"
+        f'{{"resultados": [{{"id": 1, {ejemplo_campos}}}]}}\n'
+        "3. Si un dato no existe o es ambiguo, asigna \"ND\". No agregues explicaciones fuera del JSON."
+    )
+
+
+def aplicar_formato_salida_web(texto_prompt: str, columnas: list[str] | tuple[str, ...]) -> str:
+    """Inserta o actualiza el bloque de formato JSON obligatorio al final de un prompt Web."""
+    base = (texto_prompt or "").strip()
+    bloque = construir_bloque_salida_web(columnas)
+    for marcador in ("FORMATO DE SALIDA OBLIGATORIO:", "FORMATO DE SALIDA OBLIGATORIO (IA WEB):"):
+        if marcador in base:
+            base = base.split(marcador, 1)[0].strip()
+            break
+    return f"{base}\n\n{bloque}".strip() if base else bloque

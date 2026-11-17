@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 
 from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
 from procesos_ia.dominio.prompts import PeticionRefinamiento, PlantillaPrompt, ResultadoRefinamiento
-from procesos_ia.dominio.evaluaciones import resultados_compatibles, resultados_desde_datos
+from procesos_ia.dominio.evaluaciones import resultados_compatibles, resultados_desde_columnas, resultados_desde_datos
 from procesos_ia.interfaz.borradores import GestorBorradores, volcar_datos_editor
 from procesos_ia.interfaz.composicion_prompts import construir_interfaz_prompts
 from procesos_ia.interfaz.hilos_evaluacion import HiloRefinamiento
@@ -50,6 +50,36 @@ class DialogoGestionPrompts(QWidget):
 
     def _iniciar_ui(self) -> None:
         construir_interfaz_prompts(self)
+        self._al_cambiar_destino()
+
+    def _al_cambiar_destino(self) -> None:
+        es_web = self.rb_destino_web.isChecked()
+        self.panel_opciones_web.setVisible(es_web)
+        self.editor_resultados.setVisible(not es_web)
+        cat = self.input_categoria.text().strip()
+        if es_web and cat in ("", "general"):
+            self.input_categoria.setText("ia_web")
+        elif not es_web and cat == "ia_web":
+            self.input_categoria.setText("general")
+
+    def _al_cambiar_modo_salida_web(self) -> None:
+        actual = self.input_columnas_web.text().strip()
+        if self.rb_salida_varias.isChecked() and actual in ("", "calificacion"):
+            self.input_columnas_web.setText("habla_espanol, categoria")
+        elif self.rb_salida_una.isChecked() and (not actual or "," in actual):
+            self.input_columnas_web.setText("calificacion")
+
+    def _obtener_columnas_web(self) -> list[str]:
+        bruto = [c.strip() for c in self.input_columnas_web.text().split(",") if c.strip()]
+        if self.rb_salida_varias.isChecked():
+            return bruto if len(bruto) >= 2 else (bruto + ["categoria"])[:2]
+        return [bruto[0]] if bruto else ["calificacion"]
+
+    def _insertar_formato_web(self) -> None:
+        from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import aplicar_formato_salida_web
+        nuevo = aplicar_formato_salida_web(self.texto_contenido.toPlainText(), self._obtener_columnas_web())
+        self.texto_contenido.setPlainText(nuevo)
+        self.estado_refinamiento.setText("[OK] Formato JSON de salida Web insertado en el prompt.")
 
     def _cargar_modelos(self) -> None:
         self.combo_modelos.clear()
@@ -96,7 +126,13 @@ class DialogoGestionPrompts(QWidget):
             self.input_titulo.setText(p.titulo)
             self.input_categoria.setText(p.categoria)
             self.input_descripcion.setText(p.descripcion)
-            self.editor_resultados.cargar(resultados_compatibles(p))
+            res = resultados_compatibles(p)
+            self.editor_resultados.cargar(res)
+            es_web = p.categoria == "ia_web"
+            self.rb_destino_web.setChecked(es_web); self.rb_destino_local.setChecked(not es_web)
+            if res:
+                self.rb_salida_varias.setChecked(len(res) > 1); self.rb_salida_una.setChecked(len(res) <= 1)
+                self.input_columnas_web.setText(", ".join(r.clave for r in res))
             self.texto_contenido.setPlainText(p.contenido)
 
     def _crear_nuevo(self) -> None:
@@ -120,7 +156,16 @@ class DialogoGestionPrompts(QWidget):
             return None
         id_existente = self._plantilla_actual.identificador if self._plantilla_actual else None
         try:
-            resultados = self.editor_resultados.obtener()
+            es_web = self.rb_destino_web.isChecked()
+            if es_web and "resultados" not in contenido.lower():
+                from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import aplicar_formato_salida_web
+                contenido = aplicar_formato_salida_web(contenido, self._obtener_columnas_web())
+                self.texto_contenido.setPlainText(contenido)
+            resultados = (
+                resultados_desde_columnas(self._obtener_columnas_web())
+                if es_web
+                else self.editor_resultados.obtener()
+            )
             guardada = self._servicio.crear_plantilla(
                 titulo=titulo, contenido=contenido, categoria=categoria,
                 descripcion=descripcion, resultados=resultados, identificador=id_existente,
@@ -169,7 +214,13 @@ class DialogoGestionPrompts(QWidget):
             return
         self.estado_refinamiento.setText(f"[EN PROCESO] Consultando modelo '{modelo}'...")
         self._cambiar_estado_controles(False)
-        h = HiloRefinamiento(self._servicio, PeticionRefinamiento(idea_usuario=idea), modelo, self)
+        es_web = self.rb_destino_web.isChecked()
+        peticion = PeticionRefinamiento(
+            idea_usuario=idea,
+            modo_destino="web" if es_web else "local",
+            columnas_salida_objetivo=tuple(self._obtener_columnas_web()) if es_web else (),
+        )
+        h = HiloRefinamiento(self._servicio, peticion, modelo, self)
         self._hilo_refinamiento = h
         h.senial_resultado.connect(self._al_refinar)
         h.senial_error.connect(self._al_error_refinamiento)
@@ -178,8 +229,15 @@ class DialogoGestionPrompts(QWidget):
 
     def _al_refinar(self, resultado: ResultadoRefinamiento) -> None:
         self.texto_contenido.setPlainText(resultado.prompt_refinado)
-        self.editor_resultados.cargar(resultado.resultados)
-        self.estado_refinamiento.setText(self._textos.get("refinamiento_listo", "[OK] Sugerencia generada."))
+        if self.rb_destino_web.isChecked():
+            if resultado.resultados:
+                self.rb_salida_varias.setChecked(len(resultado.resultados) > 1)
+                self.rb_salida_una.setChecked(len(resultado.resultados) <= 1)
+                self.input_columnas_web.setText(", ".join(r.clave for r in resultado.resultados))
+            self.estado_refinamiento.setText("[OK] Prompt Web optimizado. Audite reglas y columnas antes de guardar.")
+        else:
+            self.editor_resultados.cargar(resultado.resultados)
+            self.estado_refinamiento.setText(self._textos.get("refinamiento_listo", "[OK] Sugerencia generada."))
 
     def _al_error_refinamiento(self, error: str) -> None:
         self.estado_refinamiento.setText(f"[ERROR] {error}")
@@ -195,11 +253,8 @@ class DialogoGestionPrompts(QWidget):
             self._al_volver()
 
     def _al_volver(self) -> None:
-        if self._hilo_refinamiento is not None:
-            self._cerrar_pendiente = True
-        else:
-            self.guardar_borrador()
-            self.volver_solicitado.emit()
+        if self._hilo_refinamiento is not None: self._cerrar_pendiente = True
+        else: self.guardar_borrador(); self.volver_solicitado.emit()
 
     def guardar_borrador(self) -> None:
         self._borradores.guardar_prompts(
@@ -210,48 +265,33 @@ class DialogoGestionPrompts(QWidget):
         )
 
     def restaurar_borrador_si_existe(self) -> bool:
-        if not self._borradores.tiene_borrador_prompts():
-            return False
+        if not self._borradores.tiene_borrador_prompts(): return False
         b = self._borradores.obtener_prompts()
         identificador = b.get("identificador_activo")
         self._plantilla_actual = next((p for p in self._servicio.listar_plantillas() if p.identificador == identificador), None)
-        self.input_titulo.setText(b.get("titulo", ""))
-        self.input_categoria.setText(b.get("categoria", "general"))
-        self.input_descripcion.setText(b.get("descripcion", ""))
-        self.texto_contenido.setPlainText(b.get("contenido", ""))
+        self.input_titulo.setText(b.get("titulo", "")); self.input_categoria.setText(b.get("categoria", "general"))
+        self.input_descripcion.setText(b.get("descripcion", "")); self.texto_contenido.setPlainText(b.get("contenido", ""))
         if "resultados_datos" in b:
-            try:
-                self.editor_resultados.cargar(resultados_desde_datos(b["resultados_datos"]))
-            except Exception:
-                pass
+            try: self.editor_resultados.cargar(resultados_desde_datos(b["resultados_datos"]))
+            except Exception: pass
         self.estado_refinamiento.setText("[INFO] Borrador temporal restaurado.")
         return True
 
     def limpiar_borrador(self) -> None:
-        self._borradores.limpiar_prompts()
-        self._crear_nuevo()
+        self._borradores.limpiar_prompts(); self._crear_nuevo()
         self.estado_refinamiento.setText("[INFO] Borrador descartado. Formulario limpio desde cero.")
 
     def _usar_plantilla(self) -> None:
         plantilla = self._guardar_actual(mostrar_aviso=False)
         if plantilla is not None:
-            self._borradores.limpiar_prompts()
-            self._borradores.limpiar_preparacion()
-            self.plantilla_seleccionada.emit(plantilla)
-            self.volver_solicitado.emit()
+            self._borradores.limpiar_prompts(); self._borradores.limpiar_preparacion()
+            self.plantilla_seleccionada.emit(plantilla); self.volver_solicitado.emit()
 
     def _notificar_estado(self, msj: str) -> None:
-        if hasattr(self, "estado_refinamiento") and self.estado_refinamiento:
-            self.estado_refinamiento.setText(msj)
+        if hasattr(self, "estado_refinamiento") and self.estado_refinamiento: self.estado_refinamiento.setText(msj)
 
-    def exec(self) -> int:
-        return 1
-
-    def reject(self) -> None:
-        self._al_volver()
-
-    def accept(self) -> None:
-        self.volver_solicitado.emit()
-
+    def exec(self) -> int: return 1
+    def reject(self) -> None: self._al_volver()
+    def accept(self) -> None: self.volver_solicitado.emit()
     def adaptar_modo(self, modo: ModoPantalla) -> None:
         self.splitter.setOrientation(Qt.Orientation.Vertical if modo == ModoPantalla.COMPACTO else Qt.Orientation.Horizontal)

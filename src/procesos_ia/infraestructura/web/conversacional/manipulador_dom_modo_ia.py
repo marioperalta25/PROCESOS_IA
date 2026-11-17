@@ -244,7 +244,8 @@ async def esperar_respuesta_modo_ia(
         const hasCopy = !!target.querySelector("button.bKxaof, button[aria-label*='Copiar texto'], button[aria-label*='Copy text']");
         const hasShare = !!target.querySelector("button.eGAasd, button[aria-label*='Compartir'], button[aria-label*='Share']");
         const hasThumbs = !!target.querySelector("button.cEme7d, button[aria-label*='Respuesta correcta']");
-        const isProgress = !!document.querySelector("div[role='progressbar'], .Hz4U2, .k7bQcd, .p8h7ae");
+        const isProgress = Array.from(document.querySelectorAll("div[role='progressbar'], .Hz4U2, .k7bQcd, .p8h7ae"))
+            .some(el => !el.closest("button, .RkJvxe, .OUQe0e, .zkL70c") && (el.offsetWidth > 0 || el.offsetHeight > 0));
 
         const completo = (hasCopy || hasShare || hasThumbs) && !isProgress;
         const lines = txt.split('\\n').map(l => l.trim()).filter(Boolean);
@@ -268,13 +269,14 @@ async def esperar_respuesta_modo_ia(
             n_turnos, completo = int(estado.get("num_turnos", 0)), bool(estado.get("completo", False))
             texto, num_lineas = (estado.get("texto") or "").strip(), int(estado.get("lineas", 0))
 
+            es_json = '"resultados"' in texto or (texto.startswith("{") and texto.endswith("}"))
             if n_turnos > turnos_previos or turnos_previos == 0:
-                if completo and len(texto) >= 1 and (filas_esperadas == 0 or num_lineas >= filas_esperadas):
+                if completo and len(texto) >= 1 and (es_json or filas_esperadas == 0 or num_lineas >= filas_esperadas):
                     return texto
                 if texto and texto != ultimo_texto:
                     ultimo_texto = texto; ultimo_cambio = asyncio.get_running_loop().time()
                 elif texto and (asyncio.get_running_loop().time() - ultimo_cambio) >= (1.2 if completo else 1.8):
-                    if completo or filas_esperadas == 0 or num_lineas >= filas_esperadas: return texto
+                    if completo or es_json or filas_esperadas == 0 or num_lineas >= filas_esperadas: return texto
         except Exception:
             if verificador_cancelacion and verificador_cancelacion(): return ""
         for _ in range(2):

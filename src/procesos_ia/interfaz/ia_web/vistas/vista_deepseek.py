@@ -249,6 +249,7 @@ class VistaDeepSeek(QWidget):
             )
         self._hilo_proc.senial_log.connect(self.consola.agregar_log); self._hilo_proc.progreso_actualizado.connect(self._al_progreso)
         self._hilo_proc.proceso_completado.connect(self._al_completado); self._hilo_proc.proceso_fallido.connect(self._al_fallo)
+        self._hilo_proc.finished.connect(self._restablecer_botones_cancelacion)
         self._hilo_proc.start()
 
     def _al_progreso(self, act: int, tot: int, det: str) -> None:
@@ -271,11 +272,11 @@ class VistaDeepSeek(QWidget):
 
     def _cancelar_procesamiento(self) -> None:
         if self._hilo_proc and self._hilo_proc.isRunning():
-            self._hilo_proc.cancelar(); self.consola.agregar_log("[ALERTA] Cancelando corrida DeepSeek...")
+            import threading; threading.Thread(target=self._hilo_proc.cancelar, daemon=True).start()
+            self.consola.agregar_log("[ALERTA] Cancelando corrida DeepSeek...")
             self.banner.mostrar_en_proceso("[ALERTA] Cancelando corrida DeepSeek...")
             self.btn_cancelar.setEnabled(False); self.btn_cancelar.setText("Cancelando...")
-            liberar_boton_protegido(self.btn_ejecutar, habilitar=True)
-            QTimer.singleShot(1500, self._restablecer_botones_cancelacion)
+            QTimer.singleShot(2500, self._restablecer_botones_cancelacion)
 
     def _restablecer_botones_cancelacion(self) -> None:
         self.btn_cancelar.setText("Detener DeepSeek"); self.btn_cancelar.setEnabled(False)

@@ -138,3 +138,48 @@ class PruebaModoIAConversacional(unittest.IsolatedAsyncioTestCase):
             self.assertIn("[FILA 1]:", prompts_enviados[2])
             self.assertIn("Clasifica empresas.", prompts_enviados[3])
             self.assertIn("[FILA 1]:", prompts_enviados[4])
+
+    def test_mapear_respuestas_lote_separa_columnas_pipe_y_filtra_encabezados(self) -> None:
+        texto = "Claro\nResultados:\n[FILA 1]: Sí | Techos y cubiertas\n[FILA 2]: No | Plomería"
+        lote = [{"desc": "A"}, {"desc": "B"}]
+        res = mapear_respuestas_lote(texto, None, lote, indice_base=1)
+        self.assertEqual(res[0]["evaluacion_col_1"], "Sí")
+        self.assertEqual(res[0]["evaluacion_col_2"], "Techos y cubiertas")
+        self.assertEqual(res[1]["evaluacion_col_1"], "No")
+        self.assertEqual(res[1]["evaluacion_col_2"], "Plomería")
+
+        texto_sin_etiquetas = "Resultados:\nSí | Techos\nNo | Plomería"
+        res2 = mapear_respuestas_lote(texto_sin_etiquetas, None, lote, indice_base=1)
+        self.assertEqual(res2[0]["evaluacion_col_1"], "Sí")
+        self.assertEqual(res2[1]["evaluacion_col_2"], "Plomería")
+
+    def test_mapear_respuestas_lote_no_sobrescribe_columnas_originales_y_agrega_ia(self) -> None:
+        lote = [{"negocio": "JMP", "categoria": "Contratista"}]
+        datos = {"resultados": [{"id": 1, "categoria": "Construction Company", "habla_espanol": "Sí"}]}
+        res = mapear_respuestas_lote("", datos, lote, indice_base=1)
+        self.assertEqual(res[0]["categoria"], "Contratista")
+        self.assertEqual(res[0]["categoria_ia"], "Construction Company")
+        self.assertEqual(res[0]["habla_espanol"], "Sí")
+
+    async def test_servicio_web_usa_respaldo_texto_y_reintenta_lote_incompleto(self) -> None:
+        from procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web import ServicioProcesamientoWeb
+
+        gestor = MagicMock()
+        gestor.abrir_nueva_pestana = AsyncMock(return_value=MagicMock())
+        gestor.cerrar_navegador = AsyncMock()
+        servicio = ServicioProcesamientoWeb(gestor, ConfiguracionWeb(), self.enrutador)
+        filas = [{"negocio": "A"}, {"negocio": "B"}]
+        respuestas = iter(["[FILA 1]: Solo uno", "[FILA 1]: Sí | Techos\n[FILA 2]: No | Pintura"])
+        mod = "procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web."
+        with patch(mod + "enviar_prompt_gemini", new=AsyncMock(return_value=True)), \
+             patch(mod + "esperar_respuesta_gemini", side_effect=lambda *a, **kw: next(respuestas)), \
+             patch(mod + "iniciar_nuevo_chat_gemini", new=AsyncMock(return_value=True)) as chat_mock:
+            res, _ = await servicio._procesar_flujo_texto_lotes(
+                motor="gemini", pestana=MagicMock(), filas=filas, columnas=["negocio"],
+                instrucciones="Evalúa", tamano_lote=2, rotacion=5, stem="test_fallback",
+                cb_prog=None, cb_log=None, generar_auditoria_md=False,
+            )
+        self.assertEqual(len(res), 2)
+        self.assertEqual(res[0]["evaluacion_col_1"], "Sí")
+        self.assertEqual(res[1]["evaluacion_col_2"], "Pintura")
+        chat_mock.assert_awaited_once()

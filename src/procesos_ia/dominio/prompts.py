@@ -38,6 +38,8 @@ class PeticionRefinamiento:
     idea_usuario: str
     columnas_entrada: tuple[str, ...] = field(default_factory=tuple)
     ejemplo_fila: dict[str, str] = field(default_factory=dict)
+    modo_destino: str = "local"
+    columnas_salida_objetivo: tuple[str, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True, slots=True)

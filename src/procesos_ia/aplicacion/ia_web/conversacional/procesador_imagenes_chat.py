@@ -17,6 +17,7 @@ from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
 )
 from procesos_ia.aplicacion.ia_web.comun.gestor_resiliencia_web import (
     esperar_restablecimiento_conexion,
+    recuperar_si_captcha_google,
     salvaguardar_progreso_csv,
     verificar_conexion_internet,
 )
@@ -143,76 +144,76 @@ class ProcesadorImagenesChat:
         with salida:
             try:
                 pestana = None
-                imgs_en_chat = 0
+                imgs_en_chat = reintentos_captcha = 0
+                detener_por_captcha = False
 
                 for idx, ruta_img in enumerate(archivos, start=1):
-                    if verificador_cancelacion and verificador_cancelacion():
-                        if callback_log:
-                            callback_log("[INFO] Proceso de imágenes cancelado por el usuario.")
-                        break
+                    if detener_por_captcha: break
+                    while True:
+                        if verificador_cancelacion and verificador_cancelacion():
+                            if callback_log: callback_log("[INFO] Proceso de imágenes cancelado por el usuario.")
+                            detener_por_captcha = True; break
 
-                    if not verificar_conexion_internet():
-                        await esperar_restablecimiento_conexion(callback_log)
-                        pestana = None
+                        if not verificar_conexion_internet():
+                            await esperar_restablecimiento_conexion(callback_log); pestana = None
 
-                    id_registro = f"{ruta_img.stem}_{idx}"
+                        id_registro = f"{ruta_img.stem}_{idx}"
+                        if pestana is None or imgs_en_chat >= rotacion_chat:
+                            if pestana is not None and callback_log:
+                                callback_log(f"[INFO] Límite de {rotacion_chat} imágenes por chat alcanzado. Renovando conversación...")
+                            pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
+                            aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
+                            if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
+                            await asyncio.sleep(0.3); await activar_modo_ia(pestana); imgs_en_chat = 0
+                            if await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
+                                pestana = None; reintentos_captcha += 1
+                                if reintentos_captcha > 3:
+                                    if callback_log: callback_log("[ERROR] CAPTCHA persistente tras 3 reinicios de perfil. Deteniendo proceso.")
+                                    detener_por_captcha = True; break
+                                continue
 
-                    # Renovación de conversación cada rotacion_chat imágenes (por defecto 3)
-                    if pestana is None or imgs_en_chat >= rotacion_chat:
-                        if pestana is not None and callback_log:
-                            callback_log(
-                                f"[INFO] Límite de {rotacion_chat} imágenes por chat alcanzado. Renovando conversación..."
-                            )
-                        pestana = await self._gestor.abrir_nueva_pestana("https://www.google.com")
-                        aviso_v = getattr(self._gestor, "ultimo_aviso_ventana", None)
-                        if aviso_v and callback_log: callback_log(f"[ALERTA] {aviso_v}")
-                        await asyncio.sleep(0.3)
-                        await activar_modo_ia(pestana)
-                        imgs_en_chat = 0
+                        if callback_log: callback_log(f"[INFO] ({idx}/{total_archivos}) Enviando imagen: {ruta_img.name}...")
+                        turnos_antes = await marcar_turnos_previos_modo_ia(pestana)
+                        enviado = False
+                        for intento in range(1, 3):
+                            enviado = await inyectar_imagen_y_prompt_modo_ia(pestana, prompt_base, ruta_imagen=ruta_img)
+                            if enviado: break
+                            if intento < 2:
+                                if callback_log: callback_log(f"[ALERTA] Intento {intento}/2 falló al inyectar '{ruta_img.name}'. Reintentando en 2.5s...")
+                                await asyncio.sleep(2.5)
 
-                    if callback_log:
-                        callback_log(f"[INFO] ({idx}/{total_archivos}) Enviando imagen: {ruta_img.name}...")
+                        if not enviado:
+                            if await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
+                                pestana = None; imgs_en_chat = 0; reintentos_captcha += 1
+                                if reintentos_captcha > 3:
+                                    if callback_log: callback_log("[ERROR] CAPTCHA persistente tras 3 reinicios de perfil. Deteniendo proceso.")
+                                    detener_por_captcha = True; break
+                                continue
+                            hubo_error = True
+                            if callback_log: callback_log(f"[ERROR] No se pudo enviar imagen '{ruta_img.name}'. Renovando conversación...")
+                            todos_resultados.append({"id_registro": id_registro, "archivo_imagen": ruta_img.name, "estado_ia": "ERROR_ENVIO"})
+                            salvaguardar_progreso_csv(todos_resultados, salida.ruta)
+                            pestana = None; imgs_en_chat = 0; break
 
-                    turnos_antes = await marcar_turnos_previos_modo_ia(pestana)
-                    enviado = False
-                    for intento in range(1, 3):
-                        enviado = await inyectar_imagen_y_prompt_modo_ia(
-                            pestana, prompt_base, ruta_imagen=ruta_img
+                        t_inicio = asyncio.get_running_loop().time()
+                        resp_texto = await esperar_respuesta_modo_ia(
+                            pestana, self._config.tiempo_espera_respuesta_segundos,
+                            turnos_previos=turnos_antes, filas_esperadas=1, verificador_cancelacion=verificador_cancelacion,
                         )
-                        if enviado:
-                            break
-                        if intento < 2:
-                            if callback_log:
-                                callback_log(
-                                    f"[ALERTA] Intento {intento}/2 falló al inyectar imagen '{ruta_img.name}'. Reintentando en 2.5s..."
-                                )
-                            await asyncio.sleep(2.5)
-
+                        t_dur = asyncio.get_running_loop().time() - t_inicio
+                        if verificador_cancelacion and verificador_cancelacion():
+                            detener_por_captcha = True; break
+                        if not resp_texto.strip() and await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
+                            pestana = None; imgs_en_chat = 0; reintentos_captcha += 1
+                            if reintentos_captcha > 3:
+                                if callback_log: callback_log("[ERROR] CAPTCHA persistente tras 3 reinicios de perfil. Deteniendo proceso.")
+                                detener_por_captcha = True; break
+                            continue
+                        reintentos_captcha = 0; break
+                    if detener_por_captcha:
+                        break
                     if not enviado:
-                        hubo_error = True
-                        if callback_log:
-                            callback_log(f"[ERROR] No se pudo enviar imagen '{ruta_img.name}'. Renovando conversación...")
-                        fila_err = {
-                            "id_registro": id_registro,
-                            "archivo_imagen": ruta_img.name,
-                            "estado_ia": "ERROR_ENVIO",
-                        }
-                        todos_resultados.append(fila_err)
-                        salvaguardar_progreso_csv(todos_resultados, salida.ruta)
-                        pestana = None
-                        imgs_en_chat = 0
                         continue
-
-                    t_inicio = asyncio.get_running_loop().time()
-                    resp_texto = await esperar_respuesta_modo_ia(
-                        pestana,
-                        self._config.tiempo_espera_respuesta_segundos,
-                        turnos_previos=turnos_antes,
-                        filas_esperadas=1,
-                        verificador_cancelacion=verificador_cancelacion,
-                    )
-                    t_dur = asyncio.get_running_loop().time() - t_inicio
-                    if verificador_cancelacion and verificador_cancelacion(): break
 
                     html_crudo = ""
                     if ruta_md:

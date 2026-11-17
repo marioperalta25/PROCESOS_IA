@@ -246,45 +246,45 @@ class ServicioProcesamientoWeb:
                 for n_lote, i in enumerate(range(0, total, tamano_lote), start=1):
                     if self._cancelado: break
                     lote = filas[i : i + tamano_lote]
-                    await self._rotar_chat_si_requerido(pestana, motor, rotacion)
+                    lote_resultado: list[dict[str, Any]] = []
+                    evaluadas = 0
+                    for intento_lote in range(3):
+                        if self._cancelado: break
+                        await self._rotar_chat_si_requerido(pestana, motor, rotacion)
+                        if self._cancelado: break
+                        prompt = construir_prompt_lote_chat(instrucciones=instrucciones, lote_filas=lote, columnas_seleccionadas=columnas, indice_inicio=i + 1)
+                        notificar_envio_lote(cb_log, n_lote, total_lotes, i + 1, min(i + tamano_lote, total), total, delimitador="|")
+                        t_ini = asyncio.get_running_loop().time()
+                        enviado = (await enviar_prompt_gemini(pestana, prompt, None)) if motor == "gemini" else (await enviar_prompt_deepseek(pestana, prompt, None))
+                        self._consultas_chat += 1
+                        if self._cancelado: break
+                        if not enviado:
+                            notificar_fallo_envio_lote(cb_log, n_lote)
+                            lote_resultado = [{**dict(f), "error_inferencia": "Fallo de envio", COLUMNA_ESTADO: EstadoIA.FALLIDO.value, COLUMNA_MOTIVO: "[ERROR] Fallo de envio al motor", COLUMNA_FECHA: fecha_iso} for f in lote]
+                            break
+                        resp_txt = (await esperar_respuesta_gemini(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado)) if motor == "gemini" else (await esperar_respuesta_deepseek(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado))
+                        if self._cancelado: break
+                        t_dur = asyncio.get_running_loop().time() - t_ini
+                        notificar_respuesta_lote(cb_log, n_lote, total_lotes, t_dur)
+                        if ruta_md:
+                            guardar_auditoria_modo_ia_md(ruta_md, n_lote, total_lotes, i + 1, min(i + tamano_lote, total), prompt, resp_txt or "", t_dur)
+                        parsed = extraer_y_reparar_json(resp_txt)
+                        lote_resultado = mapear_respuestas_lote(resp_txt or "", parsed, lote, i + 1)
+                        if not resp_txt:
+                            for fila in lote_resultado: fila[COLUMNA_ESTADO] = EstadoIA.FALLIDO.value
+                        evaluadas, _ = evaluar_calidad_lote(lote_resultado, len(lote))
+                        if (not resp_txt or evaluadas < len(lote)) and intento_lote < 2 and not self._cancelado:
+                            if cb_log: cb_log(f"[ALERTA] Lote {n_lote} incompleto ({evaluadas}/{len(lote)}). Rotando chat y reintentando ({intento_lote + 1}/2)...")
+                            self._consultas_chat = rotacion; await asyncio.sleep(0.5); continue
+                        break
                     if self._cancelado: break
-                    prompt = construir_prompt_lote_chat(
-                        instrucciones=instrucciones, lote_filas=lote, columnas_seleccionadas=columnas, indice_inicio=i + 1,
-                    )
-                    notificar_envio_lote(cb_log, n_lote, total_lotes, i + 1, min(i + tamano_lote, total), total, delimitador="|")
-                    t_ini = asyncio.get_running_loop().time()
-                    enviado = (await enviar_prompt_gemini(pestana, prompt, None)) if motor == "gemini" else (await enviar_prompt_deepseek(pestana, prompt, None))
-                    self._consultas_chat += 1
-                    if self._cancelado: break
-                    if not enviado:
-                        notificar_fallo_envio_lote(cb_log, n_lote)
-                        for f in lote:
-                            sal = dict(f); sal["error_inferencia"] = "Fallo de envio"
-                            sal[COLUMNA_ESTADO] = EstadoIA.FALLIDO.value; sal[COLUMNA_MOTIVO] = "[ERROR] Fallo de envio al motor"
-                            sal[COLUMNA_FECHA] = fecha_iso; resultados.append(sal)
-                        trabajo.confirmar(resultados[-len(lote):])
-                        trabajo.notificar_progreso(cb_prog, min(i + len(lote), total), f"Lote {n_lote}/{total_lotes} (fallo de envío)")
-                        continue
-                    resp_txt = (await esperar_respuesta_gemini(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado)) if motor == "gemini" else (await esperar_respuesta_deepseek(pestana, self._config.tiempo_espera_respuesta_segundos, verificador_cancelacion=lambda: self._cancelado))
-                    if self._cancelado: break
-                    t_dur = asyncio.get_running_loop().time() - t_ini
-                    notificar_respuesta_lote(cb_log, n_lote, total_lotes, t_dur)
-                    if ruta_md:
-                        guardar_auditoria_modo_ia_md(ruta_md, n_lote, total_lotes, i + 1, min(i + tamano_lote, total), prompt, resp_txt or "", t_dur)
-                    parsed = extraer_y_reparar_json(resp_txt)
-                    lote_resultado = mapear_respuestas_lote("", parsed, lote, i + 1)
-                    if not resp_txt:
-                        for fila in lote_resultado:
-                            fila[COLUMNA_ESTADO] = EstadoIA.FALLIDO.value
-                    evaluadas, omitidas = evaluar_calidad_lote(lote_resultado, len(lote))
                     notificar_balance_lote(cb_log, n_lote, evaluadas, len(lote))
-                    trabajo.confirmar(lote_resultado)
-                    resultados.extend(lote_resultado)
+                    trabajo.confirmar(lote_resultado); resultados.extend(lote_resultado)
                     trabajo.notificar_progreso(cb_prog, min(i + len(lote), total), f"Lote {n_lote}/{total_lotes} completado")
                     await asyncio.sleep(0.5)
             except (ErrorPersistenciaTabular, ValueError):
                 raise
-            except Exception as err:
+            except (Exception, asyncio.CancelledError) as err:
                 if not self._cancelado: raise
                 if cb_log: cb_log(f"[INFO] Procesamiento cancelado: {err}")
             estado = "cancelados" if self._cancelado else "completados"

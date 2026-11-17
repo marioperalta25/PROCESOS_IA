@@ -229,6 +229,54 @@ class TestInterfazIAGeneral(unittest.TestCase):
             dialogo.btn_delimitador.click()
             self.assertIn(" | ", dialogo.texto_contenido.toPlainText())
 
+    def test_dialogo_prompts_separa_web_de_local_y_formatea_columnas(self) -> None:
+        from unittest.mock import MagicMock
+        from procesos_ia.aplicacion.prompts import ServicioCatalogoPrompts
+        from procesos_ia.dominio.prompts import PeticionRefinamiento
+        from procesos_ia.infraestructura.prompts.refinador_ollama import RefinadorPromptOllama
+        from procesos_ia.infraestructura.prompts.repositorio_md import RepositorioPromptsMd
+        from procesos_ia.interfaz.dialogo_prompt import DialogoGestionPrompts
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            servicio = ServicioCatalogoPrompts(RepositorioPromptsMd(Path(tmp_dir)))
+            dialogo = DialogoGestionPrompts(servicio, modelo_activo="test")
+            dialogo.rb_destino_web.setChecked(True)
+            self.assertFalse(dialogo.panel_opciones_web.isHidden())
+            self.assertTrue(dialogo.editor_resultados.isHidden())
+            dialogo.rb_salida_varias.setChecked(True)
+            dialogo.input_columnas_web.setText("habla_espanol, categoria")
+            dialogo._insertar_formato_web()
+            txt = dialogo.texto_contenido.toPlainText()
+            self.assertIn('"habla_espanol"', txt)
+            self.assertIn('"categoria"', txt)
+
+            dialogo.rb_destino_local.setChecked(True)
+            self.assertTrue(dialogo.panel_opciones_web.isHidden())
+            self.assertFalse(dialogo.editor_resultados.isHidden())
+
+            dialogo.rb_destino_web.setChecked(True)
+            dialogo.input_titulo.setText("Auto Web")
+            dialogo.texto_contenido.setPlainText("Clasifica el negocio.")
+            dialogo.input_columnas_web.setText("habla_espanol, categoria")
+            guardada = dialogo._guardar_actual(mostrar_aviso=False)
+            self.assertIsNotNone(guardada)
+            self.assertIn('"resultados"', guardada.contenido)
+            self.assertIn('"habla_espanol"', guardada.contenido)
+
+        cliente = MagicMock()
+        cliente.generar_estructurado.return_value = {
+            "prompt_refinado": "Clasifica el negocio.",
+            "explicacion": "ok",
+            "resultados": [{"clave": "habla_espanol", "criterio": "c", "entradas": ["d"], "tipo": "texto", "opciones": []}],
+        }
+        res = RefinadorPromptOllama(cliente).refinar_prompt(
+            PeticionRefinamiento(idea_usuario="Evalua", modo_destino="web", columnas_salida_objetivo=("habla_espanol", "categoria")),
+            "qwen2.5:1.5b",
+        )
+        self.assertIn('"habla_espanol"', res.prompt_refinado)
+        self.assertIn('"categoria"', res.prompt_refinado)
+        self.assertIn("PROCESOS_IA", cliente.generar_estructurado.call_args.kwargs["sistema"])
+
     def test_contenedor_pantalla_responsiva(self) -> None:
         from PySide6.QtWidgets import QLabel
         from procesos_ia.interfaz.componentes.contenedor_responsivo import ContenedorPantallaResponsiva

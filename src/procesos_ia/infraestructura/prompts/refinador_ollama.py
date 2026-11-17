@@ -32,8 +32,12 @@ class RefinadorPromptOllama:
         peticion: PeticionRefinamiento,
         nombre_modelo: str,
     ) -> ResultadoRefinamiento:
-        """Invoca al LLM local para transformar la intención en una plantilla robusta."""
-        prompt_completo = json.dumps({"intencion": peticion.idea_usuario}, ensure_ascii=False)
+        """Invoca al LLM local para transformar la intención en una plantilla robusta (local o web)."""
+        es_web = (peticion.modo_destino or "local").strip().lower() == "web"
+        payload: dict[str, Any] = {"intencion": peticion.idea_usuario, "modo_destino": "web" if es_web else "local"}
+        if peticion.columnas_salida_objetivo:
+            payload["columnas_salida_objetivo"] = list(peticion.columnas_salida_objetivo)
+        prompt_completo = json.dumps(payload, ensure_ascii=False)
         texto = {"type": "string"}
         lista_texto = {"type": "array", "items": texto}
         esquema = {
@@ -55,6 +59,11 @@ class RefinadorPromptOllama:
         }
 
         parametros = cargar_parametros_evaluacion()
+        sistema_ref = (
+            parametros.get("instruccion_refinamiento_web", self._metaprompt)
+            if es_web
+            else self._metaprompt
+        )
         tiempo_limite = float(parametros.get("tiempo_limite_refinamiento_segundos", 90.0))
         opciones = OpcionesInferencia(
             temperatura=0.2,
@@ -67,7 +76,7 @@ class RefinadorPromptOllama:
                 modelo=nombre_modelo,
                 prompt=prompt_completo,
                 opciones=opciones,
-                sistema=self._metaprompt, esquema_salida=esquema,
+                sistema=sistema_ref, esquema_salida=esquema,
             )
         except Exception as error:
             raise ErrorProcesamiento(f"Fallo al conectar con Ollama para refinamiento: {error}")
@@ -84,8 +93,14 @@ class RefinadorPromptOllama:
         if not resultados or not str(salida["prompt_refinado"]).strip():
             raise ErrorProcesamiento("El refinador no definio criterios y resultados utilizables")
 
+        prompt_final = str(salida["prompt_refinado"]).strip()
+        if es_web:
+            from procesos_ia.aplicacion.ia_web.comun.prompts_ia_web import aplicar_formato_salida_web
+            cols_web = list(peticion.columnas_salida_objetivo) or [r.clave for r in resultados]
+            prompt_final = aplicar_formato_salida_web(prompt_final, cols_web)
+
         return ResultadoRefinamiento(
-            prompt_refinado=str(salida["prompt_refinado"]).strip(),
+            prompt_refinado=prompt_final,
             columnas_salida_sugeridas=tuple(r.clave for r in resultados),
             explicacion_resumen=str(salida.get("explicacion", "")).strip(),
             resultados=resultados,

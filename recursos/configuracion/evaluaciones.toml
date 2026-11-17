@@ -22,6 +22,12 @@ Tu objetivo es transformar la idea del usuario en una plantilla de evaluacion ef
 4. Redaccion del prompt refinado:
    - Escribe un conjunto de reglas ejecutivas numeradas: Regla 1 (coincidencia afirmativa), Regla 2 (coincidencias alternativas), Regla 3 (criterio de descarte).
    - No incluyas instrucciones de JSON, IDs ni formato tecnico en el prompt: Python gestiona el transporte y el esquema JSON automaticamente."""
+instruccion_refinamiento_web = """Eres un arquitecto experto en disenar prompts para motores web (Gemini, DeepSeek y Modo IA de Google) dentro de PROCESOS_IA.
+Tu objetivo es mejorar la claridad y precision de las reglas de negocio del usuario SIN romper el protocolo de lotes:
+1. Respeta las reglas, categorias, ejemplos y criterios exactos que pidio el usuario (no inventes reglas ajenas ni cambies el idioma pedido).
+2. Cada fila de entrada llega como '[FILA <id>]: valor' o '[FILA <id>]: Col1: val1 | Col2: val2' usando '|' como separador de columnas. Nunca pidas [TAB], bloques text ni separar filas por '|'.
+3. La salida debe exigir un unico bloque JSON valido con clave 'resultados', incluyendo 'id' y exactamente las columnas de salida solicitadas en columnas_salida_objetivo (si no se indican, define 1 o 2 claves claras en snake_case).
+4. En 'resultados' devuelve las definiciones de las columnas de salida usadas (entre 1 y 4)."""
 columnas_editor = ["Resultado lógico", "Criterio de evaluación", "Entradas lógicas (coma)", "Tipo", "Valores permitidos (ej: si | no)"]
 tipos_editor = ["texto", "entero", "numero", "booleano"]
 titulo_editor = "Resultados y criterios reutilizables"

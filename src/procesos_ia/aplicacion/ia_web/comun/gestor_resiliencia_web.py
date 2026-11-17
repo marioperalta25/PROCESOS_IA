@@ -39,7 +39,9 @@ PATRONES_LIMITE_IA = (
 PATRONES_CORTESIA_CONVERSACIONAL = (
     r"^(?:he\s+completado|procesamiento\s+completado|listo\s+para)",
     r"^(?:env[ií]a\s+el\s+siguiente|quedo\s+a\s+la\s+espera)",
-    r"^(?:aqu[ií]\s+tienes|espero\s+que\s+esto|tienes\s+un\s+nuevo)",
+    r"^(?:aqu[ií]\s+tienes|aqu[ií]\s+est[aá]|espero\s+que\s+esto|tienes\s+un\s+nuevo)",
+    r"^(?:claro|por\s+supuesto|entendido)[\.,:\s]*$",
+    r"^(?:resultados?|lista|salida|respuesta)\s*:\s*$",
     r"^(?:sure|here\s+are|ready\s+for|please\s+send)",
     r"\?\s*$",
 )
@@ -117,9 +119,15 @@ def clasificar_fallo_web(
 
 
 def es_linea_conversacional(linea: str) -> bool:
-    """Determina si una linea de texto corresponde a cortesía o metatexto del modelo."""
+    """Determina si una linea de texto corresponde a cortesia, encabezado o metatexto del modelo."""
     lin = linea.strip()
     if not lin:
+        return True
+    if lin.startswith("#") or re.fullmatch(r"[-*_]{3,}", lin):
+        return True
+    if lin.endswith(":") and "|" not in lin:
+        return True
+    if re.search(r"\b(?:a\s+continuaci[oó]n|below\s+are|these\s+are)\b", lin, re.IGNORECASE):
         return True
     if len(lin) > 75 and any(palabra in lin.lower() for palabra in ("lote", "registro", "proces", "siguiente")):
         return True
@@ -153,4 +161,69 @@ def salvaguardar_progreso_csv(filas: list[dict[str, Any]], ruta_salida: Path) ->
     except Exception as err:
         logger.error("[ERROR] Fallo al salvaguardar CSV parcial: %s", err)
         return False
+
+
+PATRONES_CAPTCHA_GOOGLE = (
+    r"nuestros sistemas han detectado tr[aá]fico inusual",
+    r"unusual traffic from your computer network",
+    r"detected unusual traffic",
+    r"id=[\"']captcha-form[\"']",
+    r"class=[\"'][^\"']*g-recaptcha",
+    r"recaptcha/enterprise\.js",
+)
+
+
+def es_texto_captcha_google(url: str = "", html_o_texto: str = "") -> bool:
+    """Indica si la URL o contenido corresponde a la pantalla CAPTCHA (/sorry/) de Google."""
+    url_low = (url or "").lower()
+    if "/sorry/" in url_low or "sorry/index" in url_low:
+        return True
+    contenido = html_o_texto or ""
+    if not contenido:
+        return False
+    return any(re.search(pat, contenido, re.IGNORECASE) for pat in PATRONES_CAPTCHA_GOOGLE)
+
+
+async def detectar_captcha_pestana(pestana: Any) -> bool:
+    """Inspecciona URL y DOM de la pestana activa para detectar bloqueo CAPTCHA de Google."""
+    if pestana is None:
+        return False
+    url_attr = str(getattr(pestana, "url", "") or "")
+    if es_texto_captcha_google(url=url_attr):
+        return True
+    js = """(() => JSON.stringify({
+        url: location.href || "",
+        captcha: Boolean(document.querySelector("#captcha-form, form[action*='sorry'], #recaptcha, .g-recaptcha, iframe[src*='recaptcha']")),
+        texto: (document.body && document.body.innerText ? document.body.innerText.slice(0, 1200) : "")
+    }))()"""
+    try:
+        import json
+        res = await asyncio.wait_for(pestana.evaluate(js), timeout=2.0)
+        if isinstance(res, str) and res.startswith("{"):
+            datos = json.loads(res)
+            if bool(datos.get("captcha")):
+                return True
+            return es_texto_captcha_google(str(datos.get("url", "")), str(datos.get("texto", "")))
+    except Exception:
+        pass
+    return False
+
+
+async def recuperar_si_captcha_google(
+    pestana: Any,
+    gestor_sesion: Any,
+    callback_log: Any = None,
+    espera_segundos: float = 2.0,
+) -> bool:
+    """Si hay CAPTCHA en pestana: cierra navegador, purga y recrea perfil, y espera."""
+    if not await detectar_captcha_pestana(pestana):
+        return False
+    if callback_log:
+        callback_log(
+            f"[ALERTA] CAPTCHA de Google detectado. Cerrando navegador, esperando {espera_segundos:.0f}s y reiniciando con perfil limpio..."
+        )
+    logger.warning("[ALERTA] CAPTCHA de Google detectado. Ejecutando reinicio con perfil limpio.")
+    await gestor_sesion.reiniciar_con_perfil_limpio()
+    await asyncio.sleep(espera_segundos)
+    return True
 

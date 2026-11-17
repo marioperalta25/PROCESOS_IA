@@ -30,11 +30,15 @@ class HiloIAGeneral(QThread):
         self._servicio = servicio
         self._tipo_accion = tipo_accion
         self._parametros = parametros
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._tarea_principal: asyncio.Task[Any] | None = None
 
     def run(self) -> None:
         """Punto de entrada del hilo que lanza el bucle de eventos asyncio."""
         try:
             asyncio.run(self._ejecutar_accion())
+        except asyncio.CancelledError:
+            self.senial_log.emit("[INFO] Hilo IA General detenido por cancelacion del usuario.")
         except Exception as error:
             if getattr(self._servicio, "_cancelado", False) and not isinstance(error, (ErrorPersistenciaTabular, ValueError)):
                 self.senial_log.emit("[INFO] Hilo IA General detenido por cancelacion del usuario.")
@@ -42,6 +46,8 @@ class HiloIAGeneral(QThread):
                 self.proceso_fallido.emit("\n".join([str(error), *getattr(error, "__notes__", ())]))
 
     async def _ejecutar_accion(self) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._tarea_principal = asyncio.current_task()
         def notificar_progreso(actual: int, total: int, detalle: str) -> None:
             self.progreso_actualizado.emit(actual, total, detalle)
 
@@ -187,6 +193,11 @@ class HiloIAGeneral(QThread):
             self.proceso_fallido.emit(f"[ERROR] Acción no reconocida: {self._tipo_accion}")
 
     def cancelar(self) -> None:
-        """Solicita la cancelacion anticipada y cierra de inmediato el navegador."""
+        """Solicita la cancelacion anticipada, interrumpe asyncio y cierra el navegador."""
         self._servicio.cancelar()
+        if self._loop is not None and self._tarea_principal is not None and not self._loop.is_closed():
+            try:
+                self._loop.call_soon_threadsafe(self._tarea_principal.cancel)
+            except RuntimeError:
+                pass
         self._servicio.forzar_cierre_inmediato()
