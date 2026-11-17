@@ -1,4 +1,4 @@
-argumentos_comunes = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-session-crashed-bubble", "--hide-crash-restore-bubble", "--disable-features=InfiniteSessionRestore", "--disable-notifications"]
+argumentos_comunes = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-session-crashed-bubble", "--hide-crash-restore-bubble", "--disable-features=InfiniteSessionRestore", "--disable-notifications", "--disable-background-timer-throttling", "--disable-backgrounding-occluded-windows", "--disable-renderer-backgrounding"]
 argumentos_manuales = ["--no-first-run", "--no-default-browser-check", "--new-window"]
 patrones_titulo = ["Google Chrome", "Chromium", "DeepSeek", "Gemini"]
 tiempo_posicion_segundos = 8.0

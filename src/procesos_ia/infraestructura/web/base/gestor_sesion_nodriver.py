@@ -58,6 +58,7 @@ def terminar_arbol_procesos(pid_padre: int | None) -> int:
                 ["taskkill", "/F", "/T", "/PID", str(pid_padre)],
                 capture_output=True,
                 check=False,
+                timeout=3.0,
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
         except Exception:

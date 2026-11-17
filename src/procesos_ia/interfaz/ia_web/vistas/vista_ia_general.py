@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import os
+import os; from dataclasses import replace
 from pathlib import Path
 from PySide6.QtCore import Signal, QTimer
 from PySide6.QtWidgets import (
@@ -48,7 +48,7 @@ class VistaIAGeneral(QWidget):
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("IA General: Google Lens y Modo IA")
-        self._config_web = configuracion_web or ConfiguracionWeb(nombre_perfil=PERFIL_IA_GENERAL)
+        self._config_web = replace(configuracion_web or ConfiguracionWeb(), nombre_perfil=PERFIL_IA_GENERAL)
         self._gestor = gestor_sesion or GestorSesionNodriver(self._config_web)
         self._servicio = ServicioIAGeneral(self._gestor, self._config_web, enrutador=enrutador)
         self._servicio_prompts = servicio_prompts or self._crear_servicio_prompts()
@@ -246,7 +246,8 @@ class VistaIAGeneral(QWidget):
         self._cancelando = True; self.btn_cancelar.setEnabled(False); self.btn_cancelar.setText("Cancelando...")
         self.banner.mostrar_en_proceso("[INFO] Cancelando tarea en curso...")
         if self._hilo is not None and self._hilo.isRunning():
-            self._hilo.cancelar(); self._registrar_log("[INFO] Cancelando tarea en curso...")
+            import threading; threading.Thread(target=self._hilo.cancelar, daemon=True).start()
+            self._registrar_log("[INFO] Cancelando tarea en curso y cerrando navegador...")
         QTimer.singleShot(1500, self._restablecer_botones_cancelacion)
 
     def _restablecer_botones_cancelacion(self) -> None:
@@ -287,7 +288,6 @@ class VistaIAGeneral(QWidget):
         self.banner.mostrar_info("[INFO] Formulario restablecido.")
 
     def _al_volver(self) -> None: liberar_boton_protegido(self.btn_ejecutar, habilitar=True); self.volver_solicitado.emit()
-
     def adaptar_modo(self, modo: ModoPantalla) -> None:
         self.barra_acciones.adaptar_modo(modo)
         if hasattr(self, "lbl_guia_flujo"): self.lbl_guia_flujo.setText("[INFO] Modo IA / Lens" if modo == ModoPantalla.COMPACTO else "[INFO OPERACIÓN] Selecciona Modo IA o Google Lens.")

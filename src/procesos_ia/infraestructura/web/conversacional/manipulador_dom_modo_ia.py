@@ -55,6 +55,7 @@ async def pegar_texto_en_elemento(pestana: Any, elem_input: Any, texto: str) -> 
         try {{
             elem.removeAttribute('maxlength');
             elem.maxLength = 100000;
+            elem.scrollIntoView({{block: 'center'}});
             elem.focus();
             const proto = window.HTMLTextAreaElement.prototype;
             const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
@@ -215,18 +216,30 @@ async def esperar_respuesta_modo_ia(
         }
         if (!aiCont) return JSON.stringify({ num_turnos: nTurnos, completo: false, texto: "", lineas: 0 });
 
-        let blocks = Array.from(aiCont.querySelectorAll(".n6owBd, [data-subtree='aimfl']"));
-        if (blocks.length === 0) blocks = [aiCont];
+        const limpiar = (nodo) => {
+            const clone = nodo.cloneNode(true);
+            clone.querySelectorAll("h1, h2, h3, script, style, button, svg, [role='button'], .vDOt8c, .RkJvxe, .YHsVn, [aria-hidden='true'], [data-key='aimhl']").forEach(e => e.remove());
+            clone.querySelectorAll("br").forEach(br => br.replaceWith("\\n"));
+            clone.querySelectorAll("p, li, tr, pre, div[data-container-id]").forEach(el => {
+                el.insertAdjacentText("beforebegin", "\\n");
+                el.insertAdjacentText("afterend", "\\n");
+            });
+            return clone;
+        };
 
+        let blocks = Array.from(aiCont.querySelectorAll(".n6owBd, [data-subtree='aimfl'], pre, code, table"));
+        blocks = blocks.filter(cb => !blocks.some(otro => otro !== cb && otro.contains(cb)));
+        if (blocks.length === 0) blocks = [aiCont];
         const lineParts = [];
         blocks.forEach(cb => {
-            const clone = cb.cloneNode(true);
-            clone.querySelectorAll("h1, h2, h3, button, svg, [role='button'], .vDOt8c, .RkJvxe, .YHsVn, [aria-hidden='true'], [data-key='aimhl']").forEach(e => e.remove());
-            clone.querySelectorAll("br").forEach(br => br.replaceWith("\\n"));
+            const clone = limpiar(cb);
             const t = (clone.innerText || clone.textContent || "").trim();
             if (t) lineParts.push(t);
         });
-        const txt = lineParts.join("\\n").trim();
+        let txt = lineParts.join("\\n").trim();
+        const contSec = aiCont.querySelector(".Zkbeff, .pWvJNd") || aiCont;
+        const txtCompleto = (limpiar(contSec).textContent || "").replace(/\\n{2,}/g, "\\n").trim();
+        if (txtCompleto.length > txt.length + 20) txt = txtCompleto;
 
         const hasCopy = !!target.querySelector("button.bKxaof, button[aria-label*='Copiar texto'], button[aria-label*='Copy text']");
         const hasShare = !!target.querySelector("button.eGAasd, button[aria-label*='Compartir'], button[aria-label*='Share']");
@@ -242,41 +255,30 @@ async def esperar_respuesta_modo_ia(
         if verificador_cancelacion and verificador_cancelacion():
             return ""
         try:
-            eval_res = await pestana.evaluate(js_extractor)
+            eval_res = await asyncio.wait_for(pestana.evaluate(js_extractor), timeout=3.0)
             estado = {}
             if isinstance(eval_res, str):
-                try:
-                    estado = json.loads(eval_res)
-                except Exception:
-                    estado = {}
+                try: estado = json.loads(eval_res)
+                except Exception: estado = {}
             elif isinstance(eval_res, list):
                 estado = {k: (v.get("value") if isinstance(v, dict) and "value" in v else v) for k, v in eval_res if isinstance(k, str)}
             elif isinstance(eval_res, dict):
                 estado = eval_res
 
-            n_turnos = int(estado.get("num_turnos", 0))
-            completo = bool(estado.get("completo", False))
-            texto = (estado.get("texto") or "").strip()
-            num_lineas = int(estado.get("lineas", 0))
+            n_turnos, completo = int(estado.get("num_turnos", 0)), bool(estado.get("completo", False))
+            texto, num_lineas = (estado.get("texto") or "").strip(), int(estado.get("lineas", 0))
 
             if n_turnos > turnos_previos or turnos_previos == 0:
-                if completo and len(texto) >= 1:
-                    if filas_esperadas == 0 or num_lineas >= filas_esperadas:
-                        return texto
-                if filas_esperadas > 0 and num_lineas >= filas_esperadas and completo:
+                if completo and len(texto) >= 1 and (filas_esperadas == 0 or num_lineas >= filas_esperadas):
                     return texto
                 if texto and texto != ultimo_texto:
-                    ultimo_texto = texto
-                    ultimo_cambio = asyncio.get_running_loop().time()
-                elif texto and (asyncio.get_running_loop().time() - ultimo_cambio) >= 1.5:
-                    if filas_esperadas == 0 or num_lineas >= filas_esperadas:
-                        return texto
+                    ultimo_texto = texto; ultimo_cambio = asyncio.get_running_loop().time()
+                elif texto and (asyncio.get_running_loop().time() - ultimo_cambio) >= (1.2 if completo else 1.8):
+                    if completo or filas_esperadas == 0 or num_lineas >= filas_esperadas: return texto
         except Exception:
-            if verificador_cancelacion and verificador_cancelacion():
-                return ""
+            if verificador_cancelacion and verificador_cancelacion(): return ""
         for _ in range(2):
-            if verificador_cancelacion and verificador_cancelacion():
-                return ""
+            if verificador_cancelacion and verificador_cancelacion(): return ""
             await asyncio.sleep(0.075)
     return ultimo_texto
 

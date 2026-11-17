@@ -248,7 +248,34 @@ class PruebaCorreccionEmpaquetado(unittest.TestCase):
         params = vista.panel_modo_ia_urls.obtener_parametros()
         inst = construir_instrucciones_urls_modo_ia(params["campos_activos"], "Solo locales")
         self.assertIn("Solo locales", inst)
+        self.assertIn("resultados", inst)
         self.assertIn("negocio", inst)
+
+    def test_modo_ia_urls_mapea_respuesta_json_a_columnas_separadas(self):
+        from procesos_ia.aplicacion.ia_web.conversacional.mapeo_respuestas_tabulares import mapear_respuestas_lote
+        from procesos_ia.infraestructura.web.conversacional.manipulador_dom_modo_ia import extraer_datos_estructurados_modo_ia
+        resp = '{"resultados": [{"id": 1, "negocio": "CG Garcia", "telefonos": "(919) 532-4640", "owner": "ND"}]}'
+        datos = extraer_datos_estructurados_modo_ia(resp)
+        filas = mapear_respuestas_lote(resp, datos, [{"url": "https://ejemplo.invalid/1.png"}], indice_base=1)
+        self.assertEqual(filas[0]["negocio"], "CG Garcia")
+        self.assertEqual(filas[0]["telefonos"], "(919) 532-4640")
+        self.assertEqual(filas[0]["_estado_ia"], "EXITOSO")
+
+    def test_extractor_json_y_mapeo_soportan_json_duplicado(self):
+        from procesos_ia.aplicacion.ia_web.conversacional.mapeo_respuestas_tabulares import mapear_respuestas_lote
+        from procesos_ia.infraestructura.web.conversacional.manipulador_dom_modo_ia import extraer_datos_estructurados_modo_ia
+        bloque = '{"resultados": [{"id": 1, "negocio": "GARCIA CONSTRUCTION", "telefonos": "(919) 747-1050", "owner": "TOMAS GARCIA"}]}'
+        duplicado = f"{bloque}\n{bloque}"
+        datos = extraer_datos_estructurados_modo_ia(duplicado)
+        filas = mapear_respuestas_lote(duplicado, datos, [{"url": "https://ejemplo.invalid/1.png"}], indice_base=1)
+        self.assertEqual(filas[0]["negocio"], "GARCIA CONSTRUCTION")
+        self.assertEqual(filas[0]["owner"], "TOMAS GARCIA")
+
+    def test_evaluar_calidad_lote_reconoce_estado_ia_tabular_con_columnas_separadas(self):
+        from procesos_ia.aplicacion.ia_web.comun.diagnostico_lotes import evaluar_calidad_lote
+        filas = [{"_estado_ia": "EXITOSO", "negocio": "GARCIA CONSTRUCTION", "telefonos": "919-747-1050"}]
+        evaluadas, omitidas = evaluar_calidad_lote(filas, 1)
+        self.assertEqual((evaluadas, omitidas), (1, 0))
 
     def test_estado_tabular_se_aisla_y_limpia_tras_cinco_dias(self):
         import os, time
@@ -268,3 +295,75 @@ class PruebaCorreccionEmpaquetado(unittest.TestCase):
         self.assertEqual(eliminados, 1)
         self.assertFalse(dir_estado.exists())
         self.assertTrue(ruta_final.is_file())
+
+    def test_esperar_respuesta_modo_ia_sale_rapido_si_evaluate_cuelga_al_cancelar(self):
+        import asyncio, time
+        from procesos_ia.infraestructura.web.conversacional.manipulador_dom_modo_ia import esperar_respuesta_modo_ia
+        cancelado = [False]
+
+        async def _evaluate_colgado(_js):
+            await asyncio.sleep(10)
+            return ""
+
+        async def _probar():
+            pestana = MagicMock()
+            pestana.evaluate = _evaluate_colgado
+            asyncio.get_running_loop().call_later(0.1, cancelado.__setitem__, 0, True)
+            t0 = time.monotonic()
+            res = await esperar_respuesta_modo_ia(pestana, timeout_segundos=30, verificador_cancelacion=lambda: cancelado[0])
+            return res, time.monotonic() - t0
+
+        res, dur = asyncio.run(_probar())
+        self.assertEqual(res, "")
+        self.assertLess(dur, 4.0)
+
+    def test_procesador_modo_ia_no_entra_en_bucle_infinito_sin_respuesta(self):
+        import asyncio
+        from unittest.mock import AsyncMock
+        from procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia import ProcesadorModoIA
+        gestor = MagicMock()
+        gestor.abrir_nueva_pestana = AsyncMock(return_value=MagicMock())
+        gestor.cerrar_navegador = AsyncMock()
+        proc = ProcesadorModoIA(gestor, EnrutadorSalidas(self.raiz / "salidas"), self.configuracion)
+        with patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.verificar_conexion_internet", return_value=True), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.activar_modo_ia", AsyncMock()), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.marcar_turnos_previos_modo_ia", AsyncMock(return_value=0)), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.enviar_prompt_modo_ia", AsyncMock(return_value=True)), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.esperar_respuesta_modo_ia", AsyncMock(side_effect=["Listo", "", "Listo", "", "Listo", ""])):
+            res, salida = asyncio.run(proc.ejecutar([{"url": "https://ejemplo.invalid/1.png"}], "inst", ["url"], tamano_lote=1, generar_auditoria_md=False))
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0]["_estado_ia"], "FALLIDO")
+        self.assertTrue(salida.is_file())
+
+    def test_procesador_modo_ia_descarta_lote_incompleto_y_reinicia_perfil_limpio(self):
+        import asyncio
+        from unittest.mock import AsyncMock
+        from procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia import ProcesadorModoIA
+        gestor = MagicMock()
+        gestor.abrir_nueva_pestana = AsyncMock(return_value=MagicMock())
+        gestor.reiniciar_con_perfil_limpio = AsyncMock()
+        gestor.cerrar_navegador = AsyncMock()
+        proc = ProcesadorModoIA(gestor, EnrutadorSalidas(self.raiz / "salidas"), self.configuracion)
+        filas = [{"url": "u1"}, {"url": "u2"}]
+        resp_parcial = "[FILA 2]: Electrician"
+        resp_completa = "[FILA 1]: Plumber\n[FILA 2]: Electrician"
+        with patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.verificar_conexion_internet", return_value=True), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.activar_modo_ia", AsyncMock()), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.marcar_turnos_previos_modo_ia", AsyncMock(return_value=0)), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.enviar_prompt_modo_ia", AsyncMock(return_value=True)), \
+             patch("procesos_ia.aplicacion.ia_web.conversacional.procesador_modo_ia.esperar_respuesta_modo_ia", AsyncMock(side_effect=["Listo", resp_parcial, "Listo", resp_completa])):
+            res, _ = asyncio.run(proc.ejecutar(filas, "inst", ["url"], tamano_lote=2, generar_auditoria_md=False))
+        gestor.reiniciar_con_perfil_limpio.assert_awaited_once()
+        self.assertEqual([r["evaluacion_ia"] for r in res], ["Plumber", "Electrician"])
+
+    def test_vistas_web_aislan_perfil_ia_general_de_motores_web(self):
+        from procesos_ia.interfaz.ia_web.vistas.vista_deepseek import VistaDeepSeek
+        from procesos_ia.interfaz.ia_web.vistas.vista_gemini import VistaGemini
+        enr = EnrutadorSalidas(self.raiz / "salidas")
+        v_gen = VistaIAGeneral(configuracion_web=self.configuracion, enrutador=enr)
+        v_ds = VistaDeepSeek(configuracion_web=self.configuracion, enrutador=enr)
+        v_gm = VistaGemini(configuracion_web=self.configuracion, enrutador=enr)
+        self.addCleanup(v_gen.close); self.addCleanup(v_ds.close); self.addCleanup(v_gm.close)
+        self.assertEqual(v_gen._config_web.nombre_perfil, "perfil_ia_general")
+        self.assertEqual(v_ds._config_web.nombre_perfil, "perfil_motores_web")
+        self.assertEqual(v_gm._config_web.nombre_perfil, "perfil_motores_web")

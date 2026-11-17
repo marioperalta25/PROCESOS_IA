@@ -85,7 +85,7 @@ class ProcesadorModoIA:
                 guardar_auditoria_modo_ia_md(ruta_md, 0, total_lotes, 0, 0, "", "", prompt_inicial=instrucciones_compactas)
             try:
                 pestana = None
-                lotes_en_conversacion = i = reintentos_limite = reintentos_lote = 0
+                lotes_en_conversacion = i = reintentos_limite = reintentos_lote = reintentos_invalidos = 0
                 n_lote = 1
 
                 while i < total_filas:
@@ -138,8 +138,18 @@ class ProcesadorModoIA:
                     if verificador_cancelacion and verificador_cancelacion(): break
 
                     if not texto_resp.strip() or re.search(r"estoy listo para procesar|env[ií]a el primer lote", texto_resp, re.I):
-                        if callback_log: callback_log(f"[ALERTA] Respuesta no válida en Lote {n_lote}. Reintentando espera...")
-                        await asyncio.sleep(1.0); continue
+                        reintentos_invalidos += 1
+                        if reintentos_invalidos <= 2:
+                            if callback_log: callback_log(f"[ALERTA] Respuesta no válida en Lote {n_lote}. Renovando sesión ({reintentos_invalidos}/2)...")
+                            pestana, lotes_en_conversacion = None, 0; await asyncio.sleep(1.0); continue
+                        if callback_log: callback_log(f"[ERROR] Lote {n_lote} sin respuesta válida tras 2 reintentos. Marcando filas como fallidas.")
+                        filas_fallo = mapear_respuestas_lote(texto_resp="", datos=None, lote_actual=lote_actual, indice_base=indice_base)
+                        for f in filas_fallo: f["_estado_ia"], f["_motivo_estado"] = EstadoIA.FALLIDO.value, "[FALLIDO] Sin respuesta valida"
+                        trabajo.confirmar(filas_fallo); todos_resultados.extend(filas_fallo)
+                        reintentos_invalidos = 0; pestana, lotes_en_conversacion = None, 0
+                        trabajo.notificar_progreso(callback_progreso, min(i + tamano_lote, total_filas), f"Lote {n_lote}/{total_lotes} sin respuesta")
+                        i += tamano_lote; n_lote += 1; continue
+                    reintentos_invalidos = 0
 
                     if detectar_limite_cuota(texto_resp):
                         reintentos_limite += 1; pestana, lotes_en_conversacion = None, 0
@@ -156,9 +166,19 @@ class ProcesadorModoIA:
                     datos = extraer_datos_estructurados_modo_ia(texto_resp)
                     filas_lote = mapear_respuestas_lote(texto_resp=texto_resp, datos=datos, lote_actual=lote_actual, indice_base=indice_base)
                     evaluadas, omitidas = evaluar_calidad_lote(filas_lote, len(lote_actual))
-                    if evaluadas == 0 and reintentos_lote < 2:
-                        reintentos_lote += 1; notificar_reintento_lote(callback_log, n_lote, reintentos_lote, 2)
-                        pestana, lotes_en_conversacion = None, 0; await asyncio.sleep(1.0); continue
+                    if evaluadas < len(lote_actual):
+                        if reintentos_lote < 2:
+                            reintentos_lote += 1
+                            if callback_log: callback_log(f"[ALERTA] Lote {n_lote} incompleto ({evaluadas}/{len(lote_actual)}). Descartando lote y reiniciando perfil limpio ({reintentos_lote}/2)...")
+                            await self._gestor.reiniciar_con_perfil_limpio()
+                            pestana, lotes_en_conversacion = None, 0; await asyncio.sleep(1.0); continue
+                        if callback_log: callback_log(f"[ERROR] Lote {n_lote} incompleto ({evaluadas}/{len(lote_actual)}) tras 2 reinicios. Marcando lote como fallido.")
+                        for f in filas_lote: f["_estado_ia"], f["_motivo_estado"] = EstadoIA.FALLIDO.value, f"[FALLIDO] Lote incompleto ({evaluadas}/{len(lote_actual)})"
+                        reintentos_lote = 0
+                        trabajo.confirmar(filas_lote); todos_resultados.extend(filas_lote)
+                        pestana, lotes_en_conversacion = None, 0
+                        trabajo.notificar_progreso(callback_progreso, min(i + tamano_lote, total_filas), f"Lote {n_lote}/{total_lotes} incompleto")
+                        i += tamano_lote; n_lote += 1; continue
                     reintentos_lote = 0
                     notificar_balance_lote(callback_log, n_lote, evaluadas, len(lote_actual))
                     trabajo.confirmar(filas_lote)

@@ -27,13 +27,18 @@ def extraer_y_reparar_json(texto_crudo: str) -> dict[str, Any] | list[Any] | Non
         coincidencia_bloque = re.search(r"([\{\[].*[\}\]])", texto_crudo, re.DOTALL)
         bloque = coincidencia_bloque.group(1).strip() if coincidencia_bloque else texto_crudo.strip()
 
-    # 3. Intentar parseo directo
+    # 3. Intentar parseo directo (o primer objeto valido con raw_decode si viene duplicado)
     try:
         resultado = json.loads(bloque)
         if isinstance(resultado, (dict, list)):
             return resultado
     except Exception:
-        pass
+        try:
+            resultado, _ = json.JSONDecoder().raw_decode(bloque)
+            if isinstance(resultado, (dict, list)):
+                return resultado
+        except Exception:
+            pass
 
     # 4. Intentar reparacion de saltos de linea y caracteres de control
     bloque_limpio = bloque

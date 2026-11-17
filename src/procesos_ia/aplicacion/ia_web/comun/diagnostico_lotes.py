@@ -34,7 +34,7 @@ def evaluar_calidad_lote(
     """Calcula matematicamente filas evaluadas exitosamente vs omitidas por el LLM."""
     evaluadas = sum(
         1 for f in filas_lote
-        if str(f.get("estado_ia", "")).upper() == "EXITOSO" or bool(f.get("evaluacion_ia"))
+        if str(f.get("_estado_ia") or f.get("estado_ia") or "").upper() == "EXITOSO" or bool(f.get("evaluacion_ia"))
     )
     omitidas = max(0, tamano_esperado - evaluadas)
     return evaluadas, omitidas

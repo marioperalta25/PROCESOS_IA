@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from dataclasses import replace; from pathlib import Path
 from PySide6.QtCore import QTimer, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
@@ -21,7 +21,7 @@ from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
 from procesos_ia.interfaz.comun.preparacion_tabular import preparar_trabajo_con_dialogo
 from procesos_ia.aplicacion.ia_web.visual_1a1.procesador_archivo_urls import leer_filas_archivo_tabular
 from procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web import ServicioProcesamientoWeb
-from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb, PERFIL_GEMINI
+from procesos_ia.infraestructura.web.base.configuracion_web import ConfiguracionWeb, PERFIL_MOTORES_WEB
 from procesos_ia.interfaz.componentes.banner_notificacion import BannerNotificacion
 from procesos_ia.interfaz.componentes.barra_navegacion import BarraNavegacionSubvista
 from procesos_ia.interfaz.componentes.contenedor_responsivo import ContenedorPantallaResponsiva
@@ -52,7 +52,7 @@ class VistaGemini(QWidget):
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("IA Web: Google Gemini (gemini.google.com)")
-        self._config_web = configuracion_web or ConfiguracionWeb(nombre_perfil=PERFIL_GEMINI)
+        self._config_web = replace(configuracion_web or ConfiguracionWeb(), nombre_perfil=PERFIL_MOTORES_WEB)
         self._servicio_prompts = servicio_prompts
         self._enrutador = enrutador or EnrutadorSalidas()
         self._servicio_proc = ServicioProcesamientoWeb(configuracion_web=self._config_web, enrutador=self._enrutador)

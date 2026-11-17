@@ -27,12 +27,20 @@ def construir_instrucciones_urls_modo_ia(
         claves = ["negocio", "telefonos"]
 
     reglas_campos = "\n".join(f"- {c}: {CAMPOS_DISPONIBLES[c]['descripcion']}" for c in claves)
+    ejemplo = ", ".join(f'"{c}": "{CAMPOS_DISPONIBLES[c]["ejemplo"]}"' for c in claves)
     extra = f"\nINSTRUCCIONES ADICIONALES:\n{instrucciones_adicionales.strip()}\n" if instrucciones_adicionales.strip() else ""
     return (
-        "Analiza cada URL de imagen o ficha comercial del lote y extrae los datos solicitados.\n"
+        "Eres un extractor de datos comerciales. Para cada fila recibida, inspecciona la URL de imagen o ficha "
+        "y extrae unicamente la informacion solicitada.\n\n"
         f"CAMPOS REQUERIDOS:\n{reglas_campos}\n"
-        f"{extra}"
-        "Si un dato no esta disponible, usa \"ND\". Conserva el id_registro exacto de cada fila."
+        f"{extra}\n"
+        "FORMATO DE RESPUESTA OBLIGATORIO:\n"
+        "1. Responde EXCLUSIVAMENTE un bloque JSON valido con la clave \"resultados\" y un objeto por cada fila, "
+        "usando en \"id\" el numero exacto de [FILA N] (ejemplo: 1, 2, 3):\n"
+        f'{{"resultados": [{{"id": 1, {ejemplo}}}]}}\n'
+        "2. Si un dato no existe o no es legible, asigna \"ND\".\n"
+        "3. Si hay multiples telefonos en una fila, separalos con \" / \".\n"
+        "4. No incluyas texto introductorio, explicaciones ni saludos fuera del JSON."
     ).strip()
 
 

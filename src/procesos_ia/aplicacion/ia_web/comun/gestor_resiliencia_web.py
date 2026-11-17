@@ -46,12 +46,24 @@ PATRONES_CORTESIA_CONVERSACIONAL = (
 
 
 def verificar_conexion_internet(host: str = "8.8.8.8", port: int = 53, timeout: float = 3.0) -> bool:
-    """Comprueba disponibilidad real de salida a internet mediante socket ultraligero."""
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except OSError:
-        return False
+    """Comprueba salida a internet por socket directo, HTTPS 443 o proxy HTTP del sistema."""
+    destinos = [(host, port)]
+    if (host, port) == ("8.8.8.8", 53):
+        destinos.extend((("www.google.com", 443), ("1.1.1.1", 443)))
+    for h, p in destinos:
+        try:
+            with socket.create_connection((h, p), timeout=timeout):
+                return True
+        except OSError:
+            continue
+    if (host, port) == ("8.8.8.8", 53):
+        try:
+            import urllib.request
+            with urllib.request.urlopen("https://www.google.com/generate_204", timeout=timeout) as resp:
+                return int(getattr(resp, "status", 200)) < 500
+        except Exception:
+            pass
+    return False
 
 
 async def esperar_restablecimiento_conexion(
