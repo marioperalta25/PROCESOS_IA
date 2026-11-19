@@ -138,16 +138,22 @@ def guardar_filas_enriquecidas_csv(
     if not filas:
         return ruta_salida
 
-    col_tel = columna_telefono
-    if filas and col_tel not in filas[0]:
+    claves_entrada: set[str] = set()
+    if any(c in filas[0] for c in ("_id_registro", "_estado_ia")):
         for k in filas[0].keys():
-            if k.lower().strip() in {"telefono", "telefonos", "tel", "celular", "phone"}:
+            if k in ("_id_registro", "_estado_ia"):
+                break
+            claves_entrada.add(k)
+
+    col_tel = columna_telefono if (columna_telefono in filas[0] and columna_telefono not in claves_entrada) else ""
+    if not col_tel:
+        for k in filas[0].keys():
+            if k not in claves_entrada and k.lower().strip() in {"telefono", "telefonos", "tel", "celular", "phone"}:
                 col_tel = k
                 break
 
-    filas_desglosadas = desglosar_filas_por_telefono(filas, columna_telefono=col_tel)
-
-    return guardar_filas_csv(filas_desglosadas, ruta_salida)
+    filas_salida = desglosar_filas_por_telefono(filas, columna_telefono=col_tel) if col_tel else filas
+    return guardar_filas_csv(filas_salida, ruta_salida)
 
 
 def guardar_auditoria_modo_ia_md(

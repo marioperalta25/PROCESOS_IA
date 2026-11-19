@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,17 @@ import openpyxl
 from procesos_ia.dominio.excepciones import ErrorProcesamiento
 from procesos_ia.dominio.modelos import RegistroEntrada
 from procesos_ia.infraestructura.archivos.detector_formato import detectar_encabezados
+
+
+def _celda_a_texto(celda: Any) -> str:
+    """Convierte celda Excel a texto preservando fechas limpias sin ' 00:00:00'."""
+    if celda is None:
+        return ""
+    if isinstance(celda, datetime) and celda.hour == 0 and celda.minute == 0 and celda.second == 0 and celda.microsecond == 0:
+        return celda.strftime("%Y-%m-%d")
+    if isinstance(celda, date) and not isinstance(celda, datetime):
+        return celda.strftime("%Y-%m-%d")
+    return str(celda).strip()
 
 
 class LectorXlsx:
@@ -47,9 +59,7 @@ class LectorXlsx:
             )
             filas_muestra: list[list[str]] = []
             for fila in hoja.iter_rows(values_only=True):
-                fila_texto = [
-                    "" if c is None else str(c).strip() for c in fila
-                ]
+                fila_texto = [_celda_a_texto(c) for c in fila]
                 filas_muestra.append(fila_texto)
                 if len(filas_muestra) >= 5:
                     break
@@ -92,7 +102,7 @@ class LectorXlsx:
         while self._contador_flujo < saltar_hasta_indice:
             try:
                 fila = next(self._iter_flujo)
-                fila_texto = ["" if c is None else str(c).strip() for c in fila]
+                fila_texto = [_celda_a_texto(c) for c in fila]
                 if any(fila_texto):
                     self._contador_flujo += 1
             except StopIteration:
@@ -112,7 +122,7 @@ class LectorXlsx:
             except StopIteration:
                 break
 
-            fila_texto = ["" if c is None else str(c).strip() for c in fila]
+            fila_texto = [_celda_a_texto(c) for c in fila]
             if not any(fila_texto):
                 continue
 

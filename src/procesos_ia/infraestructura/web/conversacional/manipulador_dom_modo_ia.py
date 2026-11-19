@@ -7,6 +7,7 @@ import json
 import logging
 from typing import Any, Callable
 
+from procesos_ia.infraestructura.web.base.detector_captcha_dom import JS_CONDICION_CAPTCHA, contiene_texto_captcha, es_url_captcha
 from procesos_ia.infraestructura.web.base.extractor_json import extraer_y_reparar_json
 
 logger = logging.getLogger(__name__)
@@ -44,8 +45,7 @@ async def activar_modo_ia(pestana: Any) -> bool:
         if bool(await pestana.evaluate(js)):
             await asyncio.sleep(0.3)
             return True
-    except Exception:
-        pass
+    except Exception: pass
     return False
 
 async def pegar_texto_en_elemento(pestana: Any, elem_input: Any, texto: str) -> bool:
@@ -75,7 +75,6 @@ async def pegar_texto_en_elemento(pestana: Any, elem_input: Any, texto: str) -> 
             return True
     except Exception as err:
         logger.debug("[INFO] Fallback CDP tras inyeccion directa: %s", err)
-
     try:
         await elem_input.apply("(elem) => { elem.removeAttribute('maxlength'); elem.maxLength = 100000; elem.focus(); }")
         import nodriver.cdp.input_ as cdp_input
@@ -89,20 +88,18 @@ async def pegar_texto_en_elemento(pestana: Any, elem_input: Any, texto: str) -> 
 async def esperar_input_modo_ia(pestana: Any, timeout_segundos: float = 15.0) -> Any | None:
     """Espera reactivamente a que el input este montado y visible en el DOM."""
     inicio = asyncio.get_running_loop().time()
-    js_busca = '(() => { const sels = ["textarea.ITIRGe", "textarea[aria-label*=\'pregunta\']", "textarea.gLFyf", "textarea#ti6dpd", "textarea[name=\'q\']", "textarea"]; for (const s of sels) { const el = document.querySelector(s); if (el && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0)) return s; } return null; })()'
+    js_busca = f'(() => {{ if ({JS_CONDICION_CAPTCHA}) return "__CAPTCHA__"; const sels = ["textarea.ITIRGe", "textarea[aria-label*=\'pregunta\']", "textarea.gLFyf", "textarea#ti6dpd", "textarea[name=\'q\']", "textarea"]; for (const s of sels) {{ const el = document.querySelector(s); if (el && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0)) return s; }} return null; }})()'
     while (asyncio.get_running_loop().time() - inicio) < timeout_segundos:
+        if es_url_captcha(pestana): return None
         try:
             sel = await pestana.evaluate(js_busca)
+            if sel == "__CAPTCHA__": return None
             if sel:
                 elem = await pestana.select(str(sel), timeout=0.8)
-                if elem is not None:
-                    return elem
-        except Exception:
-            pass
-        try:
-            await activar_modo_ia(pestana)
-        except Exception:
-            pass
+                if elem is not None: return elem
+        except Exception: pass
+        try: await activar_modo_ia(pestana)
+        except Exception: pass
         await asyncio.sleep(0.15)
     return None
 
@@ -198,8 +195,9 @@ async def esperar_respuesta_modo_ia(
     ultimo_texto = ""
     ultimo_cambio = inicio
 
-    js_extractor = """
-    (() => {
+    js_extractor = (
+        f'(() => {{ if ({JS_CONDICION_CAPTCHA}) return JSON.stringify({{ num_turnos: 0, completo: false, texto: "", lineas: 0, captcha: true }});'
+        """
         const turns = document.querySelectorAll("[data-scope-id='turn']");
         const nTurnos = turns ? turns.length : 0;
         const target = nTurnos > 0 ? turns[nTurnos - 1] : document.body;
@@ -252,9 +250,10 @@ async def esperar_respuesta_modo_ia(
         return JSON.stringify({ num_turnos: nTurnos, completo: completo, texto: txt, lineas: lines.length });
     })()
     """
+    )
     while (asyncio.get_running_loop().time() - inicio) < timeout_segundos:
-        if verificador_cancelacion and verificador_cancelacion():
-            return ""
+        if verificador_cancelacion and verificador_cancelacion(): return ""
+        if es_url_captcha(pestana): return ""
         try:
             eval_res = await asyncio.wait_for(pestana.evaluate(js_extractor), timeout=3.0)
             estado = {}
@@ -266,8 +265,10 @@ async def esperar_respuesta_modo_ia(
             elif isinstance(eval_res, dict):
                 estado = eval_res
 
+            if bool(estado.get("captcha")): return ""
             n_turnos, completo = int(estado.get("num_turnos", 0)), bool(estado.get("completo", False))
             texto, num_lineas = (estado.get("texto") or "").strip(), int(estado.get("lineas", 0))
+            if contiene_texto_captcha(texto): return ""
 
             es_json = '"resultados"' in texto or (texto.startswith("{") and texto.endswith("}"))
             if n_turnos > turnos_previos or turnos_previos == 0:

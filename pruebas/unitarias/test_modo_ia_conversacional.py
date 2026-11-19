@@ -154,12 +154,41 @@ class PruebaModoIAConversacional(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(res2[1]["evaluacion_col_2"], "Plomería")
 
     def test_mapear_respuestas_lote_no_sobrescribe_columnas_originales_y_agrega_ia(self) -> None:
-        lote = [{"negocio": "JMP", "categoria": "Contratista"}]
-        datos = {"resultados": [{"id": 1, "categoria": "Construction Company", "habla_espanol": "Sí"}]}
+        lote = [
+            {"negocio": "JMP", "categoria": "Contratista", "_id_registro": "fila_1", "_estado_ia": "PENDIENTE"},
+            {"negocio": "Lilian", "categoria": "", "_id_registro": "fila_2", "_estado_ia": "PENDIENTE"},
+        ]
+        datos = {"resultados": [
+            {"id": 1, "categoria": "Construction Company", "habla_espanol": "Sí"},
+            {"id": 2, "categoria": "House Cleaning", "habla_espanol": "No"},
+        ]}
         res = mapear_respuestas_lote("", datos, lote, indice_base=1)
         self.assertEqual(res[0]["categoria"], "Contratista")
         self.assertEqual(res[0]["categoria_ia"], "Construction Company")
         self.assertEqual(res[0]["habla_espanol"], "Sí")
+        self.assertEqual(res[1]["categoria"], "")
+        self.assertEqual(res[1]["categoria_ia"], "House Cleaning")
+
+    def test_guardar_enriquecido_preserva_telefono_original_y_fecha_xlsx(self) -> None:
+        import csv, tempfile
+        from datetime import datetime
+        from procesos_ia.aplicacion.ia_web.comun.guardador_extracciones import guardar_filas_enriquecidas_csv
+        from procesos_ia.infraestructura.archivos.lector_xlsx import _celda_a_texto
+
+        self.assertEqual(_celda_a_texto(datetime(2026, 11, 16, 0, 0, 0)), "2026-11-16")
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "salida.csv"
+            filas = [{"telefono": "4013008353", "_id_registro": "fila_1", "_estado_ia": "EXITOSO", "categoria_ia": "Cleaning"}]
+            guardar_filas_enriquecidas_csv(filas, ruta)
+            leido = list(csv.DictReader(ruta.open(encoding="utf-8-sig")))
+            self.assertEqual(leido[0]["telefono"], "4013008353")
+
+            ruta2 = Path(tmp) / "salida_ia_tel.csv"
+            filas2 = [{"url": "https://x.test", "_id_registro": "fila_1", "_estado_ia": "EXITOSO", "telefonos": "4013008353 / 8574525571"}]
+            guardar_filas_enriquecidas_csv(filas2, ruta2)
+            leido2 = list(csv.DictReader(ruta2.open(encoding="utf-8-sig")))
+            self.assertEqual(len(leido2), 2)
+            self.assertEqual(leido2[0]["telefonos"], "(401) 300-8353")
 
     async def test_servicio_web_usa_respaldo_texto_y_reintenta_lote_incompleto(self) -> None:
         from procesos_ia.aplicacion.ia_web.motores.servicio_procesamiento_web import ServicioProcesamientoWeb

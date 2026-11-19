@@ -21,7 +21,7 @@ from procesos_ia.aplicacion.ia_web.comun.diagnostico_lotes import (
     notificar_reintento_lote, notificar_respuesta_lote,
 )
 from procesos_ia.aplicacion.ia_web.comun.gestor_resiliencia_web import (
-    esperar_restablecimiento_conexion, recuperar_si_captcha_google, verificar_conexion_internet,
+    es_texto_captcha_google, esperar_restablecimiento_conexion, recuperar_si_captcha_google, verificar_conexion_internet,
 )
 from procesos_ia.aplicacion.ia_web.comun.guardador_extracciones import (
     guardar_auditoria_modo_ia_md, guardar_filas_enriquecidas_csv,
@@ -133,7 +133,7 @@ class ProcesadorModoIA:
                             pestana, self._config.tiempo_espera_respuesta_segundos, turnos_previos=turnos_inicio,
                             verificador_cancelacion=verificador_cancelacion,
                         )
-                        if not resp_inicio.strip():
+                        if not resp_inicio.strip() or es_texto_captcha_google(html_o_texto=resp_inicio):
                             hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
                             if hubo_captcha:
                                 pestana, lotes_en_conversacion = None, 0
@@ -166,7 +166,7 @@ class ProcesadorModoIA:
                     t_duracion = asyncio.get_running_loop().time() - t_inicio_lote
                     if verificador_cancelacion and verificador_cancelacion(): break
 
-                    if not texto_resp.strip() or re.search(r"estoy listo para procesar|env[ií]a el primer lote", texto_resp, re.I):
+                    if not texto_resp.strip() or es_texto_captcha_google(html_o_texto=texto_resp) or re.search(r"estoy listo para procesar|env[ií]a el primer lote", texto_resp, re.I):
                         hubo_captcha, reintentos_captcha = await self._manejar_captcha(pestana, reintentos_captcha, callback_log)
                         if hubo_captcha:
                             pestana, lotes_en_conversacion = None, 0

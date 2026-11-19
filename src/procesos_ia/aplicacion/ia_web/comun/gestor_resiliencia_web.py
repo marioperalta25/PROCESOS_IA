@@ -223,7 +223,9 @@ async def recuperar_si_captcha_google(
             f"[ALERTA] CAPTCHA de Google detectado. Cerrando navegador, esperando {espera_segundos:.0f}s y reiniciando con perfil limpio..."
         )
     logger.warning("[ALERTA] CAPTCHA de Google detectado. Ejecutando reinicio con perfil limpio.")
-    await gestor_sesion.reiniciar_con_perfil_limpio()
+    purgado = await gestor_sesion.reiniciar_con_perfil_limpio()
+    if purgado is False and callback_log:
+        callback_log("[ALERTA] No se pudo eliminar por completo la carpeta del perfil (archivos retenidos por el sistema).")
     await asyncio.sleep(espera_segundos)
     return True
 

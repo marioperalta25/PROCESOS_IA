@@ -115,3 +115,13 @@ Archivo de registro acumulativo (solo anexar avances y verificaciones sin borrar
 ## Avance adicional - Proteccion contra sobrescritura de columnas originales en CSV Web - 2026-11-17
 - `mapeo_respuestas_tabulares.py`: `mapear_respuestas_lote()` ahora evita sobrescribir cualquier columna existente en la fila de entrada (ej. `categoria`, `owner`, `negocio`) y agrega automaticamente el sufijo `_ia` (`categoria_ia`, etc.) al final para Modo IA, Modo IA URLs, Gemini y DeepSeek, manteniendo intacto el llenado de columnas vacias durante la reanudacion.
 - Validado con `test_modo_ia_conversacional`, `test_mapeo_progreso_tabular`, `test_correccion_empaquetado`, `test_integracion_salidas` y `test_reanudacion_consumidores` (57 pruebas OK).
+
+## Avance adicional - Correccion de columnas de entrada vacias al evitar sobrescritura - 2026-11-18
+- Se detecto en `modo_ia_FINAL_PROD_instagram_nuevos17112026.csv` que cuando una columna original del archivo (ej. `categoria`) venia vacia (`""`) en algunas filas, `TrabajoTabular` ya incluia `_estado_ia = PENDIENTE` en todas las filas y esas celdas vacias seguian escribiendose en `categoria` en vez de `categoria_ia`.
+- `mapeo_respuestas_tabulares.py`: Ahora identifica como columnas originales de entrada todas las claves que aparecen antes de `_id_registro` / `_estado_ia`, enviando siempre sus resultados a `<col>_ia` incluso si la celda original venia vacia, mientras que las columnas generadas por la IA (posteriores a `_id_registro`) se actualizan normalmente en reanudaciones.
+- Validado con 57 pruebas unitarias OK.
+
+## Avance adicional - Preservacion de telefonos originales y fechas de Excel - 2026-11-18
+- `guardador_extracciones.py`: `guardar_filas_enriquecidas_csv()` ahora solo aplica `desglosar_filas_por_telefono()` sobre columnas de telefono generadas por la IA (posteriores a `_id_registro` / `_estado_ia`), dejando intactas las columnas originales de entrada (como `telefono`).
+- `lector_xlsx.py`: Agregado `_celda_a_texto()` para evitar sufijo ` 00:00:00` en fechas puras leidas desde Excel.
+- Validado con `test_modo_ia_conversacional`, `test_correccion_empaquetado`, `test_reanudacion_consumidores` y `test_integracion_salidas` (51 pruebas OK).

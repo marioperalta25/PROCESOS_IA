@@ -13,6 +13,7 @@ from typing import Any, Callable
 
 from procesos_ia.dominio.ia_web.ficha_negocio import FichaNegocioLens
 from procesos_ia.dominio.ia_web.parseador_ficha_lens import parsear_sintesis_negocio
+from procesos_ia.infraestructura.web.base.detector_captcha_dom import JS_CONDICION_CAPTCHA, es_url_captcha
 from procesos_ia.infraestructura.web.visual_1a1.selectores_lens import SELECTORES_LENS
 
 logger = logging.getLogger(__name__)
@@ -85,11 +86,9 @@ async def cargar_archivo_en_lens(
                 pass
     except Exception as err:
         logger.debug("[DEBUG] Fallback a inyeccion JS: %s", err)
-
     if exito_cdp:
         await asyncio.sleep(2.0)
         return True
-
     try:
         mime, _ = mimetypes.guess_type(str(ruta_archivo))
         with open(ruta_archivo, "rb") as f:
@@ -178,8 +177,9 @@ async def esperar_vision_general_ia(
     ultimo_texto = ""
     estable_ticks = 0
     coincidencias_inicio: float | None = None
-    js_inspector = """
-    (() => {
+    js_inspector = (
+        f'(() => {{ if ({JS_CONDICION_CAPTCHA}) return JSON.stringify({{ tipo: "CAPTCHA", texto: "" }});'
+        """
         const alertBox = document.querySelector('div[jsname="N2QsAf"], div.dEZYP[role="alert"]');
         if (alertBox && alertBox.style.display !== 'none') {
             for (const sp of alertBox.querySelectorAll('span')) {
@@ -232,10 +232,10 @@ async def esperar_vision_general_ia(
         if (visual) return JSON.stringify({ tipo: 'VISUAL_PRESENTE', texto: '' });
         return JSON.stringify({ tipo: 'ESPERANDO', texto: '' });
     })()
-    """
+    """)
     while (asyncio.get_running_loop().time() - tiempo_inicio) < timeout_segundos:
-        if verificador_cancelacion and verificador_cancelacion():
-            return "[INFO] Cancelado por el usuario.", "CANCELADO"
+        if verificador_cancelacion and verificador_cancelacion(): return "[INFO] Cancelado por el usuario.", "CANCELADO"
+        if es_url_captcha(pestana): return "[ALERTA] CAPTCHA detectado en Google Lens.", "CAPTCHA"
         try:
             eval_res = await pestana.evaluate(js_inspector)
             if isinstance(eval_res, str) and eval_res.startswith("{"):
@@ -246,10 +246,9 @@ async def esperar_vision_general_ia(
             if isinstance(eval_res, dict):
                 tipo = eval_res.get("tipo", "ESPERANDO")
                 txt_res = eval_res.get("texto", "")
-                if tipo == "ERROR_SUBIDA":
-                    return txt_res or "[ERROR] Fallo de subida en Google Lens", "ERROR_SUBIDA"
-                if tipo == "SIN_VISION_GENERAL":
-                    return txt_res or "[INFO] No hay visión general disponible.", "SIN_VISION_GENERAL"
+                if tipo == "CAPTCHA": return "[ALERTA] CAPTCHA detectado en Google Lens.", "CAPTCHA"
+                if tipo == "ERROR_SUBIDA": return txt_res or "[ERROR] Fallo de subida en Google Lens", "ERROR_SUBIDA"
+                if tipo == "SIN_VISION_GENERAL": return txt_res or "[INFO] No hay visión general disponible.", "SIN_VISION_GENERAL"
                 if tipo == "EXITOSO":
                     txt_cuerpo = re.sub(r"^(?:Visi[oó]n general creada por IA|AI Overview|El Modo IA respondi[oó]:?|Buscando)\s*", "", txt_res, flags=re.I).strip()
                     txt_cuerpo = re.sub(r"^(?:El Modo IA respondi[oó]:?\s*)+", "", txt_cuerpo, flags=re.I).strip()

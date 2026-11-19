@@ -246,9 +246,38 @@ class GestorSesionNodriver:
         """Alias de compatibilidad para cerrar la sesion de navegador."""
         await self.cerrar()
 
-    async def reiniciar_con_perfil_limpio(self) -> None:
+    def _terminar_procesos_del_perfil(self) -> int:
+        """Termina procesos residuales de Chromium que retengan la carpeta del perfil."""
+        ruta_obj = str(self._config.directorio_perfil.resolve()).lower()
+        terminados = 0
+        try:
+            import psutil
+
+            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+                try:
+                    nombre = (proc.info.get("name") or "").lower()
+                    if not any(t in nombre for t in ("chrome", "chromium", "msedge")):
+                        continue
+                    cmdline = " ".join(proc.info.get("cmdline") or []).lower()
+                    if ruta_obj in cmdline:
+                        proc.kill()
+                        terminados += 1
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+        except Exception:
+            pass
+        return terminados
+
+    async def reiniciar_con_perfil_limpio(self) -> bool:
         """Cierra el navegador, purga el perfil en disco y elimina bloqueos."""
         await self.cerrar()
-        await asyncio.sleep(0.3)
-        self._config.purgar_perfil_usuario()
+        self._terminar_procesos_del_perfil()
+        await asyncio.sleep(0.4)
+        purgado = self._config.purgar_perfil_usuario()
         self._config.limpiar_bloqueos_perfil()
+        if not purgado:
+            logger.warning(
+                "[ALERTA] Purga incompleta de perfil en %s (archivos retenidos).",
+                self._config.directorio_perfil,
+            )
+        return purgado

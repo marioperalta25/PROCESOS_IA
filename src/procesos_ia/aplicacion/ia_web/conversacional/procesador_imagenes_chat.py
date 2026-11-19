@@ -16,10 +16,9 @@ from procesos_ia.aplicacion.ia_web.comun.gestor_lote_imagenes import (
     recolectar_basura_ciclo,
 )
 from procesos_ia.aplicacion.ia_web.comun.gestor_resiliencia_web import (
-    esperar_restablecimiento_conexion,
-    recuperar_si_captcha_google,
-    salvaguardar_progreso_csv,
-    verificar_conexion_internet,
+    detectar_captcha_pestana, es_texto_captcha_google,
+    esperar_restablecimiento_conexion, recuperar_si_captcha_google,
+    salvaguardar_progreso_csv, verificar_conexion_internet,
 )
 from procesos_ia.aplicacion.ia_web.comun.guardador_extracciones import (
     guardar_auditoria_modo_ia_md,
@@ -177,7 +176,7 @@ class ProcesadorImagenesChat:
                         enviado = False
                         for intento in range(1, 3):
                             enviado = await inyectar_imagen_y_prompt_modo_ia(pestana, prompt_base, ruta_imagen=ruta_img)
-                            if enviado: break
+                            if enviado or await detectar_captcha_pestana(pestana): break
                             if intento < 2:
                                 if callback_log: callback_log(f"[ALERTA] Intento {intento}/2 falló al inyectar '{ruta_img.name}'. Reintentando en 2.5s...")
                                 await asyncio.sleep(2.5)
@@ -203,7 +202,7 @@ class ProcesadorImagenesChat:
                         t_dur = asyncio.get_running_loop().time() - t_inicio
                         if verificador_cancelacion and verificador_cancelacion():
                             detener_por_captcha = True; break
-                        if not resp_texto.strip() and await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
+                        if (not resp_texto.strip() or es_texto_captcha_google(html_o_texto=resp_texto)) and await recuperar_si_captcha_google(pestana, self._gestor, callback_log):
                             pestana = None; imgs_en_chat = 0; reintentos_captcha += 1
                             if reintentos_captcha > 3:
                                 if callback_log: callback_log("[ERROR] CAPTCHA persistente tras 3 reinicios de perfil. Deteniendo proceso.")

@@ -113,10 +113,22 @@ class ConfiguracionWeb:
 
             if not self.directorio_perfil.exists():
                 break
-            time.sleep(0.2)
+            time.sleep(0.25)
 
+        if self.directorio_perfil.exists():
+            for elemento in list(self.directorio_perfil.iterdir()):
+                try:
+                    if elemento.is_dir() and not elemento.is_symlink():
+                        shutil.rmtree(elemento, onerror=_desbloquear_y_borrar)
+                    else:
+                        os.chmod(elemento, stat.S_IWRITE)
+                        elemento.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+        vacio = not self.directorio_perfil.exists() or not any(self.directorio_perfil.iterdir())
         self.directorio_perfil.mkdir(parents=True, exist_ok=True)
-        return True
+        return vacio
 
     def limpiar_imagenes_temporales(self) -> int:
         """Elimina archivos temporales residuales en la carpeta de imágenes."""

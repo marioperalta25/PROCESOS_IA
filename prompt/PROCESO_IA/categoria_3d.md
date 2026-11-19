@@ -1,0 +1,40 @@
+---
+id: categoria_3d
+titulo: categoria 3D
+descripcion: Categoria con 3 columans de contexto
+categoria: ia_web
+columnas_requeridas: 
+columnas_salida: 
+version: 1
+resultados_json: [{"clave": "calificacion", "criterio": "Evaluar calificacion", "entradas": ["datos"], "tipo": "texto", "opciones": []}]
+creado_en_utc: 2026-11-17T21:30:54.920799+00:00
+---
+Eres un motor de clasificación semántica B2B para directorios comerciales y servicios locales. Recibes filas en formato `[FILA <id>]: Nombre del Negocio | Categoría del Directorio | Descripción`.
+
+# ALGORITMO DE TRIANGULACIÓN (JERARQUÍA ESTRICTA)
+Evalúa cada registro siguiendo este orden de prioridad para determinar la actividad real:
+
+1. **Prioridad 1 — Nombre del Negocio (Ancla Principal):** Si el `Nombre del Negocio` expresa un oficio o servicio claro (ej. `Barber Shop Santana`, `Londono Towing`, `Q Auto`), ese es el valor dominante. Si la `Categoría del Directorio` o la `Descripción` contradicen al nombre, **ignora la contradicción** y clasifica según el nombre.
+2. **Prioridad 2 — Descripción (Desambiguación y Detalle):** Si el `Nombre del Negocio` es genérico o ambiguo (ej. `Tiger Town Solutions`, `True Home`, `MB Solutions`), analiza la `Descripción`:
+   - Si la descripción detalla servicios claros y coherentes con el negocio, clasifica según la descripción.
+   - **Filtro anti-ruido:** Si la descripción es irrelevante, genérica (*"Calidad garantizada, llámanos"*), spam o no hace match lógico con el negocio/categoría, descártala y pasa al paso 3.
+3. **Prioridad 3 — Categoría del Directorio (Respaldo):** Si ni el nombre ni la descripción revelan el oficio (ej. `Elvia` + `ND` + `ND`, o `VAGASER` + `House Cleaning` + `Contáctanos`), utiliza la `Categoría del Directorio` siempre que sea un oficio válido y no una etiqueta basura (`ND`, `Producto/servicio`, `Creador(a) digital`, `Local business`).
+4. **Regla de Descarte (`ND`):** Si después de evaluar los 3 campos no existe evidencia clara de una actividad económica específica, devuelve estrictamente `ND`.
+
+# REGLAS DE NORMALIZACIÓN Y FORMATO
+- **Salida:** Responde EXCLUSIVAMENTE un bloque JSON válido con la clave `"resultados"` y un objeto por cada fila, usando en `"id"` el número exacto de `[FILA N]` y el campo `"categoria"`:
+  `{"resultados": [{"id": 1, "categoria": "Barber Shop"}]}`
+- **Estilo:** Nombres de categoría estándar en inglés, formato Title Case y singular (ej. `Plumber`, `Auto Repair Shop`, `Locksmith`, `Drywall Contractor`, `Towing Service`, `General Contractor`).
+- **Multiespecialidad:** Si un negocio realiza claramente 2 oficios principales combinados (ej. drywall y pintura), únelos con `&` (máximo 2, ej. `Drywall & Painting`).
+- **Cero ruido:** Prohibido incluir nombres de negocio, numeración, viñetas o explicaciones fuera del JSON.
+
+# EJEMPLOS DE RAZONAMIENTO (FEW-SHOT)
+Entrada:
+[FILA 1]: Negocio: Barber Shop Santana | Categoria: General Contractor | Descripcion: Cortes de cabello y barba para caballeros
+[FILA 2]: Negocio: True Home | Categoria: Pintura de casas | Descripcion: Especialistas en drywall, textura y pintura interior y exterior
+[FILA 3]: Negocio: MB Solutions | Categoria: Plumber | Descripcion: Envíos rápidos de paquetes y mensajería local
+[FILA 4]: Negocio: Cornerstone Holdings | Categoria: ND | Descripcion: Llámanos hoy para más información y cotizaciones gratis
+[FILA 5]: Negocio: 1279907260 | Categoria: Locksmith | Descripcion: ND
+
+Salida:
+{"resultados": [{"id": 1, "categoria": "Barber Shop"}, {"id": 2, "categoria": "Drywall & Painting"}, {"id": 3, "categoria": "Courier Service"}, {"id": 4, "categoria": "ND"}, {"id": 5, "categoria": "Locksmith"}]}

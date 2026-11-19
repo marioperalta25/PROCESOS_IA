@@ -139,9 +139,11 @@ class ServicioIAGeneral:
                 )
                 if estado_ia == "CANCELADO":
                     return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="CANCELADO", texto_sintesis="[INFO] Proceso cancelado por el usuario")
-                if estado_ia == "TIMEOUT":
+                if estado_ia in ("CAPTCHA", "TIMEOUT", "TIMEOUT_SIN_RESPUESTA"):
                     estado_cap = await self._verificar_captcha_lens(pestana, intento_captcha, callback_log)
                     if estado_cap == "reintentar": continue
+                    if estado_cap == "agotado":
+                        return FichaNegocioLens(id_registro=id_registro, fuente_imagen=fuente_imagen, estado_ia="ERROR_CAPTCHA", texto_sintesis="[ERROR] CAPTCHA persistente tras 3 reinicios de perfil")
                 if callback_log: callback_log("[INFO] Leyendo respuesta del DOM...")
                 html_pagina = ""
                 try:

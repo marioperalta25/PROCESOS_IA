@@ -90,21 +90,22 @@ def mapear_respuestas_lote(
     fecha_iso = GestorReanudacionBase.fecha_actual_iso()
     for idx, f in enumerate(lote_actual):
         f_res = dict(f)
-        es_reanudacion = COLUMNA_ESTADO in f
-        claves_origen = {str(c).casefold(): str(c) for c in f.keys()}
+        claves_entrada: dict[str, str] = {}
+        for c in f.keys():
+            if c in (COLUMNA_ID, COLUMNA_ESTADO):
+                break
+            claves_entrada[str(c).casefold()] = str(c)
         eval_dict = mapa.get(idx)
         if eval_dict and any(v not in (None, "") for v in eval_dict.values()):
             for k, v in eval_dict.items():
                 clave_dest = k
-                if clave_dest.casefold() in claves_origen and not clave_dest.casefold().endswith("_ia"):
-                    clave_orig = claves_origen[clave_dest.casefold()]
-                    if not (es_reanudacion and not str(f.get(clave_orig, "") or "").strip()):
-                        base_ia = f"{clave_dest}_ia"
-                        clave_dest = base_ia
-                        suf = 2
-                        while clave_dest.casefold() in claves_origen:
-                            clave_dest = f"{base_ia}_{suf}"
-                            suf += 1
+                if clave_dest.casefold() in claves_entrada and not clave_dest.casefold().endswith("_ia"):
+                    base_ia = f"{clave_dest}_ia"
+                    clave_dest = base_ia
+                    suf = 2
+                    while clave_dest.casefold() in claves_entrada:
+                        clave_dest = f"{base_ia}_{suf}"
+                        suf += 1
                 f_res[clave_dest] = v
             f_res.pop("error_inferencia", None)
             f_res.pop("respuesta_modelo", None)
